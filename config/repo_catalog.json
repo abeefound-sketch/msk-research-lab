@@ -1,0 +1,22 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "version": "1.0.0",
+  "candidates": [
+    {
+      "id": "open-anatomy-browser",
+      "name": "Open Anatomy Browser",
+      "upstream_url": "https://github.com/openanatomy/open-anatomy-browser",
+      "license": "Apache-2.0",
+      "status": "CANDIDATE_UNINSPECTED",
+      "target_kind": "3D_ANATOMY_ATLAS"
+    },
+    {
+      "id": "firstbrain-reference",
+      "name": "FirstBrain Reference Framework",
+      "upstream_url": "local-reference",
+      "license": "MIT",
+      "status": "APPROVED_REFERENCE",
+      "target_kind": "SCHOLARLY_LEDGER_ONTOLOGY"
+    }
+  ]
+}

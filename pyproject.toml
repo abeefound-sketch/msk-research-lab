@@ -1,0 +1,40 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "msk-research-lab"
+version = "0.1.0"
+description = "Independent MSK Research Lab OS workbench for OSS repositories, literature, and scholarly tri-ledger."
+readme = "README.md"
+requires-python = ">=3.11"
+authors = [
+    { name = "MSK Research Lab Team" }
+]
+dependencies = [
+    "fastapi>=0.110.0",
+    "uvicorn[standard]>=0.28.0",
+    "pydantic>=2.6.0",
+    "jinja2>=3.1.3",
+    "python-multipart>=0.0.9",
+    "httpx>=0.27.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.23.0",
+    "ruff>=0.3.0",
+]
+library = [
+    "pypdf>=4.0.0",
+    "python-docx>=1.1.0",
+    "ebooklib>=0.18",
+    "beautifulsoup4>=4.12.0",
+]
+
+[project.scripts]
+msk-lab = "msk_research_lab.__main__:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]

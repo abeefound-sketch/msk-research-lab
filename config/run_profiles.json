@@ -1,0 +1,14 @@
+{
+  "version": "1.0.0",
+  "profiles": [
+    {
+      "profile_id": "profile-static-browser",
+      "name": "Static Web App Runner",
+      "sandbox_type": "SUBPROCESS_ISOLATED",
+      "max_memory_mb": 512,
+      "max_cpu_percent": 50,
+      "timeout_seconds": 300,
+      "allowed_ports": [8081, 8082, 8083]
+    }
+  ]
+}

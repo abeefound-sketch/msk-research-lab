@@ -1,0 +1,68 @@
+# Operating System junk
+Thumbs.db
+.DS_Store
+~$*
+desktop.ini
+
+# Python runtime & build artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+
+# Testing & linting
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+
+# Secrets & local environment variables
+.env
+.env.local
+*.pem
+*.key
+*.token
+
+# Upstream specimens and raw document imports (preserve .gitkeep)
+# Note: Heavy upstream repos and raw copyright book uploads must not be committed to Git.
+3refs/upstream/*
+!3refs/upstream/.gitkeep
+
+2data/originals/*
+!2data/originals/.gitkeep
+
+2data/snapshots/.builds/*
+!2data/snapshots/.builds/.gitkeep
+
+# ==============================================================================
+# QUY CHUẨN GIT_REPO_CANON (D:\1docs):
+# KHÔNG IGNORE:
+# - .m/             <- BUILD JOURNAL: lịch sử build của coding agent (bắt buộc giữ)
+# - *.db, *.sqlite  <- database SQLite local (registry, tri-ledger)
+# - *.log           <- log files kiểm thử & audit
+# - *.csv, *.xlsx   <- dataset nghiên cứu
+# ==============================================================================
