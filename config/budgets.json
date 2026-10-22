@@ -1,0 +1,22 @@
+{
+  "schema_version": "1.0",
+  "hardware_spec_from_user_not_measured": {
+    "os": "Windows 10 + Ubuntu WSL2",
+    "cpu": "Intel i7-5600U",
+    "system_ram_gib": 8,
+    "gpu": "Intel HD 5500",
+    "ssd_gib_approx": 238
+  },
+  "limits_proposal_not_verified": {
+    "heavy_jobs_parallel_max": 1,
+    "backend_idle_rss_mib_target": 500,
+    "upstream_sandbox_memory_mib_max_initial": 2048,
+    "upstream_sandbox_cpus_initial": 1.5,
+    "sandbox_pid_limit_initial": 128,
+    "graph_neighborhood_nodes_max_initial": 100,
+    "graph_neighborhood_edges_max_initial": 200,
+    "listen_host": "127.0.0.1",
+    "listen_port": 8091
+  },
+  "review_required_before_untrusted_code": true
+}

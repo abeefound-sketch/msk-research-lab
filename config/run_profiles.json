@@ -1,14 +1,26 @@
 {
-  "version": "1.0.0",
-  "profiles": [
-    {
-      "profile_id": "profile-static-browser",
-      "name": "Static Web App Runner",
-      "sandbox_type": "SUBPROCESS_ISOLATED",
-      "max_memory_mb": 512,
-      "max_cpu_percent": 50,
-      "timeout_seconds": 300,
-      "allowed_ports": [8081, 8082, 8083]
-    }
-  ]
+  "schema_version": "1.0",
+  "default_execution_policy": "DENY",
+  "profiles": [],
+  "example_proposed_profile_NOT_APPROVED": {
+    "id": "DONT_EXECUTE_EXAMPLE",
+    "repository_id": "jicio--tcm-3d",
+    "pinned_sha": null,
+    "argv": [],
+    "cwd": null,
+    "sandbox_engine": null,
+    "read_only_mounts": [],
+    "writable_mounts": [],
+    "network": "none",
+    "memory_mib": 2048,
+    "cpus": 1.5,
+    "pids_limit": 128,
+    "timeout_seconds": 300,
+    "port_binding": "127.0.0.1",
+    "code_license_review": "REVIEW_REQUIRED",
+    "asset_license_review": "REVIEW_REQUIRED",
+    "operator_approval_event_id": null,
+    "enabled": false
+  },
+  "activation_rule": "Requires real pinned SHA, explicit reviewer/owner approval, verified sandbox and negative isolation tests. Never flip enabled by a task prompt alone."
 }

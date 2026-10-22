@@ -1,0 +1,21 @@
+requirement_id,source_reference,v3_normative_location,initial_verification_state
+G1,"Platform_MVP_v2.md: 0 Executive G1, 1 G1; Knowledge_Integrity_v2.1.md: 1 G1",SPEC/ACCEPTANCE_MATRIX.md,NOT_TESTED
+G2,"Platform_MVP_v2.md: 0 G2, 1 G2; Repo_Research_Spec_v1_Vietnamese.md: FR-01..04",SPEC/ACCEPTANCE_MATRIX.md,NOT_TESTED
+G3,"Platform_MVP_v2.md: 0 G3, 1 G3",SPEC/ACCEPTANCE_MATRIX.md,NOT_TESTED
+G4,"Platform_MVP_v2.md: 0 G4, 1 G4",SPEC/ACCEPTANCE_MATRIX.md,NOT_TESTED
+G5,"Platform_MVP_v2.md: 0 G5, 1 G5",SPEC/ACCEPTANCE_MATRIX.md,NOT_TESTED
+G6,"Platform_MVP_v2.md: 0 G6, 1 G6",SPEC/ACCEPTANCE_MATRIX.md,NOT_TESTED
+G7,"Knowledge_Integrity_v2.1.md: 1 G7, 3 Tri-Ledger",SPEC/ACCEPTANCE_MATRIX.md,NOT_TESTED
+G8,"Knowledge_Integrity_v2.1.md: 1 G8, 4 provenance",SPEC/ACCEPTANCE_MATRIX.md,NOT_TESTED
+G9,"Knowledge_Integrity_v2.1.md: 1 G9, 5 ontology graph",SPEC/ACCEPTANCE_MATRIX.md,NOT_TESTED
+G10,"Knowledge_Integrity_v2.1.md: 1 G10, 6 publication",SPEC/ACCEPTANCE_MATRIX.md,NOT_TESTED
+SEC,Repo_Research_Spec_v1_Vietnamese.md: FR-03; Platform_MVP_v2.md: SEC; Knowledge_Integrity_v2.1.md: §9,SPEC/ACCEPTANCE_MATRIX.md,NOT_TESTED
+ATLAS-01,"Atlas_Engineering_Spec_v1_English.md: §§5–7, 11–12",SPEC/ACCEPTANCE_MATRIX.md,NOT_TESTED
+ATLAS-02,"Atlas_Engineering_Spec_v1_English.md: §§5–7, 11–12",SPEC/ACCEPTANCE_MATRIX.md,NOT_TESTED
+ATLAS-03,"Atlas_Engineering_Spec_v1_English.md: §§5–7, 11–12",SPEC/ACCEPTANCE_MATRIX.md,NOT_TESTED
+ATLAS-04,"Atlas_Engineering_Spec_v1_English.md: §§5–7, 11–12",SPEC/ACCEPTANCE_MATRIX.md,NOT_TESTED
+ATLAS-05,"Atlas_Engineering_Spec_v1_English.md: §§5–7, 11–12",SPEC/ACCEPTANCE_MATRIX.md,NOT_TESTED
+ATLAS-06,"Atlas_Engineering_Spec_v1_English.md: §§5–7, 11–12",SPEC/ACCEPTANCE_MATRIX.md,NOT_TESTED
+BRIDGE-01,"Atlas_Engineering_Spec_v1_English.md: §§9,12; Repo_Research_Spec_v1_Vietnamese.md: FR-08; Knowledge_Integrity_v2.1.md: §7",SPEC/ACCEPTANCE_MATRIX.md,NOT_TESTED
+BRIDGE-02,"Atlas_Engineering_Spec_v1_English.md: §§9,12; Repo_Research_Spec_v1_Vietnamese.md: FR-08; Knowledge_Integrity_v2.1.md: §7",SPEC/ACCEPTANCE_MATRIX.md,NOT_TESTED
+BRIDGE-03,"Atlas_Engineering_Spec_v1_English.md: §§9,12; Repo_Research_Spec_v1_Vietnamese.md: FR-08; Knowledge_Integrity_v2.1.md: §7",SPEC/ACCEPTANCE_MATRIX.md,NOT_TESTED

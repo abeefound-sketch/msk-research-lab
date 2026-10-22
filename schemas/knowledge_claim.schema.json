@@ -1,0 +1,99 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Research Knowledge Claim",
+  "description": "Source supported is attribution, not clinical efficacy; transactional review checks additional.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "claim_id",
+    "statement",
+    "namespace",
+    "claim_kind",
+    "status",
+    "review_state",
+    "evidence_refs",
+    "clinical_evidence_assessment"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string"
+    },
+    "claim_id": {
+      "type": "string"
+    },
+    "statement": {
+      "type": "string",
+      "minLength": 1
+    },
+    "namespace": {
+      "type": "string"
+    },
+    "claim_kind": {
+      "enum": [
+        "SOURCE_DESCRIPTION",
+        "ANATOMICAL_FACT",
+        "TRADITIONAL_THEORY",
+        "HYPOTHESIS",
+        "GEOMETRIC_ASSERTION",
+        "INTERVENTION_EFFECT",
+        "TECHNICAL_FINDING"
+      ]
+    },
+    "status": {
+      "enum": [
+        "DRAFT",
+        "PROVISIONAL",
+        "SOURCE_SUPPORTED",
+        "DISPUTED",
+        "REVISED",
+        "REJECTED"
+      ]
+    },
+    "review_state": {
+      "enum": [
+        "UNREVIEWED",
+        "LOCATOR_VERIFIED",
+        "CONTENT_REVIEWED",
+        "DOMAIN_REVIEWED",
+        "REJECTED"
+      ]
+    },
+    "evidence_refs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "counter_evidence_refs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "clinical_evidence_assessment": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "human_reviewer_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "review_rationale": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "supersedes_claim_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  }
+}

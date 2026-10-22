@@ -1,0 +1,30 @@
+============================= test session starts ==============================
+platform linux -- Python 3.10.12, pytest-9.1.1, pluggy-1.7.0 -- /home/tuan/.venvs/msk-lab/bin/python3
+cachedir: .pytest_cache
+rootdir: /mnt/c/Users/tuanh/Downloads/msk-research-lab
+configfile: pyproject.toml
+plugins: anyio-4.15.1
+collecting ... collected 14 items
+
+tests/integration/test_dashboard.py::test_dashboard_renders_html PASSED  [  7%]
+tests/integration/test_dashboard.py::test_dashboard_alias_route PASSED   [ 14%]
+tests/integration/test_health_api.py::test_get_health_ok PASSED          [ 21%]
+tests/security/test_security_r0.py::test_sec_reject_non_loopback_host PASSED [ 28%]
+tests/security/test_security_r0.py::test_sec_cors_disallows_wildcard PASSED [ 35%]
+tests/security/test_security_r0.py::test_sec_port_checker PASSED         [ 42%]
+tests/unit/test_catalog.py::test_load_catalog_seed PASSED                [ 50%]
+tests/unit/test_catalog.py::test_seed_repositories_and_query PASSED      [ 57%]
+tests/unit/test_config.py::test_default_config PASSED                    [ 64%]
+tests/unit/test_config.py::test_storage_paths PASSED                     [ 71%]
+tests/unit/test_db.py::test_sqlite_wal_and_fk_settings PASSED            [ 78%]
+tests/unit/test_db.py::test_foreign_key_enforcement PASSED               [ 85%]
+tests/unit/test_db.py::test_migration_idempotency PASSED                 [ 92%]
+tests/unit/test_sandbox.py::test_sandbox_probe_honesty PASSED            [100%]
+
+=============================== warnings summary ===============================
+../../../../../../home/tuan/.venvs/msk-lab/lib/python3.10/site-packages/fastapi/testclient.py:1
+  /home/tuan/.venvs/msk-lab/lib/python3.10/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+======================== 14 passed, 1 warning in 5.12s =========================

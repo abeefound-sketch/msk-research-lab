@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MSK Research Lab OS — Dashboard v3.0</title>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --surface-color: #1e293b;
+            --card-border: #334155;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent-blue: #38bdf8;
+            --status-green: #22c55e;
+            --status-amber: #f59e0b;
+            --status-red: #ef4444;
+            --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: var(--font-family);
+            font-size: 14px;
+            line-height: 1.5;
+            padding: 16px;
+        }
+        .container {
+            max-width: 1300px;
+            margin: 0 auto;
+        }
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--card-border);
+            margin-bottom: 20px;
+        }
+        .brand h1 {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--accent-blue);
+            letter-spacing: -0.5px;
+        }
+        .brand p {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .badge-green { background: rgba(34, 197, 94, 0.15); color: var(--status-green); border: 1px solid var(--status-green); }
+        .badge-amber { background: rgba(245, 158, 11, 0.15); color: var(--status-amber); border: 1px solid var(--status-amber); }
+        .badge-red { background: rgba(239, 68, 68, 0.15); color: var(--status-red); border: 1px solid var(--status-red); }
+        .badge-uninspected { background: rgba(148, 163, 184, 0.15); color: var(--text-muted); border: 1px solid var(--card-border); }
+        
+        .grid-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        .card {
+            background: var(--surface-color);
+            border: 1px solid var(--card-border);
+            border-radius: 8px;
+            padding: 16px;
+        }
+        .card h3 {
+            font-size: 13px;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+            letter-spacing: 0.5px;
+        }
+        .card .value {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        .card .detail {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+        
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: var(--text-main);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--surface-color);
+            border: 1px solid var(--card-border);
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 24px;
+        }
+        th, td {
+            padding: 10px 14px;
+            text-align: left;
+            border-bottom: 1px solid var(--card-border);
+        }
+        th {
+            background: rgba(0, 0, 0, 0.2);
+            color: var(--text-muted);
+            font-size: 12px;
+            font-weight: 600;
+        }
+        tr:last-child td { border-bottom: none; }
+        code {
+            background: rgba(0,0,0,0.3);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+            color: var(--accent-blue);
+        }
+        .gates-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 8px;
+            margin-bottom: 24px;
+        }
+        .gate-card {
+            background: var(--surface-color);
+            border: 1px solid var(--card-border);
+            padding: 10px;
+            border-radius: 6px;
+            text-align: center;
+        }
+        .gate-name {
+            font-weight: 600;
+            font-size: 12px;
+            margin-bottom: 4px;
+        }
+        footer {
+            margin-top: 24px;
+            padding-top: 16px;
+            border-top: 1px solid var(--card-border);
+            display: flex;
+            justify-content: space-between;
+            color: var(--text-muted);
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="brand">
+                <h1>MSK Research Lab OS <span class="badge badge-green">R0 Verified</span></h1>
+                <p>Independent Research Workbench &bull; Target: Windows 10 / Ubuntu WSL2 (1366&times;768)</p>
+            </div>
+            <div id="controls">
+                <span class="badge badge-green">LOCAL 127.0.0.1:8091</span>
+            </div>
+        </header>
+
+        <div class="grid-cards">
+            <div class="card">
+                <h3>System Health</h3>
+                <div class="value" style="color: var(--status-green);">HEALTHY</div>
+                <div class="detail">Uptime: 15.3s &bull; Port: 8091</div>
+            </div>
+            <div class="card">
+                <h3>Database State</h3>
+                <div class="value">SQLite 3.37.2</div>
+                <div class="detail">WAL: ON &bull; FKs: ON &bull; Migrations: v1</div>
+            </div>
+            <div class="card">
+                <h3>Sandbox Isolation</h3>
+                <div class="value" style="color: var(--status-amber);">SANDBOX_UNAVAILABLE</div>
+                <div class="detail">Neither Podman nor Docker runtime detected on this WSL2 host. Native subpro...</div>
+            </div>
+            <div class="card">
+                <h3>Security Policy</h3>
+                <div class="value">Deny-by-Default</div>
+                <div class="detail">Loopback Enforced &bull; Untrusted Execution BLOCKED</div>
+            </div>
+        </div>
+
+        <h2 class="section-title">Release Roadmap Gates (R0 &rarr; R6)</h2>
+        <div class="gates-grid">
+            <div class="gate-card">
+                <div class="gate-name">R0: Foundation</div>
+                <span class="badge badge-green">VERIFIED</span>
+            </div>
+            <div class="gate-card">
+                <div class="gate-name">R1: Repo Lab</div>
+                <span class="badge badge-amber">BLOCKED (Sandbox)</span>
+            </div>
+            <div class="gate-card">
+                <div class="gate-name">R2: Library</div>
+                <span class="badge badge-uninspected">NOT STARTED</span>
+            </div>
+            <div class="gate-card">
+                <div class="gate-name">R3: Integrity</div>
+                <span class="badge badge-uninspected">NOT STARTED</span>
+            </div>
+            <div class="gate-card">
+                <div class="gate-name">R4: 3D Atlas</div>
+                <span class="badge badge-uninspected">NOT STARTED</span>
+            </div>
+            <div class="gate-card">
+                <div class="gate-name">R5: Studio</div>
+                <span class="badge badge-uninspected">NOT STARTED</span>
+            </div>
+            <div class="gate-card">
+                <div class="gate-name">R6: Bridge</div>
+                <span class="badge badge-uninspected">NOT STARTED</span>
+            </div>
+        </div>
+
+        <h2 class="section-title">Candidate Repositories (Untrusted Metadata &bull; No Auto-Clone)</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Status</th>
+                    <th>License</th>
+                    <th>Target Kind</th>
+                </tr>
+            </thead>
+            <tbody>
+                
+        <tr>
+            <td><code>cognitionlabsnuc--open-anatomy-atlas</code></td>
+            <td><strong>CognitionLabSNUC/open-anatomy-atlas</strong></td>
+            <td><span class="badge badge-uninspected">UNVERIFIED_AT_HANDOFF</span></td>
+            <td>REVIEW_REQUIRED</td>
+            <td><small>anatomy_3d</small></td>
+        </tr>
+        
+        <tr>
+            <td><code>eb-barry--acupuncture-3d-authoring</code></td>
+            <td><strong>eb-barry/acupuncture-3d-authoring</strong></td>
+            <td><span class="badge badge-uninspected">UNVERIFIED_AT_HANDOFF</span></td>
+            <td>REVIEW_REQUIRED</td>
+            <td><small>atlas_editor</small></td>
+        </tr>
+        
+        <tr>
+            <td><code>galaxy-hzy--meridian-atlas</code></td>
+            <td><strong>galaxy-hzy/meridian-atlas</strong></td>
+            <td><span class="badge badge-uninspected">UNVERIFIED_AT_HANDOFF</span></td>
+            <td>REVIEW_REQUIRED</td>
+            <td><small>traditional_knowledge</small></td>
+        </tr>
+        
+        <tr>
+            <td><code>giorgiohuang--chino-meds</code></td>
+            <td><strong>GiorgioHuang/chino-meds</strong></td>
+            <td><span class="badge badge-uninspected">UNVERIFIED_AT_HANDOFF</span></td>
+            <td>REVIEW_REQUIRED</td>
+            <td><small>traditional_knowledge</small></td>
+        </tr>
+        
+        <tr>
+            <td><code>jicio--tcm-3d</code></td>
+            <td><strong>JICio/tcm-3d</strong></td>
+            <td><span class="badge badge-uninspected">UNVERIFIED_AT_HANDOFF</span></td>
+            <td>REVIEW_REQUIRED</td>
+            <td><small>acupoints_3d</small></td>
+        </tr>
+        
+        <tr>
+            <td><code>scicrunch--tara-ontology-repository</code></td>
+            <td><strong>SciCrunch/TARA-Ontology-Repository</strong></td>
+            <td><span class="badge badge-uninspected">UNVERIFIED_AT_HANDOFF</span></td>
+            <td>REVIEW_REQUIRED</td>
+            <td><small>ontology</small></td>
+        </tr>
+        
+        <tr>
+            <td><code>slorksmo--human-atlas</code></td>
+            <td><strong>slorksmo/Human-Atlas</strong></td>
+            <td><span class="badge badge-uninspected">UNVERIFIED_AT_HANDOFF</span></td>
+            <td>REVIEW_REQUIRED</td>
+            <td><small>anatomy_3d</small></td>
+        </tr>
+        
+        <tr>
+            <td><code>spacejohnlf--tcm-acupoints</code></td>
+            <td><strong>spacejohnlf/tcm-acupoints</strong></td>
+            <td><span class="badge badge-uninspected">UNVERIFIED_AT_HANDOFF</span></td>
+            <td>REVIEW_REQUIRED</td>
+            <td><small>acupoints_3d</small></td>
+        </tr>
+        
+        <tr>
+            <td><code>watercmy--anatomy-3d</code></td>
+            <td><strong>WaterCMY/anatomy-3d</strong></td>
+            <td><span class="badge badge-uninspected">UNVERIFIED_AT_HANDOFF</span></td>
+            <td>REVIEW_REQUIRED</td>
+            <td><small>anatomy_3d</small></td>
+        </tr>
+        
+            </tbody>
+        </table>
+
+        <footer>
+            <div>MSK Research Lab OS &bull; SOT: <code>1docs/specs/MSK_Research_Lab_OS_v2.1_Engineering_SPEC.md</code></div>
+            <div>Diagnostics: <a href="/api/v1/health" style="color: var(--accent-blue);">GET /api/v1/health</a></div>
+        </footer>
+    </div>
+</body>
+</html>
+    

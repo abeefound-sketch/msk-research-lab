@@ -1,0 +1,64 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Research Repository Manifest",
+  "description": "Seed static-inspection manifest; separately version schema for approved live execution after human approval.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "github_full_name",
+    "url",
+    "pinned_sha",
+    "code_license_review",
+    "model_data_license_review",
+    "execution_approved"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string"
+    },
+    "github_full_name": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$"
+    },
+    "url": {
+      "type": "string",
+      "pattern": "^https://github\\.com/"
+    },
+    "pinned_sha": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "code_license_review": {
+      "enum": [
+        "UNKNOWN",
+        "REVIEW_REQUIRED",
+        "RESTRICTED",
+        "ALLOWED"
+      ]
+    },
+    "model_data_license_review": {
+      "enum": [
+        "UNKNOWN",
+        "REVIEW_REQUIRED",
+        "RESTRICTED",
+        "ALLOWED"
+      ]
+    },
+    "execution_approved": {
+      "const": false
+    },
+    "reviewed_profile_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "source_license_evidence": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}

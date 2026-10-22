@@ -1,0 +1,634 @@
+openapi: 3.1.0
+info:
+  title: MSK Research Lab OS v3.0 API Design Seed
+  version: 0.0.0-spec-seed
+  description: DESIGN ONLY, not deployed; typed DTOs to be added by implementation.
+servers:
+- url: http://127.0.0.1:8091
+  description: Local WSL2 loopback only
+components:
+  securitySchemes:
+    LocalBearer:
+      type: http
+      scheme: bearer
+      bearerFormat: opaque-local-token
+  schemas:
+    Error:
+      type: object
+      required:
+      - code
+      properties:
+        code:
+          type: string
+        snapshot_id:
+          type:
+          - string
+          - 'null'
+        detail:
+          type: string
+    SpecSeedResponse:
+      type: object
+      description: Placeholder, replace with typed DTOs before R6
+      properties:
+        schema_version:
+          type: string
+        snapshot_id:
+          type:
+          - string
+          - 'null'
+        review_state:
+          type: string
+        data:
+          type: object
+security:
+- LocalBearer: []
+paths:
+  /api/v1/health:
+    get:
+      summary: Minimal operational state, without leaking private data
+      description: 'First required release: R0. Read-only; user/consumer scopes vary. This is a design seed, not
+        a verified implementation.'
+      operationId: get_health
+      responses:
+        '200':
+          description: Scoped source-linked result; response model specified during implementation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpecSeedResponse'
+        '401':
+          description: Missing or invalid bearer token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden by source rights or token scope
+        '404':
+          description: Absent or unpublished record
+      security: []
+  /api/v1/repos:
+    get:
+      summary: Inspected repository metadata, SHA and reviewed state
+      description: 'First required release: R1. Read-only; user/consumer scopes vary. This is a design seed, not
+        a verified implementation.'
+      operationId: get_repos
+      responses:
+        '200':
+          description: Scoped source-linked result; response model specified during implementation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpecSeedResponse'
+        '401':
+          description: Missing or invalid bearer token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden by source rights or token scope
+        '404':
+          description: Absent or unpublished record
+  /api/v1/library/documents:
+    get:
+      summary: Protected Lab viewer document metadata only
+      description: 'First required release: R2. Read-only; user/consumer scopes vary. This is a design seed, not
+        a verified implementation.'
+      operationId: get_library_documents
+      responses:
+        '200':
+          description: Scoped source-linked result; response model specified during implementation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpecSeedResponse'
+        '401':
+          description: Missing or invalid bearer token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden by source rights or token scope
+        '404':
+          description: Absent or unpublished record
+  /api/v1/library/search:
+    get:
+      summary: Protected exact-locator full text search
+      description: 'First required release: R2. Read-only; user/consumer scopes vary. This is a design seed, not
+        a verified implementation.'
+      operationId: get_library_search
+      responses:
+        '200':
+          description: Scoped source-linked result; response model specified during implementation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpecSeedResponse'
+        '401':
+          description: Missing or invalid bearer token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden by source rights or token scope
+        '404':
+          description: Absent or unpublished record
+      parameters:
+      - name: q
+        in: query
+        required: true
+        schema:
+          type: string
+          minLength: 1
+  /api/v1/documents/{id}/locations/{locator_id}:
+    get:
+      summary: Protected original source locator, Lab scope only
+      description: 'First required release: R2. Read-only; user/consumer scopes vary. This is a design seed, not
+        a verified implementation.'
+      operationId: get_documents_id_locations_locator_id
+      responses:
+        '200':
+          description: Scoped source-linked result; response model specified during implementation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpecSeedResponse'
+        '401':
+          description: Missing or invalid bearer token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden by source rights or token scope
+        '404':
+          description: Absent or unpublished record
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: A stable identifier
+        schema:
+          type: string
+          minLength: 1
+      - name: locator_id
+        in: path
+        required: true
+        description: Source location ID
+        schema:
+          type: string
+          minLength: 1
+  /api/v1/research/notes/{id}:
+    get:
+      summary: Source-linked research note metadata, Lab scope
+      description: 'First required release: R2. Read-only; user/consumer scopes vary. This is a design seed, not
+        a verified implementation.'
+      operationId: get_research_notes_id
+      responses:
+        '200':
+          description: Scoped source-linked result; response model specified during implementation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpecSeedResponse'
+        '401':
+          description: Missing or invalid bearer token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden by source rights or token scope
+        '404':
+          description: Absent or unpublished record
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: A stable identifier
+        schema:
+          type: string
+          minLength: 1
+  /api/v1/claims/{id}:
+    get:
+      summary: Published source-linked claim with uncertainty and counters
+      description: 'First required release: R3. Read-only; user/consumer scopes vary. This is a design seed, not
+        a verified implementation.'
+      operationId: get_claims_id
+      responses:
+        '200':
+          description: Scoped source-linked result; response model specified during implementation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpecSeedResponse'
+        '401':
+          description: Missing or invalid bearer token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden by source rights or token scope
+        '404':
+          description: Absent or unpublished record
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: A stable identifier
+        schema:
+          type: string
+          minLength: 1
+  /api/v1/claims/{id}/evidence:
+    get:
+      summary: Published exact evidence references; paginated
+      description: 'First required release: R3. Read-only; user/consumer scopes vary. This is a design seed, not
+        a verified implementation.'
+      operationId: get_claims_id_evidence
+      responses:
+        '200':
+          description: Scoped source-linked result; response model specified during implementation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpecSeedResponse'
+        '401':
+          description: Missing or invalid bearer token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden by source rights or token scope
+        '404':
+          description: Absent or unpublished record
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: A stable identifier
+        schema:
+          type: string
+          minLength: 1
+  /api/v1/contradictions:
+    get:
+      summary: Published disagreement and evidence links
+      description: 'First required release: R3. Read-only; user/consumer scopes vary. This is a design seed, not
+        a verified implementation.'
+      operationId: get_contradictions
+      responses:
+        '200':
+          description: Scoped source-linked result; response model specified during implementation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpecSeedResponse'
+        '401':
+          description: Missing or invalid bearer token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden by source rights or token scope
+        '404':
+          description: Absent or unpublished record
+      parameters:
+      - name: claim_id
+        in: query
+        schema:
+          type: string
+  /api/v1/sources/{id}:
+    get:
+      summary: Published source provenance, licensing and locators
+      description: 'First required release: R3. Read-only; user/consumer scopes vary. This is a design seed, not
+        a verified implementation.'
+      operationId: get_sources_id
+      responses:
+        '200':
+          description: Scoped source-linked result; response model specified during implementation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpecSeedResponse'
+        '401':
+          description: Missing or invalid bearer token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden by source rights or token scope
+        '404':
+          description: Absent or unpublished record
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: A stable identifier
+        schema:
+          type: string
+          minLength: 1
+  /api/v1/comparisons/{id}:
+    get:
+      summary: Immutable source comparison including NOT_COMPARABLE
+      description: 'First required release: R3. Read-only; user/consumer scopes vary. This is a design seed, not
+        a verified implementation.'
+      operationId: get_comparisons_id
+      responses:
+        '200':
+          description: Scoped source-linked result; response model specified during implementation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpecSeedResponse'
+        '401':
+          description: Missing or invalid bearer token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden by source rights or token scope
+        '404':
+          description: Absent or unpublished record
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: A stable identifier
+        schema:
+          type: string
+          minLength: 1
+  /api/v1/ontology/lookup:
+    get:
+      summary: Reviewed namespaced and aliased term lookup
+      description: 'First required release: R3. Read-only; user/consumer scopes vary. This is a design seed, not
+        a verified implementation.'
+      operationId: get_ontology_lookup
+      responses:
+        '200':
+          description: Scoped source-linked result; response model specified during implementation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpecSeedResponse'
+        '401':
+          description: Missing or invalid bearer token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden by source rights or token scope
+        '404':
+          description: Absent or unpublished record
+      parameters:
+      - name: term
+        in: query
+        required: true
+        schema:
+          type: string
+          minLength: 1
+  /api/v1/graph/neighborhood:
+    get:
+      summary: Bounded one-hop typed source-backed neighborhood
+      description: 'First required release: R3. Read-only; user/consumer scopes vary. This is a design seed, not
+        a verified implementation.'
+      operationId: get_graph_neighborhood
+      responses:
+        '200':
+          description: Scoped source-linked result; response model specified during implementation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpecSeedResponse'
+        '401':
+          description: Missing or invalid bearer token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden by source rights or token scope
+        '404':
+          description: Absent or unpublished record
+      parameters:
+      - name: node_id
+        in: query
+        required: true
+        schema:
+          type: string
+          minLength: 1
+      - name: depth
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2
+          default: 1
+  /api/v1/snapshots/current:
+    get:
+      summary: Active immutable knowledge snapshot identity
+      description: 'First required release: R3. Read-only; user/consumer scopes vary. This is a design seed, not
+        a verified implementation.'
+      operationId: get_snapshots_current
+      responses:
+        '200':
+          description: Scoped source-linked result; response model specified during implementation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpecSeedResponse'
+        '401':
+          description: Missing or invalid bearer token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden by source rights or token scope
+        '404':
+          description: Absent or unpublished record
+  /api/v1/knowledge/points/{code}:
+    get:
+      summary: Published reviewed point; 404 pre-R3
+      description: 'First required release: R3. Read-only; user/consumer scopes vary. This is a design seed, not
+        a verified implementation.'
+      operationId: get_knowledge_points_code
+      responses:
+        '200':
+          description: Scoped source-linked result; response model specified during implementation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpecSeedResponse'
+        '401':
+          description: Missing or invalid bearer token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden by source rights or token scope
+        '404':
+          description: Absent or unpublished record
+      parameters:
+      - name: code
+        in: path
+        required: true
+        description: Named point code
+        schema:
+          type: string
+          minLength: 1
+  /api/v1/atlas/models:
+    get:
+      summary: Reviewed source/model and layer metadata
+      description: 'First required release: R4. Read-only; user/consumer scopes vary. This is a design seed, not
+        a verified implementation.'
+      operationId: get_atlas_models
+      responses:
+        '200':
+          description: Scoped source-linked result; response model specified during implementation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpecSeedResponse'
+        '401':
+          description: Missing or invalid bearer token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden by source rights or token scope
+        '404':
+          description: Absent or unpublished record
+  /api/v1/atlas/points/{id}:
+    get:
+      summary: Named point source placements and uncertainty
+      description: 'First required release: R4. Read-only; user/consumer scopes vary. This is a design seed, not
+        a verified implementation.'
+      operationId: get_atlas_points_id
+      responses:
+        '200':
+          description: Scoped source-linked result; response model specified during implementation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpecSeedResponse'
+        '401':
+          description: Missing or invalid bearer token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden by source rights or token scope
+        '404':
+          description: Absent or unpublished record
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: A stable identifier
+        schema:
+          type: string
+          minLength: 1
+  /api/v1/atlas/points/{id}/placements:
+    get:
+      summary: Source-specific model and geometry placements
+      description: 'First required release: R4. Read-only; user/consumer scopes vary. This is a design seed, not
+        a verified implementation.'
+      operationId: get_atlas_points_id_placements
+      responses:
+        '200':
+          description: Scoped source-linked result; response model specified during implementation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpecSeedResponse'
+        '401':
+          description: Missing or invalid bearer token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden by source rights or token scope
+        '404':
+          description: Absent or unpublished record
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: A stable identifier
+        schema:
+          type: string
+          minLength: 1
+  /api/v1/atlas/meridians/{id}:
+    get:
+      summary: Source-specific educational path geometry
+      description: 'First required release: R4. Read-only; user/consumer scopes vary. This is a design seed, not
+        a verified implementation.'
+      operationId: get_atlas_meridians_id
+      responses:
+        '200':
+          description: Scoped source-linked result; response model specified during implementation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpecSeedResponse'
+        '401':
+          description: Missing or invalid bearer token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden by source rights or token scope
+        '404':
+          description: Absent or unpublished record
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: A stable identifier
+        schema:
+          type: string
+          minLength: 1
+  /api/v1/exports/research-packages/{id}:
+    get:
+      summary: Authorized integrity-checked offline package manifest
+      description: 'First required release: R6. Read-only; user/consumer scopes vary. This is a design seed, not
+        a verified implementation.'
+      operationId: get_exports_research_packages_id
+      responses:
+        '200':
+          description: Scoped source-linked result; response model specified during implementation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpecSeedResponse'
+        '401':
+          description: Missing or invalid bearer token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden by source rights or token scope
+        '404':
+          description: Absent or unpublished record
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: A stable identifier
+        schema:
+          type: string
+          minLength: 1

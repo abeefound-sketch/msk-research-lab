@@ -1,0 +1,61 @@
+{
+  "timestamp": "2026-10-22T17:59:35Z",
+  "release": "R0",
+  "environment": {
+    "system": "Linux",
+    "release": "6.18.54.1-microsoft-standard-WSL2",
+    "machine": "x86_64",
+    "is_wsl2": true,
+    "python_version": "3.10.12",
+    "sqlite_version": "3.37.2",
+    "fts5_enabled": true
+  },
+  "resources": {
+    "memory": {
+      "total_gb": 3.77,
+      "available_gb": 3.14,
+      "percent_used": 16.7
+    },
+    "disk_c_free_gb": 44.7,
+    "disk_c_total_gb": 149.4,
+    "disk_d_free_gb": 12.64
+  },
+  "tools": {
+    "git": "/usr/bin/git",
+    "node": "/home/tuan/.nvm/versions/node/v20.20.2/bin/node",
+    "npm": "/home/tuan/.nvm/versions/node/v20.20.2/bin/npm",
+    "podman": null,
+    "docker": null
+  },
+  "database": {
+    "connected": true,
+    "exists": true,
+    "wal_mode": true,
+    "fk_enabled": true,
+    "integrity_ok": true,
+    "schema_version": 1,
+    "path": "/mnt/c/Users/tuanh/Downloads/msk-research-lab/2data/db/lab.sqlite3"
+  },
+  "sandbox": {
+    "status": "SANDBOX_UNAVAILABLE",
+    "runtime": null,
+    "can_execute_untrusted": false,
+    "isolation_enforceable": false,
+    "readiness_gate": "BLOCKED",
+    "details": "Neither Podman nor Docker runtime detected on this WSL2 host. Native subprocess execution of untrusted upstream code is strictly prohibited by security policy.",
+    "checks": {
+      "container_binary": false,
+      "mount_isolation": false,
+      "network_denial": false,
+      "cgroup_memory_limit": false
+    }
+  },
+  "specs_verified": {
+    "MSK_RESEARCH_LAB_OS_SPEC_v1.0.md": true,
+    "MSK_Research_Lab_OS_Engineering_Spec.md": true,
+    "MSK_Research_Lab_OS_MVP_v2_SPEC.md": true,
+    "MSK_Research_Lab_OS_v2.1_Engineering_SPEC.md": true
+  },
+  "target_port": 8091,
+  "loopback_host": "127.0.0.1"
+}

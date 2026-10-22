@@ -1,0 +1,50 @@
+id,release,title,depends_on_text,acceptance_evidence,status
+R0-01,R0,"Inspect workspace, `AGENTS.md`, 4 source specs, disk/CPU/RAM/WSL/network, Git, Python, Node, browser and FTS5; record observed versus unknown",None,"`doctor.json`, commands with exit codes; no guessed properties",NOT_STARTED
+R0-02,R0,"Initialize *new separate* Git repo, `pyproject.toml`, pinned minimal dependencies, `.gitignore`, README, settings and migration framework",R0-01,"Clean Lab-owned Git history, source/fixture separation",NOT_STARTED
+R0-03,R0,"Implement SQLite WAL, FKs, migrations and basic API `GET /api/v1/health`",R0-02,"Migration round-trip, integrity checks",NOT_STARTED
+R0-04,R0,"Implement `doctor`, `serve`, lifecycle logs, shutdown/restart, local-only `127.0.0.1:8091` and simple usable Dashboard",R0-03,Real browser interaction at 1366x768; port conflict and restart tests,NOT_STARTED
+R0-05,R0,"Threat model and sandbox readiness probe (rootless Podman or evaluated equivalent); verify mounting, write denial, network policy and resource cgroups on this WSL host",R0-01,**Measured** isolation capability or explicit `SANDBOX_UNAVAILABLE`; no bypass,NOT_STARTED
+R0-06,R0,"Seed untrusted repo catalog, schema linting, policies and CLI help; create synthetic fixtures skeleton",R0-03,Automated schema and safety tests,NOT_STARTED
+R0-07,R0,UI/browser test harness and independent evidence verifier,R0-04,Source-linked logs/test manifest; real browser evidence,NOT_STARTED
+R1-01,R1,"Repo URL normalization, dedup and metadata discovery; rights status per code/asset/data; inspect profile",R0,"`REGISTERED`, `INSPECTED`, `REVIEW_REQUIRED`; negative malformed URL",NOT_STARTED
+R1-02,R1,"Separate `Clone`, `Install`, `Run` approvals; SHA-pinned clone; dirty-tree/branch/update guard; disk estimates",R1-01,Checkout SHA verification; no script executed on clone,NOT_STARTED
+R1-03,R1,"Reviewed, disabled-by-default run profiles with exact argv, paths, mounts, ports, network, limits and expected side effects","R0-05,R1-01",Owner approvals and full audit history,NOT_STARTED
+R1-04,R1,"Sandbox runner; process-group cleanup, timeout, bounded logs, loopback proxy for web apps, resource budget",R1-03,File/network/privilege negative tests; measured limits,NOT_STARTED
+R1-05,R1,"Repo start/stop/open UI; verify `STARTED`, `HEALTHY`, `RENDERED`, `VISUALLY_VERIFIED` separately",R1-04,"Three real browser workflows, click interaction, SHA/URL screenshot metadata, zero zombies",NOT_STARTED
+R1-06,R1,Evidence store with SHA-256 manifests; source/commands/environment/metrics/artifacts; verifier and decisions,R1-05,Tamper test invalidates evidence; no self-certification,NOT_STARTED
+R1-07,R1,Initial `surface-registration-v1` comparator harness and capability inventory for 4 geometry repos; unsupported explicitly classified,"R1-01,R1-06","Reproducible synthetic mesh test, no false normalized distance",NOT_STARTED
+R1-08,R1,"Early unified-viewer spike with one legally usable real anatomy asset, as hardware feasibility test only",R1-04,WebGL render/performance observations; **no** R4 PASS,NOT_STARTED
+R2-01,R2,"Immutable SHA-256 original store, rights metadata, safe file picker, type sniffing and size/zip safety; duplicate aliases",R0,Bytes preserved; malformed/oversized input rejected,NOT_STARTED
+R2-02,R2,PDF native-text extraction plus **every page** including blank/scan/errors; original page viewer and normalized region locators,R2-01,"4 PDFs including >=2 scanned, page coverage report",NOT_STARTED
+R2-03,R2,"Opt-in local Tesseract OCR, per-page status, optional language packs; show image/table gaps",R2-02,OCR failed/partial states and original image visible,NOT_STARTED
+R2-04,R2,EPUB spine/href/chapter and safe HTML viewer; DOCX paragraph/heading/table/figure structure with source anchor,R2-01,"3 EPUB + 3 DOCX, exact locator viewer tests",NOT_STARTED
+R2-05,R2,"SQLite FTS5 and explicitly reviewed Unicode/aliases; search filters, snippets, open-original, copy citation","R2-02,R2-04",Search opens correct locations for all three formats; false locator rejected,NOT_STARTED
+R2-06,R2,Notes/experiments linked to 2 book citations + 1 Git SHA; source comparison; JSON/MD rights-filtered export,"R2-05,R1-01",Cross-source note workflow; exported references resolvable,NOT_STARTED
+R2-07,R2,Preliminary authenticated **research-note-only** read API; point knowledge returns 404 if unpublished; standalone sample consumer,R2-06,No/wrong token + cross-origin tests; no raw private book by default,NOT_STARTED
+R2-08,R2,"Consistent SQLite backup, originals, attachments/indices + checksum manifest; restore to fresh directory",R2-06,"Original hashes, citations, search and notes preserved; corrupt backup rejected",NOT_STARTED
+R3-01,R3,"Provenance registry (edition, translation, derivative lineage, source independence, locator verification, rights)",R2,Exact original PDF/EPUB/DOCX/Git locators; hash-mismatch refusal,NOT_STARTED
+R3-02,R3,"Tri-Ledger: claims/evidence/contradictions, review events and irreversible revision lineage",R3-01,"Evidence-linked record, counter-record, reviewer gate; audit log",NOT_STARTED
+R3-03,R3,"Fail-closed promotion: original resolver, human content review, counter-evidence disclosure, separate clinical assessment",R3-02,Negative unsupported/OCR-only/deleted-counter promotion refused,NOT_STARTED
+R3-04,R3,"Side-by-side original source/edition comparison, independence tracking, `MATCH`, `DIFFERENCE`, `UNCERTAIN`, `NOT_COMPARABLE`",R3-01,Two originals independently traceable; misleading geometry distance prohibited,NOT_STARTED
+R3-05,R3,"Namespaced multilingual ontology, TARA adapter behind rights gate; aliases never imply physiology",R3-01,Deterministic GB21 example from **synthetic educational** fixture; unknown alias remains unknown,NOT_STARTED
+R3-06,R3,Typed SQLite graph with reviewed edge evidence and bounded one-hop UI/API; no mandatory Neo4j,"R3-02,R3-05",Source-openable graph edges; orphan/non-provenance and unreviewed promotions refused,NOT_STARTED
+R3-07,R3,"Staged immutable SQLite knowledge snapshots, manifest/QA rights checks, explicit activation and rollback","R3-03,R3-06",Crash before/during/after activation; last known good preserved,NOT_STARTED
+R3-08,R3,Published-only read-only API and snapshot awareness,R3-07,"Authenticated client, `snapshot_id`, counter-evidence, unreviewed 404",NOT_STARTED
+R4-01,R4,"Renderer+asset ADR comparing Open Anatomy Atlas and alternatives for deep tissues, rights, FPS/RSS, 1366x768","R1-08,R3",Written choice and real-model evidence; no mock human silhouette,NOT_STARTED
+R4-02,R4,"Single canvas anatomy layers, region tree, isolate/focus, X-ray, clipping if available, synced camera/inspector",R4-01,Select neck/shoulder vs other regions; true deep muscle assets where present,NOT_STARTED
+R4-03,R4,"Model registry: hash, pose, units, transforms, handedness, landmarks, skin mesh, source/rights",R4-01,Reject missing/ambiguous frame; round-trip transforms,NOT_STARTED
+R4-04,R4,"BVH/nearest-triangle + constrained raycast surface anchors, barycentric persistence and mesh-change invalidation",R4-03,"SR-01..03; actual measured errors, bad mirror/scale failures",NOT_STARTED
+R4-05,R4,"Meridian path baking with topology/region checks, gaps/warnings, occlusion correctness, multi-camera reviews",R4-04,SR-04..08; no hidden invented continuity through body,NOT_STARTED
+R4-06,R4,Comparison adapters for at least two meaningful source placements; `NOT_COMPARABLE` where frame registration absent,"R4-03,R4-05",SR-09..10 and cross-source diff; evidence hash,NOT_STARTED
+R4-07,R4,"Point inspector linking claims/ontology/book provenance, uncertainty and alternate placements without blending conflicts","R4-05,R3",Click anatomy → point → source original (when rights allow),NOT_STARTED
+R4-08,R4,"Target-device performance optimization (LOD, progressive region loading, baked caches)","R4-02,R4-05",Real CPU/browser/WSL/GPU-visible measurements; no invented FPS,NOT_STARTED
+R5-01,R5,"Versioned canonical concept + source placement + private atlas records, per-tradition namespaces","R4-03,R3",No collision between FMA/anatomy/TCM/Diện Chẩn/Thai Sen IDs,NOT_STARTED
+R5-02,R5,"Point/curve create/move/delete, constraints and notes, undo/redo, draft autosave with recovery","R5-01,R4-05",Reload exact anchors and full edit lineage; upstream unchanged,NOT_STARTED
+R5-03,R5,"Two-dimensional front/profile image atlas editing, pixel coordinates and image SHA; 2D→3D not implicit",R5-01,"Synthetic Diện Chẩn example export/reimport, correct image anchors",NOT_STARTED
+R5-04,R5,Separate fixed educational references from session-specific reactive/observed points (synthetic only),R5-01,No promotion of one observed point to universal standard,NOT_STARTED
+R5-05,R5,"Versioned JSON schema, import/export, diff, review and unsupported-license block","R5-02,R5-03","Round-trip, invalid point/mesh/source rejected",NOT_STARTED
+R6-01,R6,"Lock `/api/v1` schema, allowlisted published-only source/point/meridian/claim endpoints, explicit field-level privacy and rights filters","R3,R5",Contract tests; no raw book or repo-process API exposure,NOT_STARTED
+R6-02,R6,"Build immutable, rights-filtered offline packages with hash manifest, snapshot/source IDs, version and import validator",R3,Corrupt hash and unapproved content rejected,NOT_STARTED
+R6-03,R6,"Build standalone consumer proof (Python/curl), Lab online/offline fallback; Therapy repository untouched during first validation","R6-01,R6-02",Auth/404/revocation/cached package tests; exact IDs verified,NOT_STARTED
+R6-04,R6,"With explicit separate approval only, integrate read-only click-to-research in Therapy UI; never share DB or patient records",R6-03,Source-linked point opens; Lab-offline safe state,NOT_STARTED
+R6-05,R6,Full regression G1–G10 + SEC + ATLAS-01..06 + BRIDGE-01..03; backup/restore & incident drills,R6-01..04,Final validation report; blocker disclosure; owner signoff,NOT_STARTED

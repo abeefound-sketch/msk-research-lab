@@ -1,0 +1,29 @@
+{
+  "schema_version": "1.0",
+  "is_synthetic_illustrative_seed": true,
+  "concepts": [
+    {
+      "concept_id": "tcm:acupoint:GB21",
+      "namespace": "TRADITIONAL_ACUPUNCTURE",
+      "canonical_label": "GB21",
+      "aliases": [
+        {
+          "value": "Jianjing",
+          "language": "zh-Latn",
+          "kind": "TRANSLITERATION",
+          "review_state": "UNREVIEWED"
+        },
+        {
+          "value": "Kiên tỉnh",
+          "language": "vi",
+          "kind": "TRADITIONAL_NAME",
+          "review_state": "UNREVIEWED"
+        }
+      ],
+      "definition_source_ids": [],
+      "review_state": "UNREVIEWED",
+      "clinical_status": "NOT_ASSESSED"
+    }
+  ],
+  "warning": "DO NOT publish this illustrative record as verified authoritative medical data."
+}

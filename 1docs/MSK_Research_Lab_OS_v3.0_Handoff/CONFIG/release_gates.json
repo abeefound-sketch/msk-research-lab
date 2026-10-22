@@ -1,0 +1,243 @@
+{
+  "schema_version": "3.0",
+  "not_verified": true,
+  "release_requirements": [
+    {
+      "release": "R0",
+      "gates": [
+        "G1",
+        "SEC"
+      ],
+      "state": "NOT_STARTED"
+    },
+    {
+      "release": "R1",
+      "gates": [
+        "G2",
+        "SEC"
+      ],
+      "state": "NOT_STARTED"
+    },
+    {
+      "release": "R2",
+      "gates": [
+        "G3",
+        "G4",
+        "G5",
+        "G6"
+      ],
+      "state": "NOT_STARTED"
+    },
+    {
+      "release": "R3",
+      "gates": [
+        "G7",
+        "G8",
+        "G9",
+        "G10",
+        "SEC"
+      ],
+      "state": "NOT_STARTED"
+    },
+    {
+      "release": "R4",
+      "gates": [
+        "ATLAS-01",
+        "ATLAS-02",
+        "ATLAS-03",
+        "ATLAS-04"
+      ],
+      "state": "NOT_STARTED"
+    },
+    {
+      "release": "R5",
+      "gates": [
+        "ATLAS-05",
+        "ATLAS-06"
+      ],
+      "state": "NOT_STARTED"
+    },
+    {
+      "release": "R6",
+      "gates": [
+        "BRIDGE-01",
+        "BRIDGE-02",
+        "BRIDGE-03"
+      ],
+      "state": "NOT_STARTED"
+    }
+  ],
+  "gates": [
+    {
+      "id": "G1",
+      "first_required_release": "R0",
+      "state": "NOT_TESTED",
+      "evidence_paths": [],
+      "independent_reviewer": null,
+      "last_verified_at": null
+    },
+    {
+      "id": "SEC",
+      "first_required_release": "R0",
+      "state": "NOT_TESTED",
+      "evidence_paths": [],
+      "independent_reviewer": null,
+      "last_verified_at": null
+    },
+    {
+      "id": "G2",
+      "first_required_release": "R1",
+      "state": "NOT_TESTED",
+      "evidence_paths": [],
+      "independent_reviewer": null,
+      "last_verified_at": null
+    },
+    {
+      "id": "G3",
+      "first_required_release": "R2",
+      "state": "NOT_TESTED",
+      "evidence_paths": [],
+      "independent_reviewer": null,
+      "last_verified_at": null
+    },
+    {
+      "id": "G4",
+      "first_required_release": "R2",
+      "state": "NOT_TESTED",
+      "evidence_paths": [],
+      "independent_reviewer": null,
+      "last_verified_at": null
+    },
+    {
+      "id": "G5",
+      "first_required_release": "R2",
+      "state": "NOT_TESTED",
+      "evidence_paths": [],
+      "independent_reviewer": null,
+      "last_verified_at": null
+    },
+    {
+      "id": "G6",
+      "first_required_release": "R2",
+      "state": "NOT_TESTED",
+      "evidence_paths": [],
+      "independent_reviewer": null,
+      "last_verified_at": null
+    },
+    {
+      "id": "G7",
+      "first_required_release": "R3",
+      "state": "NOT_TESTED",
+      "evidence_paths": [],
+      "independent_reviewer": null,
+      "last_verified_at": null
+    },
+    {
+      "id": "G8",
+      "first_required_release": "R3",
+      "state": "NOT_TESTED",
+      "evidence_paths": [],
+      "independent_reviewer": null,
+      "last_verified_at": null
+    },
+    {
+      "id": "G9",
+      "first_required_release": "R3",
+      "state": "NOT_TESTED",
+      "evidence_paths": [],
+      "independent_reviewer": null,
+      "last_verified_at": null
+    },
+    {
+      "id": "G10",
+      "first_required_release": "R3",
+      "state": "NOT_TESTED",
+      "evidence_paths": [],
+      "independent_reviewer": null,
+      "last_verified_at": null
+    },
+    {
+      "id": "ATLAS-01",
+      "first_required_release": "R4",
+      "state": "NOT_TESTED",
+      "evidence_paths": [],
+      "independent_reviewer": null,
+      "last_verified_at": null
+    },
+    {
+      "id": "ATLAS-02",
+      "first_required_release": "R4",
+      "state": "NOT_TESTED",
+      "evidence_paths": [],
+      "independent_reviewer": null,
+      "last_verified_at": null
+    },
+    {
+      "id": "ATLAS-03",
+      "first_required_release": "R4",
+      "state": "NOT_TESTED",
+      "evidence_paths": [],
+      "independent_reviewer": null,
+      "last_verified_at": null
+    },
+    {
+      "id": "ATLAS-04",
+      "first_required_release": "R4",
+      "state": "NOT_TESTED",
+      "evidence_paths": [],
+      "independent_reviewer": null,
+      "last_verified_at": null
+    },
+    {
+      "id": "ATLAS-05",
+      "first_required_release": "R5",
+      "state": "NOT_TESTED",
+      "evidence_paths": [],
+      "independent_reviewer": null,
+      "last_verified_at": null
+    },
+    {
+      "id": "ATLAS-06",
+      "first_required_release": "R5",
+      "state": "NOT_TESTED",
+      "evidence_paths": [],
+      "independent_reviewer": null,
+      "last_verified_at": null
+    },
+    {
+      "id": "BRIDGE-01",
+      "first_required_release": "R6",
+      "state": "NOT_TESTED",
+      "evidence_paths": [],
+      "independent_reviewer": null,
+      "last_verified_at": null
+    },
+    {
+      "id": "BRIDGE-02",
+      "first_required_release": "R6",
+      "state": "NOT_TESTED",
+      "evidence_paths": [],
+      "independent_reviewer": null,
+      "last_verified_at": null
+    },
+    {
+      "id": "BRIDGE-03",
+      "first_required_release": "R6",
+      "state": "NOT_TESTED",
+      "evidence_paths": [],
+      "independent_reviewer": null,
+      "last_verified_at": null
+    }
+  ],
+  "valid_statuses": [
+    "NOT_TESTED",
+    "IN_PROGRESS",
+    "PASS",
+    "FAIL",
+    "BLOCKED",
+    "INCONCLUSIVE",
+    "SKIPPED"
+  ],
+  "whole_product_complete": false,
+  "non_override_rule": "No gate PASS without real original/negative-case artifacts, independent verification, and human owner signoff."
+}

@@ -1,0 +1,21 @@
+# EXAMPLE ONLY. Not a deployed host configuration.
+[server]
+host = "127.0.0.1"
+port = 8091
+
+[storage]
+data_root = "./data"
+upstream_root = "./research/upstream"
+
+[security]
+default_execution = "deny"
+require_sandbox_enforcement = true
+api_token_file = ""  # Generate outside Git, never hardcode in this file
+
+[workers]
+max_heavy_concurrency = 1
+
+[features]
+unified_atlas = false
+semantic_rag = false
+rea_integration = false

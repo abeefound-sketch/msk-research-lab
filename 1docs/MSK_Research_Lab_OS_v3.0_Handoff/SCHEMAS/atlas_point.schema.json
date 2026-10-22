@@ -1,0 +1,119 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Source-specific Atlas Point Placement",
+  "description": "Enforce barycentric sum ~= 1, coordinate/mode consistency and human review beyond basic schema.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "point_concept_id",
+    "knowledge_namespace",
+    "source_id",
+    "model_id",
+    "model_asset_sha256",
+    "skin_mesh_sha256",
+    "coordinate_frame",
+    "units",
+    "laterality",
+    "geometry_status",
+    "clinical_position_status"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string"
+    },
+    "point_concept_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "knowledge_namespace": {
+      "type": "string"
+    },
+    "source_id": {
+      "type": "string"
+    },
+    "model_id": {
+      "type": "string"
+    },
+    "model_asset_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "skin_mesh_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "coordinate_frame": {
+      "type": "string"
+    },
+    "units": {
+      "enum": [
+        "mm",
+        "m",
+        "model_units_unknown"
+      ]
+    },
+    "laterality": {
+      "enum": [
+        "left",
+        "right",
+        "midline",
+        "not_applicable",
+        "unknown"
+      ]
+    },
+    "face_index": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 0
+    },
+    "barycentric": {
+      "type": [
+        "array",
+        "null"
+      ],
+      "minItems": 3,
+      "maxItems": 3,
+      "items": {
+        "type": "number",
+        "minimum": 0,
+        "maximum": 1
+      }
+    },
+    "geometry_status": {
+      "enum": [
+        "UNREVIEWED",
+        "REGISTERED_GEOMETRY_ONLY",
+        "NOT_COMPARABLE",
+        "FAILED"
+      ]
+    },
+    "clinical_position_status": {
+      "enum": [
+        "NOT_ASSESSED",
+        "REVIEW_REQUIRED",
+        "EXPERT_REVIEWED"
+      ]
+    },
+    "source_model_pose": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "registration_method": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "source_locator_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  }
+}
