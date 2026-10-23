@@ -1363,8 +1363,14 @@ def get_dashboard(request: Request):
                 <td><small>{cand['priority']}</small></td>
                 <td><small>{cand['license_spdx']}</small></td>
                 <td><small>{cand['discovery_source']}</small></td>
+                <td>
+                    <button class="btn-action" onclick="inspectStatic('{cand['id']}')">Inspect</button>
+                    <button class="btn-action" onclick="generateReport('{cand['id']}')">Report</button>
+                    <button class="btn-action" onclick="openDecisionPrompt('{cand['id']}')">Decide</button>
+                </td>
             </tr>
             """
+
 
 
     active_snap_text = f"Active: <code>{active_release['release_id']}</code>" if active_release else "No snapshot published"
@@ -1555,6 +1561,67 @@ def get_dashboard(request: Request):
             border-color: var(--accent-blue);
             color: var(--accent-blue);
         }}
+        .discovery-container {{
+            background: var(--surface-color);
+            border: 1px solid var(--card-border);
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 24px;
+        }}
+        .discovery-form-grid {{
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 16px;
+        }}
+        @media (max-width: 800px) {{
+            .discovery-form-grid {{ grid-template-columns: 1fr; }}
+        }}
+        .form-card {{
+            background: #020617;
+            border: 1px solid var(--card-border);
+            border-radius: 6px;
+            padding: 14px;
+        }}
+        .form-input {{
+            width: 100%;
+            background: #0f172a;
+            border: 1px solid var(--card-border);
+            color: var(--text-main);
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            margin-top: 6px;
+            margin-bottom: 10px;
+        }}
+        .btn-primary {{
+            background: var(--accent-blue);
+            color: #0f172a;
+            border: none;
+            padding: 6px 14px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.15s ease;
+        }}
+        .btn-primary:hover {{ opacity: 0.9; }}
+        .btn-action {{
+            background: rgba(56, 189, 248, 0.12);
+            color: var(--accent-blue);
+            border: 1px solid var(--accent-blue);
+            padding: 2px 7px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 500;
+            cursor: pointer;
+            margin-right: 4px;
+        }}
+        .btn-action:hover {{
+            background: var(--accent-blue);
+            color: #0f172a;
+        }}
+
         .layer-toggles {{
             display: flex;
             flex-wrap: wrap;
@@ -2095,7 +2162,157 @@ def get_dashboard(request: Request):
                 ctx.fillStyle = '#f59e0b';
                 ctx.fillText('S_01 [Reactive]', 410, 108);
             }}
+
+            async function triggerMarkdownImport() {{
+                const path = document.getElementById('importPathInput').value.trim();
+                if (!path) return alert('Please enter reference file path.');
+                const panel = document.getElementById('discoveryOutputPanel');
+                const body = document.getElementById('outputPanelBody');
+                panel.style.display = 'block';
+                body.innerHTML = '<em>Importing markdown reference list...</em>';
+
+                try {{
+                    const res = await fetch('/api/v1/discovery/import-markdown', {{
+                        method: 'POST',
+                        headers: {{'Content-Type': 'application/json'}},
+                        body: JSON.stringify({{file_path: path}})
+                    }});
+                    const data = await res.json();
+                    if (!res.ok) {{
+                        body.innerHTML = '<span style="color:var(--status-red);">Import Failed: ' + (data.detail || JSON.stringify(data)) + '</span>';
+                    }} else {{
+                        body.innerHTML = '<span style="color:var(--status-green);">✓ Document imported: <code>' + data.document_id + '</code></span><br>' +
+                            'Candidates found: <strong>' + data.candidate_count + '</strong> (' + data.new_candidates_registered + ' new)<br>' +
+                            'Occurrences tracked: <strong>' + data.occurrence_count + '</strong><br>' +
+                            '<small style="color:var(--text-muted);">Reloading dashboard...</small>';
+                        setTimeout(() => window.location.reload(), 1200);
+                    }}
+                }} catch (e) {{
+                    body.innerHTML = '<span style="color:var(--status-red);">Network Error: ' + e.message + '</span>';
+                }}
+            }}
+
+            async function triggerGitHubSearch() {{
+                const kw = document.getElementById('searchKeywordInput').value.trim();
+                const topic = document.getElementById('searchTopicInput').value.trim();
+                const panel = document.getElementById('discoveryOutputPanel');
+                const body = document.getElementById('outputPanelBody');
+                panel.style.display = 'block';
+                body.innerHTML = '<em>Querying GitHub search API...</em>';
+
+                try {{
+                    const res = await fetch('/api/v1/discovery/github-search', {{
+                        method: 'POST',
+                        headers: {{'Content-Type': 'application/json'}},
+                        body: JSON.stringify({{keywords: kw || 'msk anatomy', topic: topic || null, per_page: 5}})
+                    }});
+                    const data = await res.json();
+                    if (!res.ok) {{
+                        body.innerHTML = '<span style="color:var(--status-red);">Search Error: ' + (data.detail || JSON.stringify(data)) + '</span>';
+                    }} else {{
+                        let html = '<div style="margin-bottom:6px;"><strong>Found ' + data.total_count + ' repos</strong> (Cached: ' + data.is_cached + ', Status: ' + data.status + '):</div>';
+                        (data.items || []).forEach(item => {{
+                            html += '<div style="padding:6px; border-bottom:1px solid #1e293b; display:flex; justify-content:space-between; align-items:center;">' +
+                                '<div><strong>' + item.owner + '/' + item.repo + '</strong> &bull; ' + item.license_spdx + ' &bull; Score: ' + item.heuristic_score + '<br>' +
+                                '<small style="color:var(--text-muted);">' + (item.description || 'No description').substring(0, 80) + '</small></div>' +
+                                '<button class="btn-action" onclick="saveCandidate(' + JSON.stringify(item).replace(/"/g, '&quot;') + ')">Save</button>' +
+                                '</div>';
+                        }});
+                        body.innerHTML = html;
+                    }}
+                }} catch (e) {{
+                    body.innerHTML = '<span style="color:var(--status-red);">Network Error: ' + e.message + '</span>';
+                }}
+            }}
+
+            async function saveCandidate(item) {{
+                try {{
+                    const res = await fetch('/api/v1/discovery/candidates/save', {{
+                        method: 'POST',
+                        headers: {{'Content-Type': 'application/json'}},
+                        body: JSON.stringify({{item: item, priority: 'HIGH'}})
+                    }});
+                    const data = await res.json();
+                    alert('Candidate saved: ' + data.candidate_id);
+                    window.location.reload();
+                }} catch (e) {{
+                    alert('Error saving: ' + e.message);
+                }}
+            }}
+
+            async function inspectStatic(candId) {{
+                const panel = document.getElementById('discoveryOutputPanel');
+                const body = document.getElementById('outputPanelBody');
+                panel.style.display = 'block';
+                body.innerHTML = '<em>Running static AST analysis on ' + candId + '...</em>';
+
+                try {{
+                    const res = await fetch('/api/v1/research/inspect-static', {{
+                        method: 'POST',
+                        headers: {{'Content-Type': 'application/json'}},
+                        body: JSON.stringify({{candidate_id: candId}})
+                    }});
+                    const data = await res.json();
+                    if (!res.ok) {{
+                        body.innerHTML = '<span style="color:var(--status-amber);">' + (data.detail || JSON.stringify(data)) + '</span>';
+                    }} else {{
+                        body.innerHTML = '<span style="color:var(--status-green);">✓ Static Analysis Complete:</span><br>' +
+                            'UI Framework: <strong>' + (data.ui_framework || 'None') + '</strong><br>' +
+                            '3D Models: <strong>' + (data.model_formats.join(', ') || 'None') + '</strong><br>' +
+                            'Risk Hooks: <strong>' + data.risk_hooks.length + '</strong><br>' +
+                            'Files Scanned: <strong>' + data.total_files_scanned + '</strong>';
+                    }}
+                }} catch (e) {{
+                    body.innerHTML = '<span style="color:var(--status-red);">Error: ' + e.message + '</span>';
+                }}
+            }}
+
+            async function generateReport(candId) {{
+                const panel = document.getElementById('discoveryOutputPanel');
+                const body = document.getElementById('outputPanelBody');
+                panel.style.display = 'block';
+                body.innerHTML = '<em>Generating source-cited research report...</em>';
+
+                try {{
+                    const res = await fetch('/api/v1/research/reports', {{
+                        method: 'POST',
+                        headers: {{'Content-Type': 'application/json'}},
+                        body: JSON.stringify({{candidate_id: candId, reviewer: 'OPERATOR'}})
+                    }});
+                    const data = await res.json();
+                    if (!res.ok) {{
+                        body.innerHTML = '<span style="color:var(--status-red);">Report Error: ' + (data.detail || JSON.stringify(data)) + '</span>';
+                    }} else {{
+                        body.innerHTML = '<span style="color:var(--status-green);">✓ Research Report Generated: <code>' + data.report_id + '</code></span><br>' +
+                            'Manifest SHA: <code>' + data.manifest_sha256.substring(0, 16) + '...</code><br>' +
+                            'Tri-Ledger Ingest ID: <code>' + data.tri_ledger_evidence_id + '</code><br>' +
+                            '<a href="/api/v1/research/reports/' + data.report_id + '" target="_blank" style="color:var(--accent-blue);">View JSON Report</a>';
+                    }}
+                }} catch (e) {{
+                    body.innerHTML = '<span style="color:var(--status-red);">Error: ' + e.message + '</span>';
+                }}
+            }}
+
+            function openDecisionPrompt(candId) {{
+                const dec = prompt('Enter decision (ADOPT, ADAPT, REJECT, DEFER):', 'ADAPT');
+                if (!dec) return;
+                const just = prompt('Enter substantive justification (min 10 chars):', 'Compatible coordinates and safe license for adaptation.');
+                if (!just) return;
+
+                fetch('/api/v1/research/decisions', {{
+                    method: 'POST',
+                    headers: {{'Content-Type': 'application/json'}},
+                    body: JSON.stringify({{candidate_id: candId, decision: dec.toUpperCase(), justification: just, reviewed_by: 'OPERATOR'}})
+                }})
+                .then(r => r.json())
+                .then(d => {{
+                    alert('Decision recorded: ' + (d.decision || d.detail));
+                    window.location.reload();
+                }})
+                .catch(e => alert('Error: ' + e.message));
+            }}
         </script>
+
 
         <h2 class="section-title">Private Atlas Studio &amp; 2D Diện Chẩn Facial Reflexology (ATLAS-05..06)</h2>
         <div class="atlas-workbench" style="margin-bottom: 24px;">
@@ -2248,6 +2465,43 @@ def get_dashboard(request: Request):
         </table>
 
         <h2 class="section-title">Discovery & Research Pipeline Candidates (R1D &bull; Provenance & Queue)</h2>
+        <div class="discovery-container">
+            <div class="discovery-form-grid">
+                <!-- Local Markdown Import Card -->
+                <div class="form-card">
+                    <h4 style="color:var(--accent-blue); margin-bottom:6px; font-size:13px;">1. Import Local Markdown Reference List (DISC-01)</h4>
+                    <p style="color:var(--text-muted); font-size:11px; margin-bottom:10px;">
+                        Scans curated lists from <code>research/references/</code>. Deduplicates canonical URLs, preserves exact source lines, registers candidates as unverified.
+                    </p>
+                    <label style="font-size:11px; color:var(--text-muted);">Reference File Path (relative to lab root):</label>
+                    <input type="text" id="importPathInput" class="form-input" value="research/references/awesome_msk_biomedical_repos.md">
+                    <button class="btn-primary" onclick="triggerMarkdownImport()">Import Reference List</button>
+                </div>
+
+                <!-- GitHub Intelligent Search Card -->
+                <div class="form-card">
+                    <h4 style="color:var(--accent-blue); margin-bottom:6px; font-size:13px;">2. GitHub Intelligent Discovery (DISC-02)</h4>
+                    <p style="color:var(--text-muted); font-size:11px; margin-bottom:10px;">
+                        Discovers biomedical/MSK repos via public API. Caches metadata (24h TTL) and scores via transparent heuristics.
+                    </p>
+                    <div style="display:flex; gap:8px;">
+                        <input type="text" id="searchKeywordInput" class="form-input" placeholder="Keywords (e.g. acupuncture 3d)" style="margin-top:0;">
+                        <input type="text" id="searchTopicInput" class="form-input" placeholder="Topic (optional)" style="margin-top:0; width:120px;">
+                    </div>
+                    <button class="btn-primary" onclick="triggerGitHubSearch()">Search GitHub</button>
+                </div>
+            </div>
+
+            <!-- Dynamic Feedback Panel -->
+            <div id="discoveryOutputPanel" style="display:none; background:#020617; border:1px solid var(--accent-blue); border-radius:6px; padding:12px; margin-top:12px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                    <strong style="color:var(--accent-blue); font-size:13px;" id="outputPanelTitle">Pipeline Activity</strong>
+                    <button class="btn-tool" onclick="document.getElementById('discoveryOutputPanel').style.display='none'">Close</button>
+                </div>
+                <div id="outputPanelBody" style="font-size:12px; color:var(--text-main); max-height:260px; overflow-y:auto; line-height:1.6;"></div>
+            </div>
+        </div>
+
         <table>
             <thead>
                 <tr>
@@ -2257,12 +2511,14 @@ def get_dashboard(request: Request):
                     <th>Priority</th>
                     <th>License</th>
                     <th>Discovery Source</th>
+                    <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
-                {candidate_rows or '<tr><td colspan="6" style="text-align:center; color:var(--text-muted);">No discovery candidates imported yet. Use POST /api/v1/discovery/import-markdown</td></tr>'}
+                {candidate_rows or '<tr><td colspan="7" style="text-align:center; color:var(--text-muted);">No discovery candidates imported yet.</td></tr>'}
             </tbody>
         </table>
+
 
         <h2 class="section-title">Candidate Repositories (Untrusted Metadata &bull; No Auto-Clone)</h2>
         <table>

@@ -1,0 +1,14 @@
+{
+  "candidate_id": "cand_openanatomy_open-anatomy-browser",
+  "revision": 2,
+  "canonical_url": "https://github.com/openanatomy/open-anatomy-browser",
+  "pinned_commit_sha": "NOT_CLONED",
+  "decision": "DEFER",
+  "reviewer": "LEAD_AGENT",
+  "generated_at": "2026-10-23T03:20:50.301372Z",
+  "entrypoints": [],
+  "dependencies_count": 0,
+  "risk_hooks": [],
+  "ui_framework": "UNKNOWN",
+  "model_formats": []
+}
