@@ -1,0 +1,16 @@
+[
+  {
+    "cmd": "pytest -v",
+    "exit": 0,
+    "tests_passed": 29
+  },
+  {
+    "cmd": "python3 -m msk_research_lab doctor",
+    "exit": 0
+  },
+  {
+    "cmd": "surface-registration-v1",
+    "cases_passed": 10,
+    "cases_failed": 0
+  }
+]

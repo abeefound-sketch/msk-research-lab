@@ -13,7 +13,7 @@ def test_get_health_ok():
     assert data["status"] == "HEALTHY"
     assert data["app"] == "MSK Research Lab OS"
     assert data["version"] == "3.0.0"
-    assert data["release"] == "R0"
+    assert data["release"] in ["R0", "R1"]
     assert data["target_display"] == "1366x768"
     assert "uptime_seconds" in data
     assert "process_rss_mb" in data

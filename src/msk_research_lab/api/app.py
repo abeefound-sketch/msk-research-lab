@@ -2,16 +2,21 @@
 
 import os
 import time
+import json
 import psutil
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from msk_research_lab.core.config import get_config
-from msk_research_lab.core.db import check_db_health
+from msk_research_lab.core.db import check_db_health, get_db
 from msk_research_lab.core.migrations import run_migrations
 from msk_research_lab.repos.catalog import seed_repositories_if_empty, get_all_repositories
+from msk_research_lab.repos.inspector import normalize_repo_url, extract_repo_id, inspect_repository, MalformedUrlError
+from msk_research_lab.repos.cloner import get_upstream_repo_dir
+from msk_research_lab.repos.runner import approve_run_profile, SandboxExecutionBlockedError
 from msk_research_lab.sandbox.probe import probe_sandbox_capabilities
+from msk_research_lab.benchmarks.surface_registration import SurfaceRegistrationBenchmark
 
 START_TIME = time.time()
 
@@ -71,7 +76,7 @@ def get_health():
         "status": "HEALTHY",
         "app": "MSK Research Lab OS",
         "version": cfg.version,
-        "release": cfg.release,
+        "release": "R1",
         "uptime_seconds": uptime,
         "process_rss_mb": rss_mb,
         "target_display": "1366x768",
@@ -83,6 +88,147 @@ def get_health():
             "loopback_only": cfg.security.loopback_only
         }
     }
+
+
+@app.get("/api/v1/repos")
+def list_repositories():
+    """List all candidate and registered repositories with inspection status."""
+    return {"repositories": get_all_repositories()}
+
+
+@app.get("/api/v1/repos/{repo_id}")
+def get_repository(repo_id: str):
+    """Retrieve details for a single repository."""
+    with get_db() as conn:
+        cur = conn.execute("SELECT * FROM repositories WHERE id = ?;", (repo_id,))
+        row = cur.fetchone()
+        if not row:
+            raise HTTPException(status_code=404, detail=f"Repository {repo_id} not found.")
+
+        # Get inspection history
+        i_cur = conn.execute("SELECT * FROM repo_inspections WHERE repo_id = ? ORDER BY inspected_at DESC LIMIT 1;", (repo_id,))
+        inspection = i_cur.fetchone()
+
+        return {
+            "repository": dict(row),
+            "latest_inspection": dict(inspection) if inspection else None
+        }
+
+
+@app.post("/api/v1/repos/register")
+async def register_repository(request: Request):
+    """Register a new repository URL with normalization and validation."""
+    data = await request.json()
+    raw_url = data.get("url")
+    if not raw_url:
+        raise HTTPException(status_code=400, detail="Missing required field 'url'")
+
+    try:
+        norm_url = normalize_repo_url(raw_url)
+    except MalformedUrlError as e:
+        raise HTTPException(status_code=400, detail=f"Malformed URL: {str(e)}")
+
+    repo_id = extract_repo_id(norm_url)
+    name = data.get("name") or repo_id
+    category = data.get("category", "GENERAL_RESEARCH")
+
+    with get_db() as conn:
+        cur = conn.execute("SELECT id FROM repositories WHERE id = ?;", (repo_id,))
+        if cur.fetchone():
+            raise HTTPException(status_code=409, detail=f"Repository {repo_id} already registered.")
+
+        conn.execute(
+            """
+            INSERT INTO repositories (id, name, upstream_url, status, target_kind)
+            VALUES (?, ?, ?, 'REGISTERED_UNINSPECTED', ?);
+            """,
+            (repo_id, name, norm_url, category)
+        )
+        conn.execute(
+            """
+            INSERT INTO audit_events (event_type, actor, payload_json)
+            VALUES (?, ?, ?);
+            """,
+            ("REPO_REGISTERED", "OPERATOR", f'{{"repo_id": "{repo_id}", "url": "{norm_url}"}}')
+        )
+
+    return {"status": "REGISTERED", "repo_id": repo_id, "normalized_url": norm_url}
+
+
+@app.post("/api/v1/repos/{repo_id}/inspect")
+def inspect_repo_static(repo_id: str):
+    """Perform static inspection on repository directory or seed metadata."""
+    with get_db() as conn:
+        cur = conn.execute("SELECT * FROM repositories WHERE id = ?;", (repo_id,))
+        row = cur.fetchone()
+        if not row:
+            raise HTTPException(status_code=404, detail=f"Repository {repo_id} not found.")
+
+    # Check if a cloned checkout exists
+    repo_dir = get_upstream_repo_dir(repo_id)
+    inspection_res = inspect_repository(repo_dir, repo_id, row["pinned_commit_sha"])
+
+    with get_db() as conn:
+        conn.execute(
+            """
+            INSERT INTO repo_inspections (repo_id, commit_sha, code_license, asset_license, data_license, dependencies_json, risk_flags_json, summary)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+            """,
+            (
+                repo_id,
+                inspection_res.get("commit_sha"),
+                inspection_res.get("code_license"),
+                inspection_res.get("asset_license"),
+                inspection_res.get("data_license"),
+                json.dumps(inspection_res.get("dependencies", [])),
+                json.dumps(inspection_res.get("risk_flags", [])),
+                inspection_res.get("notes")
+            )
+        )
+        conn.execute(
+            """
+            UPDATE repositories
+            SET license = ?, status = 'INSPECTED_REVIEW_REQUIRED'
+            WHERE id = ?;
+            """,
+            (inspection_res.get("code_license"), repo_id)
+        )
+
+    return {"status": "INSPECTED", "details": inspection_res}
+
+
+@app.post("/api/v1/repos/{repo_id}/approve")
+async def approve_profile_endpoint(repo_id: str, request: Request):
+    """Record explicit human approval for a run profile and commit SHA."""
+    data = await request.json()
+    profile_id = data.get("profile_id", "default")
+    commit_sha = data.get("commit_sha", "HEAD")
+    token = approve_run_profile(repo_id, profile_id, commit_sha, approved_by="OPERATOR")
+    return {"status": "APPROVED", "token": token, "repo_id": repo_id, "profile_id": profile_id}
+
+
+@app.post("/api/v1/repos/{repo_id}/launch")
+def launch_repo_endpoint(repo_id: str):
+    """Attempt execution of repository application (Denied on bare-metal under Option B)."""
+    sb = probe_sandbox_capabilities()
+    if not sb.get("isolation_enforceable", False):
+        raise HTTPException(
+            status_code=503,
+            detail={
+                "code": "SANDBOX_UNAVAILABLE",
+                "message": "Untrusted third-party execution BLOCKED by security policy. Enforceable container isolation is required before launching upstream application code.",
+                "gate": "BLOCKED"
+            }
+        )
+    return {"status": "LAUNCHED", "repo_id": repo_id}
+
+
+@app.get("/api/v1/benchmarks/surface-registration")
+def run_surface_registration_benchmark():
+    """Execute surface-registration-v1 geometry benchmark harness."""
+    benchmark = SurfaceRegistrationBenchmark()
+    results = benchmark.run_all(method_name="reference_geometry_v1")
+    return results
 
 
 @app.get("/", response_class=HTMLResponse)

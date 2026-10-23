@@ -1,0 +1,157 @@
+"""Static repository inspector, URL normalizer, and license/rights analyzer."""
+
+import os
+import re
+import json
+from pathlib import Path
+from typing import Dict, Any, List, Optional
+from urllib.parse import urlparse
+
+
+DANGEROUS_CHARS = re.compile(r"[;&|`$<>]")
+SAFE_URL_PATTERN = re.compile(r"^(https?://|git@github\.com:)[a-zA-Z0-9_\-\.]+(/[a-zA-Z0-9_\-\.]+)+(\.git)?/?$")
+
+
+class MalformedUrlError(ValueError):
+    """Raised when repository URL contains malicious or invalid syntax."""
+    pass
+
+
+def normalize_repo_url(url: str) -> str:
+    """Normalize and strictly validate repository URL.
+
+    Rejects file://, javascript:, shell metacharacters, and malformed targets.
+    """
+    if not url or not isinstance(url, str):
+        raise MalformedUrlError("Repository URL must be a non-empty string.")
+
+    url = url.strip()
+
+    # Reject shell injection characters
+    if DANGEROUS_CHARS.search(url):
+        raise MalformedUrlError(f"Rejected dangerous characters in URL: {url}")
+
+    # Reject local file schemes or script execution
+    parsed = urlparse(url)
+    if parsed.scheme in ["file", "javascript", "data", "ftp"]:
+        raise MalformedUrlError(f"Forbidden URL scheme: {parsed.scheme}")
+
+    # Validate against safe pattern
+    if not SAFE_URL_PATTERN.match(url):
+        raise MalformedUrlError(f"URL does not match expected safe Git/HTTPS pattern: {url}")
+
+    # Normalize to standard https URL without trailing slash or .git
+    clean = url.rstrip("/")
+    if clean.endswith(".git"):
+        clean = clean[:-4]
+
+    if clean.startswith("git@github.com:"):
+        clean = "https://github.com/" + clean[len("git@github.com:"):]
+
+    return clean
+
+
+def extract_repo_id(normalized_url: str) -> str:
+    """Derive canonical identifier from repository URL."""
+    clean = normalized_url.rstrip("/")
+    parts = clean.split("/")
+    if len(parts) >= 2:
+        return f"{parts[-2]}--{parts[-1]}".lower()
+    return clean.replace("/", "--").lower()
+
+
+def detect_licenses_in_directory(repo_dir: Path) -> Dict[str, str]:
+    """Scan directory for LICENSE files and common headers statically."""
+    results = {
+        "code_license": "UNKNOWN",
+        "asset_license": "UNKNOWN",
+        "data_license": "UNKNOWN",
+        "copyleft_risk": "NONE",
+        "notes": ""
+    }
+
+    if not repo_dir.exists():
+        return results
+
+    license_files = list(repo_dir.glob("LICENSE*")) + list(repo_dir.glob("COPYING*"))
+    for lf in license_files:
+        try:
+            content = lf.read_text(encoding="utf-8", errors="ignore")
+            content_upper = content.upper()
+
+            if "AGPL" in content_upper or "AFFERO GENERAL PUBLIC LICENSE" in content_upper:
+                results["code_license"] = "AGPL-3.0"
+                results["copyleft_risk"] = "HIGH"
+                results["notes"] = "AGPL-3.0 detected: Network copyleft requires isolation; do not bundle into core server."
+                break
+            elif "APACHE" in content_upper:
+                results["code_license"] = "Apache-2.0"
+            elif "MIT" in content_upper:
+                results["code_license"] = "MIT"
+            elif "GPL" in content_upper:
+                results["code_license"] = "GPL-3.0"
+                results["copyleft_risk"] = "MEDIUM"
+            elif "CREATIVE COMMONS" in content_upper or "CC BY" in content_upper:
+                results["asset_license"] = "CC-BY-4.0"
+        except Exception:
+            pass
+
+    # Check for 3D model files (GLB, OBJ, STL) which often carry separate asset terms
+    models = list(repo_dir.glob("**/*.glb")) + list(repo_dir.glob("**/*.gltf")) + list(repo_dir.glob("**/*.obj"))
+    if models:
+        results["asset_license"] = "REVIEW_REQUIRED (3D Model Assets Present)"
+        if not results["notes"]:
+            results["notes"] = f"Found {len(models)} 3D model asset(s). Asset license must be audited separately from code."
+
+    return results
+
+
+def inspect_repository(repo_dir: Path, repo_id: str, commit_sha: Optional[str] = None) -> Dict[str, Any]:
+    """Perform static security and rights inspection of a repository."""
+    licenses = detect_licenses_in_directory(repo_dir)
+
+    dependencies = []
+    # Check package.json
+    pkg_json = repo_dir / "package.json"
+    if pkg_json.exists():
+        try:
+            with open(pkg_json, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                deps = list(data.get("dependencies", {}).keys())
+                dependencies.extend([f"npm:{d}" for d in deps])
+        except Exception:
+            pass
+
+    # Check requirements.txt
+    req_txt = repo_dir / "requirements.txt"
+    if req_txt.exists():
+        try:
+            lines = req_txt.read_text(encoding="utf-8", errors="ignore").splitlines()
+            for line in lines:
+                line = line.strip()
+                if line and not line.startswith("#"):
+                    dependencies.append(f"pypi:{line.split('==')[0].split('>=')[0].strip()}")
+        except Exception:
+            pass
+
+    # Risk evaluation
+    risk_flags = []
+    if licenses["copyleft_risk"] == "HIGH":
+        risk_flags.append("RISK_AGPL_COPYLEFT")
+    if licenses["code_license"] == "UNKNOWN":
+        risk_flags.append("RISK_UNKNOWN_CODE_LICENSE")
+    if "REVIEW_REQUIRED" in licenses["asset_license"]:
+        risk_flags.append("RISK_SEPARATE_ASSET_TERMS")
+
+    return {
+        "repo_id": repo_id,
+        "commit_sha": commit_sha,
+        "code_license": licenses["code_license"],
+        "asset_license": licenses["asset_license"],
+        "data_license": licenses["data_license"],
+        "copyleft_risk": licenses["copyleft_risk"],
+        "dependencies": dependencies,
+        "risk_flags": risk_flags,
+        "notes": licenses["notes"],
+        "inspection_status": "INSPECTED"
+    }

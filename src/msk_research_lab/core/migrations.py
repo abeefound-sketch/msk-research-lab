@@ -73,6 +73,70 @@ MIGRATIONS: List[Tuple[int, str, str]] = [
         CREATE INDEX IF NOT EXISTS idx_repos_status ON repositories(status);
         CREATE INDEX IF NOT EXISTS idx_approvals_repo ON execution_approvals(repo_id);
         """
+    ),
+    (
+        2,
+        "0002_r1_repo_inspections_and_benchmarks",
+        """
+        -- R1 Static Inspection Results
+        CREATE TABLE IF NOT EXISTS repo_inspections (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            repo_id TEXT NOT NULL,
+            inspected_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+            commit_sha TEXT,
+            code_license TEXT,
+            asset_license TEXT,
+            data_license TEXT,
+            dependencies_json TEXT NOT NULL DEFAULT '[]',
+            risk_flags_json TEXT NOT NULL DEFAULT '[]',
+            summary TEXT,
+            FOREIGN KEY(repo_id) REFERENCES repositories(id) ON DELETE CASCADE
+        );
+
+        -- R1 Surface Registration v1 Benchmark Runs
+        CREATE TABLE IF NOT EXISTS benchmark_runs (
+            id TEXT PRIMARY KEY,
+            benchmark_suite TEXT NOT NULL,
+            suite_version TEXT NOT NULL DEFAULT 'v1.0',
+            executed_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+            total_cases INTEGER NOT NULL DEFAULT 0,
+            passed_cases INTEGER NOT NULL DEFAULT 0,
+            failed_cases INTEGER NOT NULL DEFAULT 0,
+            unsupported_cases INTEGER NOT NULL DEFAULT 0,
+            overall_status TEXT NOT NULL DEFAULT 'RUNNING',
+            manifest_sha256 TEXT,
+            hardware_fingerprint_json TEXT NOT NULL DEFAULT '{}'
+        );
+
+        -- R1 Benchmark Individual Test Cases
+        CREATE TABLE IF NOT EXISTS benchmark_cases (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            run_id TEXT NOT NULL,
+            case_id TEXT NOT NULL,
+            method_id TEXT NOT NULL,
+            status TEXT NOT NULL,
+            comparability TEXT NOT NULL DEFAULT 'COMPARABLE',
+            error_metric REAL,
+            unit TEXT,
+            details_json TEXT NOT NULL DEFAULT '{}',
+            FOREIGN KEY(run_id) REFERENCES benchmark_runs(id) ON DELETE CASCADE
+        );
+
+        -- R1 Evidence Bundles
+        CREATE TABLE IF NOT EXISTS evidence_bundles (
+            id TEXT PRIMARY KEY,
+            release_id TEXT NOT NULL,
+            bundle_path TEXT NOT NULL,
+            artifact_count INTEGER NOT NULL DEFAULT 0,
+            manifest_sha256 TEXT NOT NULL,
+            created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+            is_valid INTEGER NOT NULL DEFAULT 1
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_repo_inspections_repo ON repo_inspections(repo_id);
+        CREATE INDEX IF NOT EXISTS idx_benchmark_cases_run ON benchmark_cases(run_id);
+        CREATE INDEX IF NOT EXISTS idx_evidence_bundles_release ON evidence_bundles(release_id);
+        """
     )
 ]
 

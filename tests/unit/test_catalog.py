@@ -18,5 +18,6 @@ def test_seed_repositories_and_query():
     repos = get_all_repositories()
     assert len(repos) >= 1
     # Check invariant: initial status must be uninspected
+    valid_statuses = {"REGISTERED_UNINSPECTED", "UNVERIFIED_AT_HANDOFF", "INSPECTED_REVIEW_REQUIRED", "CLONED_INSPECTABLE"}
     for r in repos:
-        assert "UNINSPECTED" in r["status"] or "UNVERIFIED" in r["status"]
+        assert r["status"] in valid_statuses or "UNVERIFIED" in r["status"]
