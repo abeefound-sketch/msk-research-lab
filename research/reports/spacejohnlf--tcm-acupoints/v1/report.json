@@ -1,0 +1,22 @@
+{
+  "candidate_id": "cand_spacejohnlf_tcm-acupoints",
+  "revision": 1,
+  "canonical_url": "https://github.com/spacejohnlf/tcm-acupoints",
+  "pinned_commit_sha": "04e35abb66585eb29c7250ea8ab5243c8c744f64",
+  "decision": "DEFER",
+  "reviewer": "Lead Engineer (Antigravity)",
+  "generated_at": "2026-10-23T05:01:10.160319Z",
+  "entrypoints": [
+    {
+      "type": "CONVENTIONAL_ENTRYPOINT",
+      "file": "index.html",
+      "line": 1
+    }
+  ],
+  "dependencies_count": 13,
+  "risk_hooks": [],
+  "ui_framework": "Three.js / WebGL 3D",
+  "model_formats": [
+    ".glb"
+  ]
+}

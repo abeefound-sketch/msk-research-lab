@@ -186,22 +186,21 @@ def import_markdown_reference_list(
     new_cands_count = 0
 
     with get_db(custom_db_path) as conn:
-        # Register or update reference_documents
+        # Clear older occurrences and reference_documents for this file upon re-import
+        conn.execute(
+            "DELETE FROM reference_occurrences WHERE document_id IN (SELECT id FROM reference_documents WHERE file_path = ?)",
+            (str(safe_path),)
+        )
+        conn.execute("DELETE FROM reference_documents WHERE file_path = ?", (str(safe_path),))
+
+        # Register reference_documents with current content hash
         conn.execute(
             """
             INSERT INTO reference_documents (id, file_path, file_sha256, line_count, candidate_count)
             VALUES (?, ?, ?, ?, ?)
-            ON CONFLICT(file_path) DO UPDATE SET
-                file_sha256 = excluded.file_sha256,
-                line_count = excluded.line_count,
-                candidate_count = excluded.candidate_count,
-                imported_at = (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
             """,
             (doc_id, str(safe_path), file_sha256, line_count, len(candidates_map))
         )
-
-        # Clear older occurrences for this document upon re-import
-        conn.execute("DELETE FROM reference_occurrences WHERE document_id = ?", (doc_id,))
 
         # Register candidate records deduplicated by canonical URL
         for cand_id, (canonical_url, owner, repo) in candidates_map.items():
