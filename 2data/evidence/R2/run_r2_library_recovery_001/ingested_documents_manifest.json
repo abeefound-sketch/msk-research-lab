@@ -1,0 +1,72 @@
+[
+  {
+    "id": "doc:sha256:925120667d4b7672",
+    "filename": "anatomy_guide_native.pdf",
+    "type": "PDF",
+    "sha256": "925120667d4b7672f3621353907e551e6c780176ba7c55831eb57acff4473154",
+    "locations_count": 2
+  },
+  {
+    "id": "doc:sha256:58de2f20d4eadb14",
+    "filename": "meridian_points_reference.pdf",
+    "type": "PDF",
+    "sha256": "58de2f20d4eadb14e5d0c3999c70b5080ae11b9bec9721b490d68b0254dc9896",
+    "locations_count": 3
+  },
+  {
+    "id": "doc:sha256:f2ceeaf127173054",
+    "filename": "scanned_atlas_plates.pdf",
+    "type": "PDF",
+    "sha256": "f2ceeaf12717305485fdf41d2195c4d34aff768eb42a03c8e1aef015d21903f0",
+    "locations_count": 1
+  },
+  {
+    "id": "doc:sha256:8eb2162ff8f1cb00",
+    "filename": "scanned_historical_manuscript.pdf",
+    "type": "PDF",
+    "sha256": "8eb2162ff8f1cb00f9ecb12b6c4e433e32c069fcff546aafa0464ed8cc06f42c",
+    "locations_count": 2
+  },
+  {
+    "id": "doc:sha256:5515dabea86ac30e",
+    "filename": "clinical_study_vol1.epub",
+    "type": "EPUB",
+    "sha256": "5515dabea86ac30ebc9eeb48d149d8c69cecbd9ec01c78e4669b18e561c4e2d4",
+    "locations_count": 1
+  },
+  {
+    "id": "doc:sha256:b4cca70b5dfcb986",
+    "filename": "clinical_study_vol2.epub",
+    "type": "EPUB",
+    "sha256": "b4cca70b5dfcb986ed914afeaf2cdc2415649f3c97297a1c8cd05645a7e95569",
+    "locations_count": 1
+  },
+  {
+    "id": "doc:sha256:6d16c05b4c5f1a75",
+    "filename": "clinical_study_vol3.epub",
+    "type": "EPUB",
+    "sha256": "6d16c05b4c5f1a75ce623665c106296e1fa73608b470a1a158210cc8b066e0cd",
+    "locations_count": 1
+  },
+  {
+    "id": "doc:sha256:43fb50bf05205135",
+    "filename": "research_monograph_part1.docx",
+    "type": "DOCX",
+    "sha256": "43fb50bf0520513508606b9064f6ccd8287987138b93c979d9134d55d3120b1a",
+    "locations_count": 5
+  },
+  {
+    "id": "doc:sha256:46c050fb01130c45",
+    "filename": "research_monograph_part2.docx",
+    "type": "DOCX",
+    "sha256": "46c050fb01130c45dfa4722c1d814ea1e9ae43c685374263c6552b8014fac9c7",
+    "locations_count": 5
+  },
+  {
+    "id": "doc:sha256:4c8b6526429bef58",
+    "filename": "research_monograph_part3.docx",
+    "type": "DOCX",
+    "sha256": "4c8b6526429bef586f8d6a0af8014e5efe764993f53f9a262696b0b7a5de8e02",
+    "locations_count": 5
+  }
+]

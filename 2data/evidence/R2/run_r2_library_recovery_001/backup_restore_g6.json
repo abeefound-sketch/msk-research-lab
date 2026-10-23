@@ -1,0 +1,16 @@
+{
+  "backup": {
+    "backup_id": "backup_1792715405",
+    "archive_path": "/mnt/c/Users/tuanh/Downloads/msk-research-lab/2data/exports/backup_1792715405.tar.gz",
+    "archive_sha256": "6099146c6f98d0116661d804141882be5d0cf0d198f3bf68efeccbc77f1ad66b",
+    "file_count": 25
+  },
+  "restore": {
+    "status": "RESTORE_VERIFIED",
+    "backup_id": "backup_1792715405",
+    "restored_path": "/tmp/tmp5sokbcjs/backup_1792715405",
+    "verified_file_count": 25,
+    "sqlite_integrity_ok": true,
+    "fts5_functional": true
+  }
+}

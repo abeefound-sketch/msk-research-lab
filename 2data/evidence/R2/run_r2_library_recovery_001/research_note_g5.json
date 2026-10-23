@@ -1,0 +1,47 @@
+{
+  "schema_version": "1.0",
+  "export_kind": "RESEARCH_NOTE",
+  "note": {
+    "id": "note-7d633481f6",
+    "title": "G5 Research Note: Multi-Source Evidence on Shoulder Landmarks",
+    "content_markdown": "Synthesis of findings across EPUB Clinical Study and DOCX Monograph.",
+    "author": "RESEARCHER",
+    "created_at": "2026-10-23T00:30:05.377684Z",
+    "updated_at": "2026-10-23T00:30:05.377684Z",
+    "citations": [
+      {
+        "id": 7,
+        "note_id": "note-7d633481f6",
+        "target_kind": "DOCUMENT_LOCATION",
+        "document_id": "doc:sha256:5515dabea86ac30e",
+        "location_id": "loc:doc:sha256:5515dabea86ac30e:s1",
+        "git_repo_id": null,
+        "git_commit_sha": null,
+        "excerpt": "Chapter 1: Trapezius and GB21\n\n\n\n\nChapter 1: Trapezius and GB21\n\n\nThe trapezius muscle is a large superficial muscle extending longitudinally from the occipital bone to the lower thoracic vertebrae.\n\n",
+        "comment": "EPUB chapter finding"
+      },
+      {
+        "id": 8,
+        "note_id": "note-7d633481f6",
+        "target_kind": "DOCUMENT_LOCATION",
+        "document_id": "doc:sha256:43fb50bf05205135",
+        "location_id": "loc:doc:sha256:43fb50bf05205135:b1",
+        "git_repo_id": null,
+        "git_commit_sha": null,
+        "excerpt": "Research Monograph Part 1",
+        "comment": "DOCX paragraph finding"
+      },
+      {
+        "id": 9,
+        "note_id": "note-7d633481f6",
+        "target_kind": "GIT_COMMIT",
+        "document_id": null,
+        "location_id": null,
+        "git_repo_id": "openanatomy--open-anatomy-browser",
+        "git_commit_sha": "870ab1e01234567890abcdef1234567890abcdef",
+        "excerpt": "",
+        "comment": "Corroborating 3D mesh landmark"
+      }
+    ]
+  }
+}

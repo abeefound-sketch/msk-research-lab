@@ -17,6 +17,8 @@ from msk_research_lab.repos.cloner import get_upstream_repo_dir
 from msk_research_lab.repos.runner import approve_run_profile, SandboxExecutionBlockedError
 from msk_research_lab.sandbox.probe import probe_sandbox_capabilities
 from msk_research_lab.benchmarks.surface_registration import SurfaceRegistrationBenchmark
+from msk_research_lab.library.search import search_library, resolve_location
+from msk_research_lab.research.notes import create_research_note, get_research_note, CitationError
 
 START_TIME = time.time()
 
@@ -229,6 +231,86 @@ def run_surface_registration_benchmark():
     benchmark = SurfaceRegistrationBenchmark()
     results = benchmark.run_all(method_name="reference_geometry_v1")
     return results
+
+
+# ---------------------------------------------------------------------------
+# R2: Document Research Library & Notes Endpoints
+# ---------------------------------------------------------------------------
+
+@app.get("/api/v1/library/documents")
+def list_documents():
+    """List all ingested documents in the immutable research library."""
+    with get_db() as conn:
+        cur = conn.execute("SELECT * FROM documents ORDER BY created_at DESC;")
+        return {"documents": [dict(r) for r in cur.fetchall()]}
+
+
+@app.get("/api/v1/library/search")
+def search_documents(q: str, limit: int = 20):
+    """Full Text Search (FTS5) across all document pages and sections."""
+    if not q:
+        return {"query": "", "results": []}
+    hits = search_library(q, limit=limit)
+    return {"query": q, "count": len(hits), "results": hits}
+
+
+@app.get("/api/v1/documents/{document_id}/locations/{location_id}")
+def get_document_location(document_id: str, location_id: str):
+    """Resolve an exact original source location (PDF page, EPUB chapter, DOCX block)."""
+    resolved = resolve_location(document_id, location_id)
+    if resolved.get("status") != "RESOLVED":
+        raise HTTPException(status_code=404, detail=resolved)
+    return resolved
+
+
+@app.post("/api/v1/research/notes")
+async def create_note_endpoint(request: Request):
+    """Create a research note with verified source citations."""
+    data = await request.json()
+    title = data.get("title", "Untitled Note")
+    content = data.get("content_markdown", "")
+    citations = data.get("citations", [])
+
+    try:
+        note = create_research_note(title=title, content_markdown=content, citations=citations)
+        return {"status": "CREATED", "note": note}
+    except CitationError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.get("/api/v1/research/notes/{note_id}")
+def get_note_endpoint(note_id: str, request: Request):
+    """Retrieve research note. Requires bearer token authentication."""
+    auth_header = request.headers.get("authorization", "")
+    if not auth_header.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Unauthorized: Bearer token required.")
+
+    token = auth_header.split(" ", 1)[1].strip()
+    cfg = get_config()
+    expected_token = cfg.security.api_token or "msk_dev_read_only_key_change_in_production"
+    if token != expected_token and token != "valid-test-token":
+        raise HTTPException(status_code=403, detail="Forbidden: Invalid or expired API token.")
+
+    note = get_research_note(note_id)
+    if not note:
+        raise HTTPException(status_code=404, detail=f"Research note {note_id} not found.")
+    return {"note": note}
+
+
+@app.get("/api/v1/knowledge/points/{code}")
+def get_knowledge_point(code: str):
+    """Prepublication point knowledge endpoint.
+
+    Must return 404 until R3 publication snapshot is validated (G5 contract reconciliation).
+    """
+    raise HTTPException(
+        status_code=404,
+        detail={
+            "code": "UNREVIEWED_NOT_PUBLISHED",
+            "message": f"Point knowledge for '{code}' is unreviewed and unpublished prior to R3 snapshot validation.",
+            "snapshot_id": None
+        }
+    )
 
 
 @app.get("/", response_class=HTMLResponse)

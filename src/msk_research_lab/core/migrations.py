@@ -137,6 +137,77 @@ MIGRATIONS: List[Tuple[int, str, str]] = [
         CREATE INDEX IF NOT EXISTS idx_benchmark_cases_run ON benchmark_cases(run_id);
         CREATE INDEX IF NOT EXISTS idx_evidence_bundles_release ON evidence_bundles(release_id);
         """
+    ),
+    (
+        3,
+        "0003_r2_document_library_and_notes",
+        """
+        -- R2 Documents Registry
+        CREATE TABLE IF NOT EXISTS documents (
+            id TEXT PRIMARY KEY,
+            sha256 TEXT UNIQUE NOT NULL,
+            original_filename TEXT NOT NULL,
+            file_type TEXT NOT NULL,
+            byte_size INTEGER NOT NULL,
+            page_or_section_count INTEGER NOT NULL DEFAULT 0,
+            rights_status TEXT NOT NULL DEFAULT 'RESTRICTED_LOCAL',
+            storage_path TEXT NOT NULL,
+            created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+        );
+
+        -- R2 Document Locations (Exact, resolvable locators)
+        CREATE TABLE IF NOT EXISTS document_locations (
+            id TEXT PRIMARY KEY,
+            document_id TEXT NOT NULL,
+            location_type TEXT NOT NULL,
+            page_number INTEGER,
+            spine_href TEXT,
+            block_index INTEGER,
+            heading_path TEXT,
+            normalized_region TEXT,
+            text_content TEXT,
+            has_images INTEGER NOT NULL DEFAULT 0,
+            ocr_status TEXT NOT NULL DEFAULT 'NATIVE_TEXT',
+            FOREIGN KEY(document_id) REFERENCES documents(id) ON DELETE CASCADE
+        );
+
+        -- R2 FTS5 Full Text Search Index
+        CREATE VIRTUAL TABLE IF NOT EXISTS fts_document_locations USING fts5(
+            document_id UNINDEXED,
+            location_id UNINDEXED,
+            heading,
+            body,
+            tokenize = 'unicode61'
+        );
+
+        -- R2 Research Notes
+        CREATE TABLE IF NOT EXISTS research_notes (
+            id TEXT PRIMARY KEY,
+            title TEXT NOT NULL,
+            content_markdown TEXT NOT NULL,
+            author TEXT NOT NULL DEFAULT 'RESEARCHER',
+            created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+            updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+        );
+
+        -- R2 Research Citations (Linked to documents or git commits)
+        CREATE TABLE IF NOT EXISTS research_citations (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            note_id TEXT NOT NULL,
+            target_kind TEXT NOT NULL,
+            document_id TEXT,
+            location_id TEXT,
+            git_repo_id TEXT,
+            git_commit_sha TEXT,
+            excerpt TEXT,
+            comment TEXT,
+            FOREIGN KEY(note_id) REFERENCES research_notes(id) ON DELETE CASCADE
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_doc_locations_doc ON document_locations(document_id);
+        CREATE INDEX IF NOT EXISTS idx_doc_locations_page ON document_locations(page_number);
+        CREATE INDEX IF NOT EXISTS idx_citations_note ON research_citations(note_id);
+        """
     )
 ]
 
