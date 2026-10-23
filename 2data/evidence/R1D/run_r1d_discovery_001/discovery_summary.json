@@ -1,0 +1,34 @@
+{
+  "release": "R1D",
+  "name": "Repository Discovery & Research Pipeline",
+  "generated_at": "2026-10-23T02:49:00Z",
+  "host": "Windows 10 / Ubuntu WSL2 (8 GiB RAM)",
+  "automated_tests": {
+    "total": 135,
+    "passed": 135,
+    "failed": 0,
+    "r1d_tests_added": 31
+  },
+  "gates_status": {
+    "DISC-01": "PASS (Local MD Import with exact line/SHA provenance, deduplication, no auto-clone)",
+    "DISC-02": "PASS (Live GitHub search, TTL caching, rate-limit backoff, transparent scoring)",
+    "DISC-03": "PASS (Research queue, distinct clone approval, sandbox execution blocked)",
+    "DISC-04": "PASS (Candidate comparison, SHA-256 manifested reports, Tri-Ledger ingest)",
+    "REV-01": "PASS (Static AST inspection, entrypoints, risk hooks, read-only)",
+    "REV-02": "PASS (Optional REA adapter reporting OPTIONAL_UNAVAILABLE cleanly)",
+    "G2": "BLOCKED (Rootless container sandbox unavailable in WSL host; untrusted execution prohibited)"
+  },
+  "artifacts": {
+    "reference_documents": [
+      {
+        "id": "doc_61d044e3812971ab",
+        "file_path": "research/references/awesome_msk_biomedical_repos.md",
+        "file_sha256": "61d044e3812971ab5fa2f1489519faddd84ea67d5ad034cb03ecbbbdd67fc2ec",
+        "candidates_found": 5,
+        "occurrences_tracked": 6
+      }
+    ],
+    "sample_report_manifest": "b07d911ed7bbb4df7bee0ea7b7fae2634457eb4fc3adbe293f3532393ff607ab",
+    "tri_ledger_evidence_id": "evi_disc_cand_openanatomy_open-anatomy-browser_b07d911e"
+  }
+}

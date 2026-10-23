@@ -1,0 +1,34 @@
+diff --git a/2data/evidence/R0_doctor.json b/2data/evidence/R0_doctor.json
+index 7981dbe..af49364 100644
+--- a/2data/evidence/R0_doctor.json
++++ b/2data/evidence/R0_doctor.json
+@@ -1,5 +1,5 @@
+ {
+-  "timestamp": "2026-10-22T17:59:35Z",
++  "timestamp": "2026-10-23T01:38:03Z",
+   "release": "R0",
+   "environment": {
+     "system": "Linux",
+@@ -13,10 +13,10 @@
+   "resources": {
+     "memory": {
+       "total_gb": 3.77,
+-      "available_gb": 3.14,
+-      "percent_used": 16.7
++      "available_gb": 3.05,
++      "percent_used": 19.2
+     },
+-    "disk_c_free_gb": 44.7,
++    "disk_c_free_gb": 41.89,
+     "disk_c_total_gb": 149.4,
+     "disk_d_free_gb": 12.64
+   },
+@@ -33,7 +33,7 @@
+     "wal_mode": true,
+     "fk_enabled": true,
+     "integrity_ok": true,
+-    "schema_version": 1,
++    "schema_version": 6,
+     "path": "/mnt/c/Users/tuanh/Downloads/msk-research-lab/2data/db/lab.sqlite3"
+   },
+   "sandbox": {

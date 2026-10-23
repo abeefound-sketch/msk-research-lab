@@ -1,0 +1,1 @@
+PYTHONPATH=src:. .venv/bin/python3 scripts/doctor.py

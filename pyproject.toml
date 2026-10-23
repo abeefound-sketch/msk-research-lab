@@ -7,7 +7,7 @@ name = "msk-research-lab"
 version = "0.1.0"
 description = "Independent MSK Research Lab OS workbench for OSS repositories, literature, and scholarly tri-ledger."
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.10"
 authors = [
     { name = "MSK Research Lab Team" }
 ]
@@ -38,3 +38,8 @@ msk-lab = "msk_research_lab.__main__:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src", "."]
+testpaths = ["tests"]
+

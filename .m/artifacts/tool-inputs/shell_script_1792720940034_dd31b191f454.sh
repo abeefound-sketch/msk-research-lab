@@ -1,0 +1,1 @@
+find src/msk_research_lab -maxdepth 2 -not -path '*/.*'

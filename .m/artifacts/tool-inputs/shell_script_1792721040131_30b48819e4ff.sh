@@ -1,0 +1,1 @@
+ls -lh /mnt/c/Users/tuanh/Desktop/msk-research-lab-audit* /home/tuan/Desktop/msk-research-lab-audit*

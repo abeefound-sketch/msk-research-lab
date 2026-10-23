@@ -11,13 +11,23 @@ except ImportError:
     import tomli as tomllib  # Fallback for Python 3.10
 
 
+def _find_repo_root() -> Path:
+    cwd = Path(os.getcwd()).resolve()
+    if (cwd / "2data").exists() or (cwd / "pyproject.toml").exists():
+        return cwd
+    anchor = Path(__file__).resolve().parent.parent.parent.parent
+    if (anchor / "pyproject.toml").exists():
+        return anchor
+    return cwd
+
+
 class ServerConfig(BaseModel):
     host: str = Field(default="127.0.0.1", description="Server host, default loopback only")
     port: int = Field(default=8091, description="Server port, default 8091")
 
 
 class StorageConfig(BaseModel):
-    root_dir: Path = Field(default_factory=lambda: Path(os.getcwd()))
+    root_dir: Path = Field(default_factory=_find_repo_root)
     data_dir: Path = Field(default=Path("2data"))
     db_path: Path = Field(default=Path("2data/db/lab.sqlite3"))
     docs_dir: Path = Field(default=Path("1docs"))

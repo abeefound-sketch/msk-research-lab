@@ -4,12 +4,12 @@ import os
 import re
 import json
 from pathlib import Path
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, List, Optional, Tuple
 from urllib.parse import urlparse
 
 
-DANGEROUS_CHARS = re.compile(r"[;&|`$<>]")
-SAFE_URL_PATTERN = re.compile(r"^(https?://|git@github\.com:)[a-zA-Z0-9_\-\.]+(/[a-zA-Z0-9_\-\.]+)+(\.git)?/?$")
+DANGEROUS_CHARS = re.compile(r"[;&|`$<>\r\n\t]")
+GITHUB_IDENTIFIER = re.compile(r"^[a-zA-Z0-9_\-\.]+$")
 
 
 class MalformedUrlError(ValueError):
@@ -20,35 +20,91 @@ class MalformedUrlError(ValueError):
 def normalize_repo_url(url: str) -> str:
     """Normalize and strictly validate repository URL.
 
-    Rejects file://, javascript:, shell metacharacters, and malformed targets.
+    Rejects file://, javascript:, credentials, shell metacharacters, and malformed targets.
+    Tolerates and strips query strings and fragments.
     """
     if not url or not isinstance(url, str):
         raise MalformedUrlError("Repository URL must be a non-empty string.")
 
     url = url.strip()
 
-    # Reject shell injection characters
+    # Reject shell injection characters and unprintable whitespace
     if DANGEROUS_CHARS.search(url):
         raise MalformedUrlError(f"Rejected dangerous characters in URL: {url}")
 
-    # Reject local file schemes or script execution
+    # Handle git@github.com:owner/repo pattern before urlparse
+    if url.startswith("git@github.com:"):
+        clean_path = url[len("git@github.com:"):]
+        url = "https://github.com/" + clean_path
+
     parsed = urlparse(url)
+
+    # Reject local file schemes or script execution
     if parsed.scheme in ["file", "javascript", "data", "ftp"]:
         raise MalformedUrlError(f"Forbidden URL scheme: {parsed.scheme}")
 
-    # Validate against safe pattern
-    if not SAFE_URL_PATTERN.match(url):
-        raise MalformedUrlError(f"URL does not match expected safe Git/HTTPS pattern: {url}")
+    if parsed.scheme not in ["http", "https"]:
+        raise MalformedUrlError(f"Unsupported scheme: {parsed.scheme}")
 
-    # Normalize to standard https URL without trailing slash or .git
-    clean = url.rstrip("/")
-    if clean.endswith(".git"):
-        clean = clean[:-4]
+    # Reject credentials embedded in authority (e.g. user:pass@host)
+    if parsed.username or parsed.password or "@" in parsed.netloc:
+        raise MalformedUrlError("URL must not contain embedded user credentials.")
 
-    if clean.startswith("git@github.com:"):
-        clean = "https://github.com/" + clean[len("git@github.com:"):]
+    # Validate hostname
+    hostname = (parsed.hostname or "").lower()
+    if not hostname:
+        raise MalformedUrlError("URL missing hostname.")
 
+    # Reject deceptive lookalike hostnames (e.g. github.com.attacker.com, evil-github.com)
+    if ("github.com" in hostname or "github" in hostname) and hostname not in ["github.com", "www.github.com"]:
+        raise MalformedUrlError(f"Rejected deceptive GitHub lookalike hostname: {hostname}")
+
+    # Disallow path traversal
+    path_segments = [seg for seg in parsed.path.strip("/").split("/") if seg]
+    for seg in path_segments:
+        if seg in [".", ".."]:
+            raise MalformedUrlError("URL path contains path traversal segments.")
+
+    if not path_segments:
+        raise MalformedUrlError("URL path has no repository segments.")
+
+    # Normalize path: strip .git suffix if present
+    normalized_path = "/" + "/".join(path_segments)
+    if normalized_path.endswith(".git"):
+        normalized_path = normalized_path[:-4]
+
+    # Reassemble clean URL without query parameters or fragment
+    clean = f"{parsed.scheme}://{parsed.netloc}{normalized_path}"
     return clean
+
+
+def parse_canonical_github_url(url: str) -> Tuple[str, str, str]:
+    """Parse and validate canonical GitHub repository root (https://github.com/{owner}/{repo}).
+
+    Returns:
+        (canonical_url, owner, repo)
+
+    Raises:
+        MalformedUrlError if URL is not a valid canonical GitHub repository root.
+    """
+    clean_url = normalize_repo_url(url)
+    parsed = urlparse(clean_url)
+    hostname = (parsed.hostname or "").lower()
+
+    if hostname not in ["github.com", "www.github.com"]:
+        raise MalformedUrlError(f"Host must be github.com, got: {hostname}")
+
+    segments = [s for s in parsed.path.strip("/").split("/") if s]
+    if len(segments) != 2:
+        raise MalformedUrlError(f"Canonical GitHub repo requires exactly owner and repo segments, got {segments}")
+
+    owner, repo = segments[0], segments[1]
+    if not GITHUB_IDENTIFIER.match(owner) or not GITHUB_IDENTIFIER.match(repo):
+        raise MalformedUrlError(f"Invalid owner or repo identifier: {owner}/{repo}")
+
+    canonical_url = f"https://github.com/{owner}/{repo}"
+    return canonical_url, owner, repo
+
 
 
 def extract_repo_id(normalized_url: str) -> str:

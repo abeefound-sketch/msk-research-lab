@@ -1,0 +1,4 @@
+{"ts": 1792720752.412878, "message": "runtime nudge queued (reasoning effort)", "extra": {"signal": "Reasoning effort has been xhigh for 5/6 consecutive requests."}}
+{"ts": 1792720861.0835085, "message": "reasoning effort downgraded after xhigh request budget", "extra": {"budget": 6, "attempted_request_count": 7}}
+{"ts": 1792720931.4807928, "message": "runtime nudge queued (reasoning effort)", "extra": {"signal": "A shell command failed (exit 2)."}}
+{"ts": 1792720931.4844472, "message": "reasoning effort nudge queued after shell error", "extra": {"call_id": "call_247284", "exit_code": 2}}

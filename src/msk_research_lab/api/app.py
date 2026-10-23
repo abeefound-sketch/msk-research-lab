@@ -5,6 +5,7 @@ import time
 import json
 import sqlite3
 import psutil
+from pathlib import Path
 from typing import Optional, Dict, List, Any
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request, HTTPException
@@ -66,6 +67,20 @@ from msk_research_lab.bridge.packages import (
 from msk_research_lab.bridge.mock_consumer import (
     TherapyResearchClient, ConsumerBridgeError, AuthenticationError, KnowledgeNotFoundError
 )
+from msk_research_lab.discovery.markdown_importer import (
+    import_markdown_reference_list, ImportSecurityError
+)
+from msk_research_lab.discovery.github_search import (
+    GitHubSearchQuery, search_github, save_discovered_candidate, GitHubRepoItem
+)
+from msk_research_lab.discovery.research_queue import (
+    queue_candidate_for_research, approve_and_clone_candidate, request_run_approval,
+    record_research_decision, update_candidate_state, CloneApprovalError, ExecutionBlockedError
+)
+from msk_research_lab.discovery.static_analyzer import analyze_repository_static
+from msk_research_lab.discovery.report_generator import compare_candidates, generate_research_report
+from msk_research_lab.discovery.rea_adapter import probe_rea_adapter
+
 
 
 START_TIME = time.time()
@@ -1048,6 +1063,245 @@ async def api_verify_research_package(request: Request):
         raise HTTPException(status_code=400, detail=str(e))
 
 
+# =========================================================================
+# R1D DISCOVERY & RESEARCH PIPELINE ENDPOINTS (DISC-01..04, REV-01..02)
+# =========================================================================
+
+@app.post("/api/v1/discovery/import-markdown")
+async def api_discovery_import_markdown(request: Request):
+    """Import local Markdown repository reference list (DISC-01)."""
+    body = await request.json()
+    rel_path = body.get("file_path")
+    if not rel_path:
+        raise HTTPException(status_code=400, detail="Field 'file_path' is required.")
+
+    cfg = get_config()
+    target_path = Path(rel_path)
+    if not target_path.is_absolute():
+        target_path = cfg.root_dir / target_path
+
+    try:
+        summary = import_markdown_reference_list(target_path)
+        return summary.model_dump()
+    except ImportSecurityError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except FileNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/v1/discovery/candidates")
+def api_get_discovery_candidates(status: Optional[str] = None):
+    """List repository candidates in research lifecycle (DISC-01, DISC-03)."""
+    with get_db() as conn:
+        if status:
+            cur = conn.execute("SELECT * FROM repository_candidates WHERE status = ? ORDER BY created_at DESC", (status,))
+        else:
+            cur = conn.execute("SELECT * FROM repository_candidates ORDER BY created_at DESC")
+        rows = cur.fetchall()
+        return [dict(r) for r in rows]
+
+
+@app.get("/api/v1/discovery/candidates/{candidate_id}")
+def api_get_discovery_candidate_detail(candidate_id: str):
+    """Get candidate detail, occurrences, static analysis, and decisions (DISC-01, DISC-03)."""
+    with get_db() as conn:
+        cand = conn.execute("SELECT * FROM repository_candidates WHERE id = ?", (candidate_id,)).fetchone()
+        if not cand:
+            raise HTTPException(status_code=404, detail=f"Candidate {candidate_id} not found.")
+
+        occs = conn.execute(
+            """
+            SELECT o.*, d.file_path, d.file_sha256
+            FROM reference_occurrences o
+            JOIN reference_documents d ON o.document_id = d.id
+            WHERE o.candidate_id = ?
+            ORDER BY o.line_number ASC
+            """,
+            (candidate_id,)
+        ).fetchall()
+
+        art = conn.execute(
+            "SELECT * FROM static_analysis_artifacts WHERE candidate_id = ? ORDER BY analyzed_at DESC LIMIT 1",
+            (candidate_id,)
+        ).fetchone()
+
+        decisions = conn.execute(
+            "SELECT * FROM research_decisions WHERE candidate_id = ? ORDER BY reviewed_at DESC",
+            (candidate_id,)
+        ).fetchall()
+
+        return {
+            "candidate": dict(cand),
+            "occurrences": [dict(o) for o in occs],
+            "static_artifact": dict(art) if art else None,
+            "decisions": [dict(d) for d in decisions]
+        }
+
+
+@app.post("/api/v1/discovery/github-search")
+def api_discovery_github_search(request_data: Dict[str, Any]):
+    """Execute live GitHub repository search with caching and transparent scoring (DISC-02)."""
+    query = GitHubSearchQuery(
+        keywords=request_data.get("keywords"),
+        topic=request_data.get("topic"),
+        language=request_data.get("language"),
+        page=request_data.get("page", 1),
+        per_page=request_data.get("per_page", 10)
+    )
+    result = search_github(query)
+    return result.model_dump()
+
+
+@app.post("/api/v1/discovery/candidates/save")
+def api_save_discovered_candidate(payload: Dict[str, Any]):
+    """Persist a candidate from search into repository_candidates (DISC-02)."""
+    item_data = payload.get("item")
+    if not item_data:
+        raise HTTPException(status_code=400, detail="Field 'item' is required.")
+    priority = payload.get("priority", "MEDIUM")
+    item = GitHubRepoItem(**item_data)
+    cand_id = save_discovered_candidate(item, priority=priority)
+    return {"candidate_id": cand_id, "status": "SAVED"}
+
+
+@app.post("/api/v1/research/queue")
+def api_queue_candidate_for_research(payload: Dict[str, Any]):
+    """Enroll candidate into research queue (DISC-03)."""
+    candidate_id = payload.get("candidate_id")
+    if not candidate_id:
+        raise HTTPException(status_code=400, detail="Field 'candidate_id' is required.")
+    priority = payload.get("priority", "HIGH")
+    tags = payload.get("tags", [])
+    questions = payload.get("research_questions", [])
+
+    try:
+        res = queue_candidate_for_research(candidate_id, priority=priority, tags=tags, research_questions=questions)
+        return res
+    except KeyError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+
+@app.post("/api/v1/research/approve-clone")
+def api_approve_and_clone_candidate(payload: Dict[str, Any]):
+    """Explicitly approved, commit-pinned clone (DISC-03)."""
+    candidate_id = payload.get("candidate_id")
+    operator = payload.get("operator")
+    pinned_sha = payload.get("pinned_commit_sha")
+
+    if not candidate_id or not operator:
+        raise HTTPException(status_code=400, detail="Fields 'candidate_id' and 'operator' are required.")
+
+    try:
+        res = approve_and_clone_candidate(candidate_id, operator=operator, pinned_commit_sha=pinned_sha)
+        return res
+    except (CloneApprovalError, ValueError) as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except KeyError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+
+@app.post("/api/v1/research/inspect-static")
+def api_inspect_static_candidate(payload: Dict[str, Any]):
+    """Perform read-only static AST and manifest analysis (REV-01)."""
+    candidate_id = payload.get("candidate_id")
+    if not candidate_id:
+        raise HTTPException(status_code=400, detail="Field 'candidate_id' is required.")
+
+    with get_db() as conn:
+        cand = conn.execute("SELECT * FROM repository_candidates WHERE id = ?", (candidate_id,)).fetchone()
+        if not cand:
+            raise HTTPException(status_code=404, detail=f"Candidate {candidate_id} not found.")
+
+    clone_path = cand["clone_path"]
+    if not clone_path or not Path(clone_path).exists():
+        cfg = get_config()
+        candidate_slug = f"{cand['owner']}--{cand['repo']}".lower()
+        upstream_path = cfg.storage.root_dir / cfg.storage.upstream_dir / candidate_slug
+        if upstream_path.exists():
+            target_dir = upstream_path
+        else:
+            raise HTTPException(status_code=400, detail=f"Repository not cloned or clone path missing for {candidate_id}.")
+    else:
+        target_dir = Path(clone_path)
+
+    report = analyze_repository_static(target_dir, candidate_id)
+    return report.model_dump()
+
+
+@app.post("/api/v1/research/compare")
+def api_compare_candidates(payload: Dict[str, Any]):
+    """Compare two or more repository candidates side-by-side (DISC-04)."""
+    candidate_ids = payload.get("candidate_ids", [])
+    if len(candidate_ids) < 2:
+        raise HTTPException(status_code=400, detail="At least two candidate IDs required.")
+    try:
+        res = compare_candidates(candidate_ids)
+        return res
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.post("/api/v1/research/reports")
+def api_generate_research_report(payload: Dict[str, Any]):
+    """Generate source-cited research report and ingest into Tri-Ledger (DISC-04)."""
+    candidate_id = payload.get("candidate_id")
+    reviewer = payload.get("reviewer", "OPERATOR")
+    if not candidate_id:
+        raise HTTPException(status_code=400, detail="Field 'candidate_id' is required.")
+    try:
+        res = generate_research_report(candidate_id, reviewer=reviewer)
+        return res
+    except KeyError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/v1/research/reports/{report_id}")
+def api_get_research_report(report_id: str):
+    """Retrieve generated research report and manifest (DISC-04)."""
+    with get_db() as conn:
+        rep = conn.execute("SELECT * FROM research_reports WHERE id = ?", (report_id,)).fetchone()
+        if not rep:
+            raise HTTPException(status_code=404, detail=f"Report {report_id} not found.")
+        return dict(rep)
+
+
+@app.post("/api/v1/research/decisions")
+def api_record_research_decision(payload: Dict[str, Any]):
+    """Record human evaluation decision: ADOPT, ADAPT, REJECT, or DEFER (DISC-04)."""
+    candidate_id = payload.get("candidate_id")
+    decision = payload.get("decision")
+    justification = payload.get("justification")
+    reviewed_by = payload.get("reviewed_by", "OPERATOR")
+
+    if not candidate_id or not decision or not justification:
+        raise HTTPException(status_code=400, detail="Fields 'candidate_id', 'decision', and 'justification' are required.")
+
+    try:
+        res = record_research_decision(
+            candidate_id=candidate_id,
+            decision=decision,
+            justification=justification,
+            reviewed_by=reviewed_by
+        )
+        return res
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except KeyError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+
+@app.get("/api/v1/research/rea/status")
+def api_get_rea_status():
+    """Probe optional REA adapter status (REV-02)."""
+    status = probe_rea_adapter()
+    return status.model_dump()
+
+
+
 
 @app.get("/", response_class=HTMLResponse)
 @app.get("/dashboard", response_class=HTMLResponse)
@@ -1082,6 +1336,7 @@ def get_dashboard(request: Request):
         point_count = conn.execute("SELECT COUNT(*) FROM point_placements_3d;").fetchone()[0]
         studio_project_count = conn.execute("SELECT COUNT(*) FROM private_atlas_projects;").fetchone()[0]
         studio_point_count = conn.execute("SELECT COUNT(*) FROM studio_points WHERE is_deleted = 0;").fetchone()[0]
+        cand_count = conn.execute("SELECT COUNT(*) FROM repository_candidates;").fetchone()[0]
         cur_claims = conn.execute("SELECT claim_id, statement, knowledge_namespace, status, review_state FROM claims ORDER BY created_at DESC LIMIT 5;")
         claim_rows = ""
         for c in cur_claims.fetchall():
@@ -1095,6 +1350,22 @@ def get_dashboard(request: Request):
                 <td><small>{c['review_state']}</small></td>
             </tr>
             """
+
+        cur_cands = conn.execute("SELECT id, canonical_url, status, priority, primary_language, license_spdx, discovery_source FROM repository_candidates ORDER BY created_at DESC LIMIT 10;")
+        candidate_rows = ""
+        for cand in cur_cands.fetchall():
+            c_badge = "badge-green" if cand["status"] in ["STATIC_ANALYZED", "CLONED_PINNED", "ADOPT", "ADAPT"] else ("badge-red" if cand["status"] in ["BLOCKED", "REJECT"] else "badge-amber")
+            candidate_rows += f"""
+            <tr>
+                <td><code>{cand['id']}</code></td>
+                <td><a href="{cand['canonical_url']}" target="_blank" style="color:var(--accent-blue); text-decoration:none;">{cand['canonical_url']}</a></td>
+                <td><span class="badge {c_badge}">{cand['status']}</span></td>
+                <td><small>{cand['priority']}</small></td>
+                <td><small>{cand['license_spdx']}</small></td>
+                <td><small>{cand['discovery_source']}</small></td>
+            </tr>
+            """
+
 
     active_snap_text = f"Active: <code>{active_release['release_id']}</code>" if active_release else "No snapshot published"
 
@@ -1390,27 +1661,35 @@ def get_dashboard(request: Request):
             </div>
         </div>
 
-        <h2 class="section-title">Release Roadmap Gates (R0 &rarr; R6)</h2>
+        <h2 class="section-title">Release Roadmap Gates (Rebaselined v3.1)</h2>
         <div class="gates-grid">
             <div class="gate-card">
                 <div class="gate-name">R0: Foundation</div>
                 <span class="badge badge-green">VERIFIED</span>
             </div>
             <div class="gate-card">
-                <div class="gate-name">R1: Repo Lab</div>
+                <div class="gate-name">R1: Static Lab</div>
                 <span class="badge badge-green">PASS (Static)</span>
+            </div>
+            <div class="gate-card">
+                <div class="gate-name">G2: Sandbox Run</div>
+                <span class="badge badge-red">BLOCKED (WSL)</span>
+            </div>
+            <div class="gate-card">
+                <div class="gate-name">R1D: Discovery</div>
+                <span class="badge badge-green">PASS</span>
             </div>
             <div class="gate-card">
                 <div class="gate-name">R2: Library</div>
                 <span class="badge badge-green">VERIFIED</span>
             </div>
             <div class="gate-card">
-                <div class="gate-name">R3: Integrity</div>
+                <div class="gate-name">R3: Tri-Ledger</div>
                 <span class="badge badge-green">VERIFIED</span>
             </div>
             <div class="gate-card">
                 <div class="gate-name">R4: 3D Atlas</div>
-                <span class="badge badge-green">VERIFIED</span>
+                <span class="badge badge-amber">REBASELINED</span>
             </div>
             <div class="gate-card">
                 <div class="gate-name">R5: Studio</div>
@@ -1965,6 +2244,23 @@ def get_dashboard(request: Request):
             </thead>
             <tbody>
                 {claim_rows or '<tr><td colspan="5" style="text-align:center; color:var(--text-muted);">No claims registered yet.</td></tr>'}
+            </tbody>
+        </table>
+
+        <h2 class="section-title">Discovery & Research Pipeline Candidates (R1D &bull; Provenance & Queue)</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Candidate ID</th>
+                    <th>Canonical Repository URL</th>
+                    <th>Status</th>
+                    <th>Priority</th>
+                    <th>License</th>
+                    <th>Discovery Source</th>
+                </tr>
+            </thead>
+            <tbody>
+                {candidate_rows or '<tr><td colspan="6" style="text-align:center; color:var(--text-muted);">No discovery candidates imported yet. Use POST /api/v1/discovery/import-markdown</td></tr>'}
             </tbody>
         </table>
 

@@ -599,6 +599,154 @@ MIGRATIONS: List[Tuple[int, str, str]] = [
         CREATE INDEX IF NOT EXISTS idx_studio_pts_kind ON studio_points(point_kind);
         CREATE INDEX IF NOT EXISTS idx_studio_hist_proj ON studio_edit_history(project_id);
         """
+    ),
+    (
+        7,
+        "0007_r1d_discovery_and_research_pipeline",
+        """
+        -- R1D DISC-01: Reference Documents (Imported Markdown lists)
+        CREATE TABLE IF NOT EXISTS reference_documents (
+            id TEXT PRIMARY KEY,
+            file_path TEXT NOT NULL UNIQUE,
+            file_sha256 TEXT NOT NULL,
+            line_count INTEGER NOT NULL DEFAULT 0,
+            candidate_count INTEGER NOT NULL DEFAULT 0,
+            imported_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+        );
+
+        -- R1D DISC-01, DISC-03: Repository Candidates & Research Lifecycle
+        CREATE TABLE IF NOT EXISTS repository_candidates (
+            id TEXT PRIMARY KEY,
+            canonical_url TEXT NOT NULL UNIQUE,
+            owner TEXT NOT NULL,
+            repo TEXT NOT NULL,
+            status TEXT NOT NULL DEFAULT 'DISCOVERED_UNVERIFIED',
+            priority TEXT NOT NULL DEFAULT 'MEDIUM',
+            tags_json TEXT NOT NULL DEFAULT '[]',
+            research_questions_json TEXT NOT NULL DEFAULT '[]',
+            primary_language TEXT,
+            license_spdx TEXT NOT NULL DEFAULT 'UNKNOWN',
+            stars_count INTEGER NOT NULL DEFAULT 0,
+            description TEXT,
+            discovery_source TEXT NOT NULL DEFAULT 'MARKDOWN_IMPORT',
+            pinned_commit_sha TEXT,
+            clone_path TEXT,
+            metadata_json TEXT NOT NULL DEFAULT '{}',
+            created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+            updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+        );
+
+        -- R1D DISC-01: Exact Source Provenance for Candidate Occurrences
+        CREATE TABLE IF NOT EXISTS reference_occurrences (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            document_id TEXT NOT NULL,
+            candidate_id TEXT NOT NULL,
+            line_number INTEGER NOT NULL,
+            raw_url TEXT NOT NULL,
+            link_label TEXT,
+            context_snippet TEXT,
+            imported_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+            FOREIGN KEY(document_id) REFERENCES reference_documents(id) ON DELETE CASCADE,
+            FOREIGN KEY(candidate_id) REFERENCES repository_candidates(id) ON DELETE CASCADE
+        );
+
+        -- R1D DISC-02: Live GitHub Discovery Queries & Metadata Cache
+        CREATE TABLE IF NOT EXISTS github_discovery_queries (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            query_text TEXT NOT NULL,
+            query_type TEXT NOT NULL DEFAULT 'KEYWORDS',
+            parameters_json TEXT NOT NULL DEFAULT '{}',
+            result_count INTEGER NOT NULL DEFAULT 0,
+            raw_response_json TEXT NOT NULL DEFAULT '{}',
+            fetched_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+            ttl_seconds INTEGER NOT NULL DEFAULT 86400
+        );
+
+        -- R1D DISC-02, DISC-03: Candidate Snapshots
+        CREATE TABLE IF NOT EXISTS candidate_snapshots (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            candidate_id TEXT NOT NULL,
+            snapshot_sha256 TEXT NOT NULL,
+            commit_sha TEXT,
+            metadata_json TEXT NOT NULL DEFAULT '{}',
+            captured_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+            FOREIGN KEY(candidate_id) REFERENCES repository_candidates(id) ON DELETE CASCADE
+        );
+
+        -- R1D DISC-03: Persistent Research Queue Jobs
+        CREATE TABLE IF NOT EXISTS research_jobs (
+            id TEXT PRIMARY KEY,
+            candidate_id TEXT NOT NULL,
+            job_type TEXT NOT NULL,
+            status TEXT NOT NULL DEFAULT 'QUEUED',
+            progress_percent INTEGER NOT NULL DEFAULT 0,
+            log_output TEXT NOT NULL DEFAULT '',
+            created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+            completed_at TEXT,
+            FOREIGN KEY(candidate_id) REFERENCES repository_candidates(id) ON DELETE CASCADE
+        );
+
+        -- R1D REV-01: Static Source Code Investigation Artifacts
+        CREATE TABLE IF NOT EXISTS static_analysis_artifacts (
+            id TEXT PRIMARY KEY,
+            candidate_id TEXT NOT NULL,
+            commit_sha TEXT NOT NULL,
+            languages_json TEXT NOT NULL DEFAULT '{}',
+            entrypoints_json TEXT NOT NULL DEFAULT '[]',
+            dependencies_json TEXT NOT NULL DEFAULT '[]',
+            risk_hooks_json TEXT NOT NULL DEFAULT '[]',
+            ui_framework TEXT,
+            model_formats_json TEXT NOT NULL DEFAULT '[]',
+            analyzed_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+            FOREIGN KEY(candidate_id) REFERENCES repository_candidates(id) ON DELETE CASCADE
+        );
+
+        -- R1D DISC-04: Human Research Decisions
+        CREATE TABLE IF NOT EXISTS research_decisions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            candidate_id TEXT NOT NULL,
+            decision TEXT NOT NULL,
+            justification TEXT NOT NULL,
+            reviewed_by TEXT NOT NULL DEFAULT 'OPERATOR',
+            reviewed_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+            FOREIGN KEY(candidate_id) REFERENCES repository_candidates(id) ON DELETE RESTRICT
+        );
+
+        -- R1D DISC-04: Source-Cited Research Reports
+        CREATE TABLE IF NOT EXISTS research_reports (
+            id TEXT PRIMARY KEY,
+            candidate_id TEXT NOT NULL,
+            revision INTEGER NOT NULL DEFAULT 1,
+            commit_sha TEXT NOT NULL DEFAULT 'NOT_CLONED',
+            decision TEXT NOT NULL DEFAULT 'DEFER',
+            reviewer TEXT NOT NULL DEFAULT 'OPERATOR',
+            markdown_content TEXT NOT NULL,
+            report_json TEXT NOT NULL DEFAULT '{}',
+            manifest_sha256 TEXT NOT NULL,
+            tri_ledger_evidence_id TEXT,
+            created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+            FOREIGN KEY(candidate_id) REFERENCES repository_candidates(id) ON DELETE RESTRICT
+        );
+
+        -- R1D DISC-04: Manifest Verifications
+        CREATE TABLE IF NOT EXISTS research_report_manifests (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            report_id TEXT NOT NULL,
+            manifest_sha256 TEXT NOT NULL,
+            files_json TEXT NOT NULL DEFAULT '[]',
+            verified_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+            FOREIGN KEY(report_id) REFERENCES research_reports(id) ON DELETE CASCADE
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_repo_cand_status ON repository_candidates(status);
+        CREATE INDEX IF NOT EXISTS idx_repo_cand_owner_repo ON repository_candidates(owner, repo);
+        CREATE INDEX IF NOT EXISTS idx_ref_occ_doc ON reference_occurrences(document_id);
+        CREATE INDEX IF NOT EXISTS idx_ref_occ_cand ON reference_occurrences(candidate_id);
+        CREATE INDEX IF NOT EXISTS idx_research_jobs_status ON research_jobs(status);
+        CREATE INDEX IF NOT EXISTS idx_research_jobs_cand ON research_jobs(candidate_id);
+        CREATE INDEX IF NOT EXISTS idx_static_art_cand ON static_analysis_artifacts(candidate_id);
+        CREATE INDEX IF NOT EXISTS idx_res_reports_cand ON research_reports(candidate_id);
+        """
     )
 ]
 
