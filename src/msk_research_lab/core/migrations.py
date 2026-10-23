@@ -208,6 +208,246 @@ MIGRATIONS: List[Tuple[int, str, str]] = [
         CREATE INDEX IF NOT EXISTS idx_doc_locations_page ON document_locations(page_number);
         CREATE INDEX IF NOT EXISTS idx_citations_note ON research_citations(note_id);
         """
+    ),
+    (
+        4,
+        "0004_r3_tri_ledger_provenance_ontology_graph_publication",
+        """
+        -- R3 G8: Sources Provenance Registry
+        CREATE TABLE IF NOT EXISTS sources (
+            source_id TEXT PRIMARY KEY,
+            kind TEXT NOT NULL,
+            canonical_uri TEXT NOT NULL,
+            title TEXT NOT NULL,
+            author TEXT,
+            translator TEXT,
+            publisher TEXT,
+            language TEXT,
+            edition_id TEXT,
+            acquisition_time TEXT NOT NULL,
+            source_version TEXT,
+            git_commit_sha TEXT,
+            sha256 TEXT,
+            rights_status TEXT NOT NULL DEFAULT 'REVIEW_REQUIRED',
+            declared_license TEXT,
+            asset_license TEXT,
+            origin_id TEXT,
+            independence_group_id TEXT,
+            authenticity_state TEXT NOT NULL DEFAULT 'UNVERIFIED',
+            notes TEXT,
+            created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+        );
+
+        -- R3 G8: Source Locations (Specific extract locators)
+        CREATE TABLE IF NOT EXISTS source_locations (
+            locator_id TEXT PRIMARY KEY,
+            source_id TEXT NOT NULL,
+            locator_type TEXT NOT NULL,
+            locator_json TEXT NOT NULL,
+            preview_text_hash TEXT,
+            extract_method TEXT NOT NULL DEFAULT 'MANUAL',
+            visibility_status TEXT NOT NULL DEFAULT 'ALLOWED',
+            source_resolver_version TEXT NOT NULL DEFAULT '1.0',
+            FOREIGN KEY(source_id) REFERENCES sources(source_id) ON DELETE RESTRICT
+        );
+
+        -- R3 G8: Source Relations (Lineage, derivation, translations)
+        CREATE TABLE IF NOT EXISTS source_relations (
+            relation_id TEXT PRIMARY KEY,
+            source_a_id TEXT NOT NULL,
+            source_b_id TEXT NOT NULL,
+            kind TEXT NOT NULL,
+            rationale TEXT,
+            review_state TEXT NOT NULL DEFAULT 'UNREVIEWED',
+            FOREIGN KEY(source_a_id) REFERENCES sources(source_id) ON DELETE CASCADE,
+            FOREIGN KEY(source_b_id) REFERENCES sources(source_id) ON DELETE CASCADE
+        );
+
+        -- R3 G7: Claims Ledger
+        CREATE TABLE IF NOT EXISTS claims (
+            claim_id TEXT PRIMARY KEY,
+            statement TEXT NOT NULL,
+            knowledge_namespace TEXT NOT NULL,
+            claim_kind TEXT NOT NULL,
+            status TEXT NOT NULL DEFAULT 'DRAFT',
+            author_kind TEXT NOT NULL DEFAULT 'RESEARCHER',
+            review_state TEXT NOT NULL DEFAULT 'UNREVIEWED',
+            clinical_evidence_assessment TEXT,
+            supersedes_claim_id TEXT,
+            reviewer_id TEXT,
+            review_rationale TEXT,
+            uncertainty_text TEXT,
+            created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+            revised_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+            FOREIGN KEY(supersedes_claim_id) REFERENCES claims(claim_id)
+        );
+
+        -- R3 G7: Evidence Ledger
+        CREATE TABLE IF NOT EXISTS evidence (
+            evidence_id TEXT PRIMARY KEY,
+            source_id TEXT NOT NULL,
+            locator_id TEXT NOT NULL,
+            source_kind TEXT NOT NULL,
+            excerpt_or_observation TEXT NOT NULL,
+            extraction_method TEXT NOT NULL DEFAULT 'MANUAL',
+            review_state TEXT NOT NULL DEFAULT 'UNREVIEWED',
+            provenance_hash TEXT NOT NULL,
+            original_language TEXT,
+            edition_id TEXT,
+            author_kind TEXT NOT NULL DEFAULT 'RESEARCHER',
+            independence_group_id TEXT,
+            created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+            FOREIGN KEY(source_id) REFERENCES sources(source_id),
+            FOREIGN KEY(locator_id) REFERENCES source_locations(locator_id)
+        );
+
+        -- R3 G7: Claim-Evidence Junction
+        CREATE TABLE IF NOT EXISTS claim_evidence_links (
+            claim_id TEXT NOT NULL,
+            evidence_id TEXT NOT NULL,
+            relation TEXT NOT NULL,
+            reviewer_rationale TEXT,
+            PRIMARY KEY(claim_id, evidence_id, relation),
+            FOREIGN KEY(claim_id) REFERENCES claims(claim_id) ON DELETE CASCADE,
+            FOREIGN KEY(evidence_id) REFERENCES evidence(evidence_id) ON DELETE RESTRICT
+        );
+
+        -- R3 G7: Contradictions & Disagreements Ledger
+        CREATE TABLE IF NOT EXISTS contradictions (
+            contradiction_id TEXT PRIMARY KEY,
+            claim_a_id TEXT NOT NULL,
+            claim_b_id TEXT,
+            counter_evidence_id TEXT,
+            conflict_kind TEXT NOT NULL,
+            state TEXT NOT NULL DEFAULT 'OPEN',
+            rationale TEXT,
+            created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+            updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+            FOREIGN KEY(claim_a_id) REFERENCES claims(claim_id),
+            FOREIGN KEY(claim_b_id) REFERENCES claims(claim_id),
+            FOREIGN KEY(counter_evidence_id) REFERENCES evidence(evidence_id)
+        );
+
+        -- R3 G7: Claim Revision Audit Trail
+        CREATE TABLE IF NOT EXISTS claim_revision_events (
+            event_id TEXT PRIMARY KEY,
+            prior_claim_id TEXT NOT NULL,
+            next_claim_id TEXT NOT NULL,
+            reason TEXT NOT NULL,
+            author_kind TEXT NOT NULL DEFAULT 'RESEARCHER',
+            content_hash TEXT NOT NULL,
+            created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+            FOREIGN KEY(prior_claim_id) REFERENCES claims(claim_id),
+            FOREIGN KEY(next_claim_id) REFERENCES claims(claim_id)
+        );
+
+        -- R3 G7: Human Review Audit Log
+        CREATE TABLE IF NOT EXISTS review_events (
+            review_id TEXT PRIMARY KEY,
+            record_type TEXT NOT NULL,
+            record_id TEXT NOT NULL,
+            previous_state TEXT NOT NULL,
+            next_state TEXT NOT NULL,
+            reviewer_id TEXT NOT NULL,
+            justification TEXT NOT NULL,
+            evidence_snapshot_hash TEXT,
+            timestamp TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+        );
+
+        -- R3 G8: Parallel Source Comparisons
+        CREATE TABLE IF NOT EXISTS comparisons (
+            comparison_id TEXT PRIMARY KEY,
+            source_a_id TEXT NOT NULL,
+            locator_a_id TEXT,
+            source_b_id TEXT NOT NULL,
+            locator_b_id TEXT,
+            classification TEXT NOT NULL,
+            operator_notes TEXT,
+            geometric_comparability_state TEXT NOT NULL DEFAULT 'UNREGISTERED; NUMERIC DISTANCE NOT MEANINGFUL',
+            created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+            FOREIGN KEY(source_a_id) REFERENCES sources(source_id),
+            FOREIGN KEY(source_b_id) REFERENCES sources(source_id)
+        );
+
+        -- R3 G9: Controlled Multilingual Ontology
+        CREATE TABLE IF NOT EXISTS ontology_concepts (
+            concept_id TEXT PRIMARY KEY,
+            namespace TEXT NOT NULL,
+            canonical_label TEXT NOT NULL,
+            review_state TEXT NOT NULL DEFAULT 'UNREVIEWED',
+            clinical_status TEXT NOT NULL DEFAULT 'NOT_ASSESSED',
+            definition_source_ids TEXT,
+            source_conflict_notes TEXT,
+            created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+        );
+
+        CREATE TABLE IF NOT EXISTS concept_aliases (
+            alias_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            concept_id TEXT NOT NULL,
+            value TEXT NOT NULL,
+            normalized_value TEXT NOT NULL,
+            language TEXT NOT NULL,
+            kind TEXT NOT NULL,
+            review_state TEXT NOT NULL DEFAULT 'UNREVIEWED',
+            FOREIGN KEY(concept_id) REFERENCES ontology_concepts(concept_id) ON DELETE CASCADE
+        );
+
+        -- R3 G9: Typed Knowledge Graph
+        CREATE TABLE IF NOT EXISTS graph_nodes (
+            node_id TEXT PRIMARY KEY,
+            node_type TEXT NOT NULL,
+            namespace TEXT NOT NULL,
+            label TEXT NOT NULL,
+            stable_ref TEXT,
+            review_state TEXT NOT NULL DEFAULT 'UNREVIEWED',
+            source_id TEXT,
+            properties_json TEXT,
+            version TEXT NOT NULL DEFAULT '1.0',
+            FOREIGN KEY(source_id) REFERENCES sources(source_id)
+        );
+
+        CREATE TABLE IF NOT EXISTS graph_edges (
+            edge_id TEXT PRIMARY KEY,
+            source_node_id TEXT NOT NULL,
+            target_node_id TEXT NOT NULL,
+            relation_type TEXT NOT NULL,
+            assertion_kind TEXT NOT NULL DEFAULT 'EDUCATIONAL_PROPOSITION',
+            provenance_evidence_id TEXT,
+            review_state TEXT NOT NULL DEFAULT 'UNREVIEWED',
+            confidence_text TEXT,
+            valid_from TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+            supersedes_edge_id TEXT,
+            FOREIGN KEY(source_node_id) REFERENCES graph_nodes(node_id) ON DELETE CASCADE,
+            FOREIGN KEY(target_node_id) REFERENCES graph_nodes(node_id) ON DELETE CASCADE,
+            FOREIGN KEY(provenance_evidence_id) REFERENCES evidence(evidence_id),
+            FOREIGN KEY(supersedes_edge_id) REFERENCES graph_edges(edge_id)
+        );
+
+        -- R3 G10: Published Releases Registry
+        CREATE TABLE IF NOT EXISTS published_releases (
+            release_id TEXT PRIMARY KEY,
+            build_id TEXT NOT NULL,
+            manifest_hash TEXT NOT NULL,
+            published_at TEXT NOT NULL,
+            published_by TEXT NOT NULL,
+            is_active INTEGER NOT NULL DEFAULT 0,
+            qa_report_json TEXT NOT NULL,
+            manifest_json TEXT NOT NULL
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_source_locations_src ON source_locations(source_id);
+        CREATE INDEX IF NOT EXISTS idx_claims_status ON claims(status);
+        CREATE INDEX IF NOT EXISTS idx_claims_namespace ON claims(knowledge_namespace);
+        CREATE INDEX IF NOT EXISTS idx_evidence_source ON evidence(source_id);
+        CREATE INDEX IF NOT EXISTS idx_claim_evidence_claim ON claim_evidence_links(claim_id);
+        CREATE INDEX IF NOT EXISTS idx_claim_evidence_evid ON claim_evidence_links(evidence_id);
+        CREATE INDEX IF NOT EXISTS idx_contradictions_a ON contradictions(claim_a_id);
+        CREATE INDEX IF NOT EXISTS idx_contradictions_b ON contradictions(claim_b_id);
+        CREATE INDEX IF NOT EXISTS idx_aliases_concept ON concept_aliases(concept_id);
+        CREATE INDEX IF NOT EXISTS idx_aliases_normalized ON concept_aliases(normalized_value);
+        CREATE INDEX IF NOT EXISTS idx_graph_edges_src ON graph_edges(source_node_id);
+        CREATE INDEX IF NOT EXISTS idx_graph_edges_tgt ON graph_edges(target_node_id);
+        """
     )
 ]
 

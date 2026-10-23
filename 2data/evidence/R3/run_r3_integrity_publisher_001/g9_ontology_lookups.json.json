@@ -1,0 +1,103 @@
+{
+  "seed_import": {
+    "status": "SUCCESS",
+    "concepts_loaded": 1,
+    "aliases_loaded": 0,
+    "is_synthetic": true
+  },
+  "lookups": {
+    "GB21": [
+      {
+        "concept_id": "tcm:acupoint:GB21",
+        "namespace": "TRADITIONAL_ACUPUNCTURE",
+        "canonical_label": "GB21",
+        "review_state": "UNREVIEWED",
+        "clinical_status": "NOT_ASSESSED",
+        "definition_source_ids": [],
+        "source_conflict_notes": null,
+        "created_at": "2026-10-23T00:44:37.087Z",
+        "match_type": "CANONICAL",
+        "matched_term": "GB21",
+        "aliases": [
+          {
+            "value": "Jianjing",
+            "language": "zh-Latn",
+            "kind": "TRANSLITERATION",
+            "review_state": "UNREVIEWED"
+          },
+          {
+            "value": "Ki\u00ean t\u1ec9nh",
+            "language": "vi",
+            "kind": "TRADITIONAL_NAME",
+            "review_state": "UNREVIEWED"
+          }
+        ],
+        "is_physiological_asserted": false,
+        "disclaimer": "Term alias mapping only; does not imply physiological equivalence or clinical efficacy."
+      }
+    ],
+    "Jianjing": [
+      {
+        "concept_id": "tcm:acupoint:GB21",
+        "namespace": "TRADITIONAL_ACUPUNCTURE",
+        "canonical_label": "GB21",
+        "review_state": "UNREVIEWED",
+        "clinical_status": "NOT_ASSESSED",
+        "definition_source_ids": [],
+        "source_conflict_notes": null,
+        "created_at": "2026-10-23T00:44:37.087Z",
+        "match_type": "TRANSLITERATION",
+        "matched_term": "Jianjing",
+        "language": "zh-Latn",
+        "aliases": [
+          {
+            "value": "Jianjing",
+            "language": "zh-Latn",
+            "kind": "TRANSLITERATION",
+            "review_state": "UNREVIEWED"
+          },
+          {
+            "value": "Ki\u00ean t\u1ec9nh",
+            "language": "vi",
+            "kind": "TRADITIONAL_NAME",
+            "review_state": "UNREVIEWED"
+          }
+        ],
+        "is_physiological_asserted": false,
+        "disclaimer": "Term alias mapping only; does not imply physiological equivalence or clinical efficacy."
+      }
+    ],
+    "Kien_tinh": [
+      {
+        "concept_id": "tcm:acupoint:GB21",
+        "namespace": "TRADITIONAL_ACUPUNCTURE",
+        "canonical_label": "GB21",
+        "review_state": "UNREVIEWED",
+        "clinical_status": "NOT_ASSESSED",
+        "definition_source_ids": [],
+        "source_conflict_notes": null,
+        "created_at": "2026-10-23T00:44:37.087Z",
+        "match_type": "TRADITIONAL_NAME",
+        "matched_term": "Ki\u00ean t\u1ec9nh",
+        "language": "vi",
+        "aliases": [
+          {
+            "value": "Jianjing",
+            "language": "zh-Latn",
+            "kind": "TRANSLITERATION",
+            "review_state": "UNREVIEWED"
+          },
+          {
+            "value": "Ki\u00ean t\u1ec9nh",
+            "language": "vi",
+            "kind": "TRADITIONAL_NAME",
+            "review_state": "UNREVIEWED"
+          }
+        ],
+        "is_physiological_asserted": false,
+        "disclaimer": "Term alias mapping only; does not imply physiological equivalence or clinical efficacy."
+      }
+    ],
+    "unreviewed_nonexistent": []
+  }
+}

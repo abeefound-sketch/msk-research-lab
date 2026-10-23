@@ -1,0 +1,44 @@
+{
+  "staged_build": {
+    "build_id": "build_r3_evidence_001",
+    "build_dir": "2data/snapshots/.builds/build_r3_evidence_001",
+    "manifest": {
+      "build_id": "build_r3_evidence_001",
+      "operator_id": "lead_engineer_human",
+      "created_at": "2026-10-23T00:52:03.666058+00:00",
+      "files": {
+        "knowledge.sqlite": "4675920c2edec81cac1e198c620d23eab8b53aabcc57156240f9b4b349100b88",
+        "qa.json": "bd61f45093a7319aedd06e94e5dddab08418d5f135f8d38610cb9317d5c889d8"
+      },
+      "published_claims_count": 19,
+      "manifest_hash": "6d064c7a7de58c3d4f233354ea99f89a6ce06c41216748079668aeea0b003785"
+    },
+    "qa": {
+      "build_id": "build_r3_evidence_001",
+      "operator_id": "lead_engineer_human",
+      "timestamp": "2026-10-23T00:52:01.938083+00:00",
+      "integrity_check": "PASS",
+      "foreign_key_check": "PASS",
+      "claims_locator_verification": "PASS",
+      "graph_orphans": 0,
+      "qa_passed": true
+    }
+  },
+  "promoted_release": {
+    "release_id": "rel_r3_2026_10",
+    "build_id": "build_r3_evidence_001",
+    "release_dir": "2data/snapshots/.releases/rel_r3_2026_10",
+    "manifest_hash": "6d064c7a7de58c3d4f233354ea99f89a6ce06c41216748079668aeea0b003785",
+    "published_by": "lead_engineer_human",
+    "activated_at": "2026-10-23T00:52:04.054139+00:00"
+  },
+  "active_pointer": {
+    "release_id": "rel_r3_2026_10",
+    "build_id": "build_r3_evidence_001",
+    "release_dir": "2data/snapshots/.releases/rel_r3_2026_10",
+    "manifest_hash": "6d064c7a7de58c3d4f233354ea99f89a6ce06c41216748079668aeea0b003785",
+    "published_by": "lead_engineer_human",
+    "activated_at": "2026-10-23T00:52:04.054139+00:00",
+    "db_path": "2data/snapshots/.releases/rel_r3_2026_10/knowledge.sqlite"
+  }
+}

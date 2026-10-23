@@ -46,6 +46,15 @@ class AppConfig(BaseModel):
     security: SecurityConfig = Field(default_factory=SecurityConfig)
     workers: WorkersConfig = Field(default_factory=WorkersConfig)
 
+    @property
+    def data_dir(self) -> Path:
+        return self.storage.data_dir
+
+    @property
+    def root_dir(self) -> Path:
+        return self.storage.root_dir
+
+
     @classmethod
     def load(cls, config_path: Optional[Path] = None) -> "AppConfig":
         """Load configuration from TOML file or environment."""

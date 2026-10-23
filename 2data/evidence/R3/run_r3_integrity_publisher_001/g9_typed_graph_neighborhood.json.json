@@ -1,0 +1,63 @@
+{
+  "center_node": {
+    "node_id": "node:acupoint:GB21",
+    "node_type": "ACUPOINT",
+    "namespace": "TRADITIONAL_ACUPUNCTURE",
+    "label": "GB21",
+    "stable_ref": null,
+    "review_state": "CONTENT_REVIEWED",
+    "source_id": null,
+    "properties_json": "{}",
+    "version": "1.0",
+    "properties": {}
+  },
+  "depth": 1,
+  "include_unreviewed": false,
+  "node_count": 2,
+  "edge_count": 1,
+  "nodes": [
+    {
+      "node_id": "node:muscle:trapezius_upper",
+      "node_type": "MUSCLE",
+      "namespace": "SOMATIC_ANATOMY",
+      "label": "Upper Trapezius Muscle",
+      "stable_ref": null,
+      "review_state": "CONTENT_REVIEWED",
+      "source_id": null,
+      "properties_json": "{}",
+      "version": "1.0",
+      "properties": {}
+    },
+    {
+      "node_id": "node:acupoint:GB21",
+      "node_type": "ACUPOINT",
+      "namespace": "TRADITIONAL_ACUPUNCTURE",
+      "label": "GB21",
+      "stable_ref": null,
+      "review_state": "CONTENT_REVIEWED",
+      "source_id": null,
+      "properties_json": "{}",
+      "version": "1.0",
+      "properties": {}
+    }
+  ],
+  "edges": [
+    {
+      "edge_id": "edge:gb21:trapezius",
+      "source_node_id": "node:acupoint:GB21",
+      "target_node_id": "node:muscle:trapezius_upper",
+      "relation_type": "CONCEPTUALLY_ASSOCIATED_WITH",
+      "assertion_kind": "EDUCATIONAL_PROPOSITION",
+      "provenance_evidence_id": "ev:r3:gb21:quote",
+      "review_state": "CONTENT_REVIEWED",
+      "confidence_text": "Surface topographic relationship cited in manual therapy reference.",
+      "valid_from": "2026-10-23T00:52:01.267748+00:00",
+      "supersedes_edge_id": null,
+      "source_label": "GB21",
+      "source_type": "ACUPOINT",
+      "target_label": "Upper Trapezius Muscle",
+      "target_type": "MUSCLE"
+    }
+  ],
+  "disclaimer": "Graph connections represent documented educational citations; no clinical equivalence inferred."
+}

@@ -58,6 +58,11 @@ htmlcov/
 
 2data/snapshots/.builds/*
 !2data/snapshots/.builds/.gitkeep
+2data/snapshots/.releases/*
+!2data/snapshots/.releases/.gitkeep
+2data/snapshots/.active/*
+!2data/snapshots/.active/.gitkeep
+
 
 2data/exports/*
 !2data/exports/.gitkeep

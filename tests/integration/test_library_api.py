@@ -1,9 +1,20 @@
 """Integration tests for Document Library, Search, and Research Notes API."""
 
+import pytest
 from fastapi.testclient import TestClient
 from msk_research_lab.api.app import app
+from msk_research_lab.core.config import get_config
 
 client = TestClient(app)
+
+
+@pytest.fixture(autouse=True)
+def setup_library_env():
+    cfg = get_config()
+    active_ptr = cfg.data_dir / "snapshots" / ".active" / "current.json"
+    if active_ptr.exists():
+        active_ptr.unlink()
+
 
 
 def test_library_documents_api():
