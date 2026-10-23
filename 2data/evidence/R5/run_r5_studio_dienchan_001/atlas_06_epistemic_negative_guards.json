@@ -1,0 +1,7 @@
+{
+  "implicit_2d_to_3d_guard": "VERIFIED_REJECTED (CANNOT_IMPLICITLY_PROJECT_2D_TO_3D)",
+  "reactive_to_global_promotion_guard": "VERIFIED_REJECTED (REACTIVE_OBSERVATION_CANNOT_BECOME_GLOBAL_FIXED)",
+  "privacy_patient_pii_guard": "VERIFIED_REJECTED (Privacy violation: Real patient PII detected)",
+  "corrupt_barycentric_transfer_guard": "VERIFIED_REJECTED (corrupt barycentric coordinates sum != 1.0)",
+  "unreviewed_license_transfer_guard": "VERIFIED_REJECTED (License forbidden or revoked)"
+}

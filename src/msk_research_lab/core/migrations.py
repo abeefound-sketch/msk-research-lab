@@ -531,6 +531,74 @@ MIGRATIONS: List[Tuple[int, str, str]] = [
         CREATE INDEX IF NOT EXISTS idx_placements_label ON point_placements_3d(canonical_label);
         CREATE INDEX IF NOT EXISTS idx_meridian_paths_code ON meridian_paths_3d(meridian_code);
         """
+    ),
+    (
+        6,
+        "0006_r5_studio_private_projects_and_dien_chan_2d",
+        """
+        -- R5 ATLAS-05: Private Atlas Projects
+        CREATE TABLE IF NOT EXISTS private_atlas_projects (
+            project_id TEXT PRIMARY KEY,
+            title TEXT NOT NULL,
+            namespace TEXT NOT NULL,
+            description TEXT,
+            base_model_id TEXT,
+            base_image_sha256 TEXT,
+            license TEXT NOT NULL DEFAULT 'PROPRIETARY_DRAFT',
+            version INTEGER NOT NULL DEFAULT 1,
+            created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+            updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+        );
+
+        -- R5 ATLAS-05, ATLAS-06: Studio Points (3D Surface or 2D Image Pixel)
+        CREATE TABLE IF NOT EXISTS studio_points (
+            point_id TEXT PRIMARY KEY,
+            project_id TEXT NOT NULL,
+            code TEXT NOT NULL,
+            canonical_label TEXT NOT NULL,
+            namespace TEXT NOT NULL,
+            point_kind TEXT NOT NULL DEFAULT 'FIXED_EDUCATIONAL',
+            session_id TEXT,
+            session_timestamp TEXT,
+            dimensionality TEXT NOT NULL DEFAULT '3D_SURFACE',
+            image_sha256 TEXT,
+            image_view TEXT,
+            x_px REAL,
+            y_px REAL,
+            model_id TEXT,
+            mesh_sha256 TEXT,
+            surface_x REAL,
+            surface_y REAL,
+            surface_z REAL,
+            face_index INTEGER,
+            barycentric_u REAL,
+            barycentric_v REAL,
+            barycentric_w REAL,
+            notes TEXT,
+            is_deleted INTEGER NOT NULL DEFAULT 0,
+            created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+            updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+            FOREIGN KEY(project_id) REFERENCES private_atlas_projects(project_id) ON DELETE CASCADE
+        );
+
+        -- R5 ATLAS-05: Studio Edit History (Undo/Redo & Lineage)
+        CREATE TABLE IF NOT EXISTS studio_edit_history (
+            history_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            project_id TEXT NOT NULL,
+            action_type TEXT NOT NULL,
+            point_id TEXT NOT NULL,
+            before_state_json TEXT,
+            after_state_json TEXT,
+            created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+            FOREIGN KEY(project_id) REFERENCES private_atlas_projects(project_id) ON DELETE CASCADE
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_studio_pts_proj ON studio_points(project_id);
+        CREATE INDEX IF NOT EXISTS idx_studio_pts_code ON studio_points(code);
+        CREATE INDEX IF NOT EXISTS idx_studio_pts_ns ON studio_points(namespace);
+        CREATE INDEX IF NOT EXISTS idx_studio_pts_kind ON studio_points(point_kind);
+        CREATE INDEX IF NOT EXISTS idx_studio_hist_proj ON studio_edit_history(project_id);
+        """
     )
 ]
 

@@ -1,0 +1,20 @@
+{
+  "export_bundle_summary": {
+    "schema_version": "3.0.0",
+    "points_sha256": "d6a31403ec3d9393928a774c98cae8c253dab26734b1a3f0fbc04cebd62fbeeb",
+    "point_count": 4
+  },
+  "self_diff": {
+    "project_id": "proj_dien_chan_standard",
+    "added_codes": [],
+    "removed_codes": [],
+    "modified_points": [],
+    "identical_codes": [
+      "DC_19",
+      "DC_0",
+      "DC_14",
+      "DC_275"
+    ],
+    "total_diff_count": 0
+  }
+}
