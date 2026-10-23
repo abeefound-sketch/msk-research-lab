@@ -180,5 +180,5 @@ Then visit `http://127.0.0.1:8091/` or `http://127.0.0.1:8091/dashboard` in a Wi
 ### Run System Diagnostics Doctor
 ```bash
 cd /mnt/c/Users/tuanh/Downloads/msk-research-lab
-/home/tuan/.venvs/msk-lab/bin/python3 scripts/doctor.py
+bash scripts/doctor.sh
 ```
