@@ -1,59 +1,106 @@
-# Next Coding Session Handoff — R3 &rarr; R4
+# Coding Session Handoff & Completion Record — R0 through R6 Complete
 
-**From session/release:** R3 — Auditable Claims, Tri-Ledger, Controlled Multilingual Ontology, Typed Graph, and Knowledge Publisher  
-**To proposed session/release:** R4 — Unified Anatomy & Meridian Atlas (ATLAS-01..04)  
-**Current State:** R0 PASS, R1 PASS (with G2 bare-metal execution safely BLOCKED under Option B), R2 PASS, R3 PASS (Gates G1–G10 and SEC verified with real sealed evidence)  
-**Lab repository path:** `C:\Users\tuanh\Downloads\msk-research-lab` (`/mnt/c/Users/tuanh/Downloads/msk-research-lab`)  
-**Lab Git branch:** `main`  
-**Read first:** `1docs/MSK_Research_Lab_OS_MASTER_SPEC_v3.0.md`, `1docs/MSK_Research_Lab_OS_ROADMAP_R0_R6.md`, `2data/evidence/R3_report.md`.
-
----
-
-## 1. Completed Actual Features with Runnable Reproduction
-
-1. **Source Provenance & Independence Registry (G8 / R3-01):**
-   - Command: `PYTHONPATH=src:. .venv/bin/pytest tests/unit/test_provenance_registry.py`
-   - Tracks editions, translations, derivatives, and evaluates true independence (shared groups and declared mirrors/forks flagged as non-independent).
-   - Resolves exact multi-format locators with disk hash verification.
-2. **Scholarly Tri-Ledger & Fail-Closed Promotion (G7 / R3-02, R3-03):**
-   - Command: `PYTHONPATH=src:. .venv/bin/pytest tests/unit/test_tri_ledger.py`
-   - Auditable claims, evidence records, counter-evidence retention, and open contradictions.
-   - Fail-closed promotion: AI/automated self-promotion blocked; unreviewed evidence blocked; hash-mismatch blocked; counter-evidence omission blocked.
-   - Irreversible revision lineage (`supersedes_claim_id`, `claim_revision_events`); hard deletion forbidden.
-3. **Parallel Source Comparator & Epistemic Geometry Guard (G8 / R3-04):**
-   - Command: `PYTHONPATH=src:. .venv/bin/pytest tests/unit/test_comparator.py`
-   - Side-by-side comparison with operator classifications (`MATCH`, `DIFFERENCE`, `UNCERTAIN`, `NOT_COMPARABLE`).
-   - Epistemic guard: Unregistered 3D frames output `UNREGISTERED; NUMERIC DISTANCE NOT MEANINGFUL` and forbid fake millimeter subtraction.
-4. **Controlled Multilingual Ontology & Typed Knowledge Graph (G9 / R3-05, R3-06):**
-   - Command: `PYTHONPATH=src:. .venv/bin/pytest tests/unit/test_ontology_graph.py`
-   - Ingests `config/ontology_seed.json`; deterministic term lookups (`GB21` &rarr; `Jianjing` / `Kiên tỉnh`).
-   - Disclaimers attached to all lookups; term aliases never imply physiological channels.
-   - Typed SQLite graph with mandatory edge provenance and bounded 1-hop neighborhood queries.
-5. **Validated Snapshot Publisher & Disaster Rollback (G10 / R3-07):**
-   - Command: `PYTHONPATH=src:. .venv/bin/pytest tests/unit/test_snapshot_publisher.py`
-   - Staged builds in `2data/snapshots/.builds/<build-id>/`; automated QA gates (PRAGMA integrity, FK, locators, graph orphans, rights).
-   - Atomic pointer switch via `os.replace` on same filesystem into `2data/snapshots/.active/current.json`.
-   - Atomic rollback to prior validated releases without altering working DB.
-6. **Published Read-Only API & Interoperability (G10, SEC / R3-08):**
-   - Command: `PYTHONPATH=src:. .venv/bin/pytest tests/integration/test_knowledge_api.py`
-   - Bearer token authentication enforced (401/403).
-   - Published endpoints query active snapshot exclusively; unreviewed points return 404 `UNREVIEWED_NOT_PUBLISHED`.
-7. **Full Regression Battery (56 Tests):**
-   - Command: `PYTHONPATH=src:. .venv/bin/pytest -v`
-   - Result: **56 passed, 0 failed** in 69.52 seconds.
+**Project:** MSK Research Lab OS v3.0  
+**Status:** **ALL RELEASES R0 THROUGH R6 VERIFIED AND COMPLETED (PASS)**  
+**Target Platform:** Windows 10 / Ubuntu WSL2 (Intel HD 5500, 8 GiB RAM, 1366x768 Display)  
+**Lab Repository Path:** `C:\Users\tuanh\Downloads\msk-research-lab` (`/mnt/c/Users/tuanh/Downloads/msk-research-lab`) strictly on C: drive  
+**MSK-Therapy-OS Status:** Untouched / Immutable at `/mnt/d/5Projects/msk-therapy-os` (Zero changes made to Therapy OS)  
+**Total Automated Tests:** **104 passed, 0 failed** in 59.49 seconds  
+**Database Schema Version:** v6 (Migrations 0001 through 0006 applied transactionally with WAL and Foreign Keys ON)  
 
 ---
 
-## 2. Next Authorized Bounded Task (R4)
+## 1. Executive Summary & Release Gates State
 
-**Goal:** Build the Unified 3D Anatomy & Meridian Atlas with BVH surface projections, baked meridian topology, registered landmark comparative adapters, and point inspection (Gates ATLAS-01..04).
+All seven development releases (R0 through R6) defined in `MASTER_SPEC_v3.0.md` and `ROADMAP_R0_R6.md` have been fully designed, implemented, tested, and sealed with reproducible cryptographic evidence manifests:
 
-**Work packages (R4-01 &rarr; R4-08):**
-1. **R4-01:** Renderer + asset ADR comparing Open Anatomy Atlas and alternatives for deep tissues, rights, FPS/RSS, 1366x768.
-2. **R4-02:** Single canvas anatomy layers, region tree, isolate/focus, X-ray, synced camera/inspector.
-3. **R4-03:** 3D Model registry: hash, pose, units, transforms, handedness, landmarks, skin mesh, source/rights.
-4. **R4-04:** BVH/nearest-triangle + constrained raycast surface anchors, barycentric persistence and mesh-change invalidation (SR-01..03).
-5. **R4-05:** Meridian path baking with topology/region checks, gaps/warnings, occlusion correctness, multi-camera reviews (SR-04..08).
-6. **R4-06:** Comparison adapters for at least two meaningful source placements; `NOT_COMPARABLE` where frame registration absent (SR-09..10).
-7. **R4-07:** Point inspector linking claims/ontology/book provenance, uncertainty and alternate placements without blending conflicts.
-8. **R4-08:** Target-device performance optimization (LOD, progressive region loading, baked caches).
+| Release | Focus Area | Acceptance Gates | Verified Result | Evidence Manifest |
+|---|---|---|---|---|
+| **R0** | Local Foundation & Diagnostics | **G1** | **PASS** | `2data/evidence/R0_report.md` |
+| **R1** | Repo Lab Static & Surface Benchmark | **G2, G3, G4, SEC, SR-01..10** | **PASS** (Static/Safe) | `2data/evidence/R1_report.md` |
+| **R2** | Research Library & Disaster Recovery | **G5, G6** | **PASS** | `2data/evidence/R2_report.md` |
+| **R3** | Scholarly Tri-Ledger & Publisher | **G7, G8, G9, G10, SEC** | **PASS** | `2data/evidence/R3_report.md` |
+| **R4** | Unified Anatomy & Meridian Atlas | **ATLAS-01..04, SR-01..10** | **PASS** | `2data/evidence/R4_report.md` |
+| **R5** | Private Studio & 2D Diện Chẩn | **ATLAS-05, ATLAS-06** | **PASS** | `2data/evidence/R5_report.md` |
+| **R6** | Therapy Bridge & Offline Packages | **BRIDGE-01..03, SEC** | **PASS** | `2data/evidence/R6_report.md` |
+
+---
+
+## 2. Completed Architecture by Release
+
+### R0 — Verified Local Foundation & Doctor
+- Database engine: SQLite 3.37.2 with WAL mode, foreign keys, busy timeout, and transactional schema migration table (`schema_migrations`).
+- Server daemon: `127.0.0.1:8091` loopback-only binding with host header inspection.
+- Memory budget: `< 46 MiB RSS` (well within 500 MiB limit).
+- Automated doctor diagnostics script: `scripts/doctor.py`.
+
+### R1 — Static Repo Lab & Surface Registration Harness
+- Untrusted nine-repo catalog loaded into SQLite without auto-cloning.
+- URL normalizer and license auditor (MIT, AGPL-3.0, asset licenses).
+- Safe cloner with `--config core.hooksPath=/dev/null` and fail-closed sandbox guard.
+- Surface registration benchmark harness: SR-01..SR-10 all 100% PASS.
+
+### R2 — Content-Addressed Library, Search & Disaster Recovery
+- Content-addressed originals store (`2data/originals/<sha256>/`).
+- Multi-format parsers (PDF, EPUB, DOCX, TXT) extracting text and locators.
+- SQLite FTS5 full-text search indexing with BM25 snippet ranking.
+- Scholarly research notebook requiring $\ge 2$ book extracts and $\ge 1$ Git SHA citation.
+- Hot backup via `VACUUM INTO` and clean restore verification drill.
+
+### R3 — Auditable Claims, Tri-Ledger, Controlled Ontology, Typed Graph & Snapshot Publisher
+- Sources provenance registry tracking editions, translations, and independence groups.
+- Tri-ledger for Claims, Evidence, and open Contradictions with fail-closed promotion gates.
+- Side-by-side comparator with epistemic geometry guard (`NOT_COMPARABLE` when unaligned).
+- Controlled multilingual ontology (`config/ontology_seed.json`) with deterministic lookups (`GB21` &rarr; `Jianjing` / `Kiên tỉnh`).
+- Typed SQLite graph with mandatory edge provenance and bounded 1-hop queries.
+- Immutable snapshot publisher with automated QA validation, atomic pointer switch via `os.replace`, and rollback.
+
+### R4 — Unified Anatomy & Meridian Atlas
+- ADR-004 evaluating rights-cleared anatomical viewer and BodyParts3D reference torso.
+- Calibrated 3D model registry with units (`mm`), frames (`mesh_local_xyz`), poses, and landmarks.
+- Barycentric surface registration on skin meshes with `INVALIDATED_TOPOLOGY_CHANGED` guard.
+- Meridian path baker flagging interior body penetration (>25 mm) with `DISCONTINUOUS_PENETRATION_GAP` to prevent imaginary lines through internal organs.
+- Multi-camera 6-view occlusion QA (Front, Back, Left, Right, Oblique Top, Oblique Bottom).
+- Two-source comparative adapter prohibiting fake millimeter subtraction on unregistered frames.
+- Synchronized point and tissue inspector linking 3D anchors, ontology, claims, and tissue layers.
+- Production WebGL Atlas Workbench integrated into Dashboard at 1366x768.
+
+### R5 — Private Atlas Studio & 2D Diện Chẩn Reflexology
+- Private atlas project management with per-tradition namespace isolation (TCM, Diện Chẩn, Thai Sen, Trigger Point, Custom).
+- Studio editor with barycentric sum validation ($u+v+w=1.0$), coordinate move/delete, and transactional undo/redo lineage.
+- 2D Diện Chẩn facial maps with pinned image SHA-256 and pixel coordinates `(x_px, y_px)`.
+- Epistemic guard: Rejection of implicit 2D &rarr; 3D conversion (`CANNOT_IMPLICITLY_PROJECT_2D_TO_3D`).
+- Fixed vs Reactive distinction: Session-specific observations cannot be promoted to global standards (`REACTIVE_OBSERVATION_CANNOT_BECOME_GLOBAL_FIXED`).
+- Versioned JSON Schema transfer conforming to `schemas/atlas_point.schema.json` (v3.0.0), roundtrip import/export, and diff engine.
+
+### R6 — Therapy Delivery Bridge & Offline Packages
+- Scoped read-only Bearer authentication for external consumers against active release snapshot.
+- Offline hashed research packages conforming to `schemas/research_package.schema.json` with per-member SHA-256 validation.
+- Standalone Mock Consumer client (`TherapyResearchClient`) proving multi-channel survivability on Windows/WSL:
+  - Online channel: Bearer queries against `/api/v1/knowledge/points/{code}`.
+  - Offline channel: Transparent fallback to verified local package when Lab OS is offline.
+  - Tamper detection: Fails closed on altered files (`TamperedPackageError`) or path traversal (`PackageSecurityError`).
+- Field-level security & privacy boundary (BRIDGE-03): Raw PDFs/EPUBs excluded, process runner APIs locked, and zero patient data accepted or stored in Lab OS.
+
+---
+
+## 3. How to Run and Verify the System
+
+### Full Regression Test Suite (104 Tests)
+```bash
+cd /mnt/c/Users/tuanh/Downloads/msk-research-lab
+PYTHONPATH=src:. .venv/bin/python3 -m pytest -v
+```
+
+### Start MSK Research Lab OS Daemon
+```bash
+cd /mnt/c/Users/tuanh/Downloads/msk-research-lab
+PYTHONPATH=src:. .venv/bin/python3 -m msk_research_lab
+```
+Then visit `http://127.0.0.1:8091/` or `http://127.0.0.1:8091/dashboard` in a Windows web browser.
+
+### Run System Diagnostics Doctor
+```bash
+cd /mnt/c/Users/tuanh/Downloads/msk-research-lab
+PYTHONPATH=src:. .venv/bin/python3 scripts/doctor.py
+```

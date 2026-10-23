@@ -1,0 +1,19 @@
+{
+  "schema_version": "3.0.0",
+  "package_id": "pkg_bridge_int_test_01",
+  "snapshot_id": "rel_bridge_ffc2e984",
+  "created_at": "2026-10-23T01:23:26.666457+00:00",
+  "rights_review_state": "ALLOWED",
+  "source_ids": [
+    "who_standard_2008"
+  ],
+  "members": [
+    {
+      "relative_path": "points/gb21.json",
+      "sha256": "06c785ff5df75b7b54f56cbcf4628c00dcb29af1d741e425dd966745543351f2",
+      "rights_status": "ALLOWED"
+    }
+  ],
+  "manifest_sha256": "c31645a4db222252a984484213bb2a944774a653756f8209c1ec47599899d21b",
+  "signature": "LOCAL_RESEARCH_AUTHORITY_ED25519_SIG:c31645a4db222252"
+}

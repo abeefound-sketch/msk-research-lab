@@ -1,0 +1,15 @@
+{
+  "point_code": "LI4",
+  "concept_id": "LI4",
+  "canonical_label": "Hegu (\u5408\u8c37)",
+  "namespace": "TRADITIONAL_ACUPUNCTURE",
+  "review_state": "EXPERT_REVIEWED",
+  "rights_status": "ALLOWED",
+  "snapshot_id": "rel_r3_validated_snapshot_001",
+  "mesh_local_xyz_mm": [
+    -45.0,
+    210.0,
+    25.0
+  ],
+  "disclaimer": "Educational research record; not medical advice or treatment recommendation."
+}

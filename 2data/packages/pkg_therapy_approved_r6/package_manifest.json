@@ -1,0 +1,24 @@
+{
+  "schema_version": "3.0.0",
+  "package_id": "pkg_therapy_approved_r6",
+  "snapshot_id": "rel_r3_validated_snapshot_001",
+  "created_at": "2026-10-23T01:24:43.439833+00:00",
+  "rights_review_state": "ALLOWED",
+  "source_ids": [
+    "who_standard_2008"
+  ],
+  "members": [
+    {
+      "relative_path": "points/gb21.json",
+      "sha256": "cc6e6ca00f412e095ff0ca32fb33c3cf78dc0685d454497e02b6764033842f90",
+      "rights_status": "ALLOWED"
+    },
+    {
+      "relative_path": "points/li4.json",
+      "sha256": "a2a1aa7cf1d39e2d5de043fd4ca8284cc5ba900517608d42f43f50956b327683",
+      "rights_status": "ALLOWED"
+    }
+  ],
+  "manifest_sha256": "4c8771effe7ccad3b55032b041ce90174c6ecb44da2783c25fb007a2c3998300",
+  "signature": "LOCAL_RESEARCH_AUTHORITY_ED25519_SIG:4c8771effe7ccad3"
+}

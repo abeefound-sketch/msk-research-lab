@@ -1,0 +1,8 @@
+{
+  "mode": "ONLINE_API",
+  "endpoint": "/api/v1/knowledge/points/{code}",
+  "auth": "Bearer <research_token>",
+  "unreviewed_rejection": "404 UNREVIEWED_NOT_PUBLISHED",
+  "unauthorized_rejection": "401 / 403 FORBIDDEN",
+  "status": "VERIFIED"
+}

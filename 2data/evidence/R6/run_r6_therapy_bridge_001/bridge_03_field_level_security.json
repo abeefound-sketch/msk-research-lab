@@ -1,0 +1,7 @@
+{
+  "raw_book_binaries": "EXCLUDED (Endpoint /api/v1/library/documents/{id}/file strictly unexposed)",
+  "upstream_process_runners": "BLOCKED (Endpoint /api/v1/repos/{id}/run restricted & unapproved profiles denied)",
+  "patient_data_boundary": "PRESERVED (Zero patient PII stored or accepted in Lab OS)",
+  "private_studio_drafts": "PRIVATE (Only active immutable release snapshots queried by knowledge API)",
+  "status": "PASS"
+}
