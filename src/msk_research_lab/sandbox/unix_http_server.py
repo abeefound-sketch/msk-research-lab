@@ -17,6 +17,8 @@ from socketserver import ThreadingUnixStreamServer
 class UnixHTTPHandler(SimpleHTTPRequestHandler):
     """Serve static files from directory over Unix stream socket."""
 
+    protocol_version = "HTTP/1.0"
+
     def __init__(self, *args, directory=None, **kwargs):
         # Register custom MIME types for 3D web assets
         mimetypes.add_type("model/gltf-binary", ".glb")
@@ -27,6 +29,7 @@ class UnixHTTPHandler(SimpleHTTPRequestHandler):
 
     def end_headers(self):
         # Prevent caching during testing and enable CORS for local WebGL
+        self.send_header("Connection", "close")
         self.send_header("Access-Control-Allow-Origin", "*")
         self.send_header("Access-Control-Allow-Methods", "GET, HEAD, OPTIONS")
         self.send_header("Cache-Control", "no-cache, no-store, must-revalidate")

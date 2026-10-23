@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import Optional, Dict, List, Any
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request, HTTPException
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.responses import HTMLResponse, JSONResponse, FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from msk_research_lab.core.config import get_config
@@ -765,6 +765,26 @@ def api_get_model(model_id: str):
     if not m:
         raise HTTPException(status_code=404, detail=f"Model '{model_id}' not found.")
     return m
+
+
+@app.get("/api/v1/atlas/models/{model_id}/file")
+def api_get_model_file(model_id: str):
+    """Serve the 3D model geometry file (.glb, .obj, etc.) for a registered model."""
+    m = get_model_3d(model_id)
+    if not m:
+        raise HTTPException(status_code=404, detail=f"Model '{model_id}' not found.")
+    mesh_rel = m.get("mesh_id", "")
+    cfg = get_config()
+    mesh_path = (cfg.storage.root_dir / mesh_rel).resolve()
+    if not mesh_path.exists() or not mesh_path.is_file():
+        raise HTTPException(status_code=404, detail=f"Model file '{mesh_rel}' not found on disk.")
+
+    # Security: Ensure path does not escape root_dir
+    if not str(mesh_path).startswith(str(cfg.storage.root_dir.resolve())):
+        raise HTTPException(status_code=403, detail="Access denied: path traversal attempt.")
+
+    media_type = "model/gltf-binary" if mesh_path.suffix.lower() == ".glb" else "application/octet-stream"
+    return FileResponse(path=str(mesh_path), media_type=media_type, filename=mesh_path.name)
 
 
 @app.get("/api/v1/atlas/points/{code}")
@@ -1773,7 +1793,7 @@ def get_dashboard(request: Request):
             </div>
             <div class="gate-card">
                 <div class="gate-name">G2: Sandbox Run</div>
-                <span class="badge badge-red">BLOCKED (APPROVAL REQ)</span>
+                <span class="badge badge-amber">IN PROGRESS (1/3 DEMO)</span>
             </div>
             <div class="gate-card">
                 <div class="gate-name">R1D: Discovery</div>

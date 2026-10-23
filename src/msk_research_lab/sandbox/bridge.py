@@ -70,30 +70,38 @@ class UnixSocketProxyHandler(BaseHTTPRequestHandler):
             sock.connect(self.unix_socket_path)
             sock.settimeout(10.0)
 
-            # Reconstruct HTTP request line and headers
-            req_lines = [f"{method} {self.path} HTTP/1.1\r\n"]
+            # Reconstruct HTTP/1.0 request line and headers
+            req_lines = [f"{method} {self.path} HTTP/1.0\r\n"]
             for header, value in self.headers.items():
-                if header.lower() != "connection":
+                if header.lower() not in ("connection", "proxy-connection", "keep-alive"):
                     req_lines.append(f"{header}: {value}\r\n")
             req_lines.append("Connection: close\r\n\r\n")
 
             sock.sendall("".join(req_lines).encode("latin-1") + body)
+            try:
+                sock.shutdown(socket.SHUT_WR)
+            except OSError:
+                pass
 
-            # Read raw HTTP response from Unix socket and forward to client
-            response_data = b""
+            # Stream raw HTTP response from Unix socket directly to TCP client
             while True:
                 chunk = sock.recv(65536)
                 if not chunk:
                     break
-                response_data += chunk
+                try:
+                    self.wfile.write(chunk)
+                    self.wfile.flush()
+                except (BrokenPipeError, ConnectionResetError):
+                    break
             sock.close()
 
-            # Write raw response back to TCP client
-            self.wfile.write(response_data)
-            self.wfile.flush()
-
+        except (BrokenPipeError, ConnectionResetError):
+            pass
         except Exception as e:
-            self.send_error(502, f"Bridge proxy error: {str(e)}")
+            try:
+                self.send_error(502, f"Bridge proxy error: {str(e)}")
+            except Exception:
+                pass
 
 
 class SandboxedAppRunner:

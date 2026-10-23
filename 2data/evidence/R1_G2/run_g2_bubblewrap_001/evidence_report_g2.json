@@ -1,9 +1,8 @@
 {
   "gate": "G2",
-  "name": "Bubblewrap Rootless Sandbox & Process Isolation",
-  "status": "ISOLATION_VERIFIED",
-  "execution_gate": "BLOCKED_AWAITING_PER_REPO_APPROVAL",
-  "timestamp": "2026-10-23T11:34:31+07:00",
+  "name": "Bubblewrap Rootless Sandbox & Upstream Isolation Verification",
+  "overall_status": "IN_PROGRESS (1/3 DEMOS VERIFIED; AWAITING CANDIDATE 2 APPROVAL)",
+  "timestamp": "2026-10-23T13:06:00+00:00",
   "environment": {
     "os": "Ubuntu 22.04 LTS (WSL2) on Windows 10",
     "runtime": "bubblewrap",
@@ -14,8 +13,12 @@
   "deliverables": {
     "probe_module": "src/msk_research_lab/sandbox/probe.py",
     "runner_module": "src/msk_research_lab/repos/runner.py",
+    "bridge_module": "src/msk_research_lab/sandbox/bridge.py",
+    "unix_http_server": "src/msk_research_lab/sandbox/unix_http_server.py",
     "security_test_suite": "tests/security/test_sandbox_bubblewrap.py",
-    "screenshot": "2data/evidence/R1_G2/run_g2_bubblewrap_001/dashboard_bubblewrap_sandbox_1366x768.png"
+    "bridge_test_suite": "tests/security/test_sandbox_bridge.py",
+    "candidate1_report": "2data/evidence/R1_G2/run_g2_candidate1_watercmy/evidence_report_candidate1.json",
+    "candidate1_screenshot": "2data/evidence/R1_G2/run_g2_candidate1_watercmy/candidate1_watercmy_default_1366x768.png"
   },
   "verified_isolation_checks": {
     "container_binary": true,
@@ -25,7 +28,17 @@
       "windows_d_drive_therapy_os_blocked": true,
       "user_ssh_keys_blocked": true,
       "system_secrets_blocked": true,
-      "allowed_mounts": ["/bin (ro)", "/lib (ro)", "/lib64 (ro)", "/usr (ro)", "/proc (isolated)", "/dev (minimal)", "/tmp (private tmpfs)", "/app (ro repo)"]
+      "allowed_mounts": [
+        "/bin (ro)",
+        "/lib (ro)",
+        "/lib64 (ro)",
+        "/usr (ro)",
+        "/proc (isolated)",
+        "/dev (minimal)",
+        "/tmp (private tmpfs)",
+        "/app (ro repo)",
+        "/bridge (private socket dir)"
+      ]
     },
     "network_denial": {
       "verified": true,
@@ -53,32 +66,68 @@
       "verified": true,
       "unapproved_execution_blocked": true,
       "exception_type": "ApprovalRequiredError"
+    },
+    "unix_socket_loopback_bridge": {
+      "verified": true,
+      "mechanism": "HTTP/1.0 streaming via Unix domain socket /bridge/app.sock to host 127.0.0.1:<port>",
+      "network_isolation_compromised": false
     }
   },
-  "evidence_hashes": {
-    "dashboard_screenshot_sha256": "03be7923f6af68098b4ffb6121d4c5e6b49cde9ba70c6080c18af8c6a6a30b01"
-  },
-  "candidate_repositories_awaiting_execution_approval": [
+  "candidate_demonstrations": [
+    {
+      "candidate_id": "watercmy--anatomy-3d",
+      "demonstration_index": "1 of 3",
+      "verdict": "PASS (VERIFIED)",
+      "canonical_url": "https://github.com/WaterCMY/anatomy-3d",
+      "pinned_commit_sha": "e8d40dca7b1f63f54567395df21d8b1b38a7e840",
+      "code_license": "MIT",
+      "asset_license": "CC BY-SA 2.1 Japan",
+      "bridge_port": 8092,
+      "observed_rss_mb": 1.89,
+      "observed_vms_mb": 3.57,
+      "screenshot_path": "2data/evidence/R1_G2/run_g2_candidate1_watercmy/candidate1_watercmy_default_1366x768.png",
+      "screenshot_sha256": "abd3d7fd109a3e7c6c75277378d5afddd22c6f4df3efd7c2fbde9645f28ab947",
+      "screenshot_size_bytes": 97120,
+      "report_path": "2data/evidence/R1_G2/run_g2_candidate1_watercmy/evidence_report_candidate1.json"
+    },
+    {
+      "candidate_id": "spacejohnlf--tcm-acupoints",
+      "demonstration_index": "2 of 3",
+      "verdict": "AWAITING_OPERATOR_APPROVAL",
+      "canonical_url": "https://github.com/spacejohnlf/tcm-acupoints",
+      "pinned_commit_sha": "04e35abb66585eb29c7250ea8ab5243c8c744f64",
+      "code_license": "MIT",
+      "asset_license": "CC BY-SA 4.0",
+      "proposed_bridge_port": 8093,
+      "research_report": "research/reports/spacejohnlf--tcm-acupoints/v1/report.md"
+    },
+    {
+      "candidate_id": "jicio--tcm-3d",
+      "demonstration_index": "3 of 3",
+      "verdict": "AWAITING_OPERATOR_APPROVAL",
+      "canonical_url": "https://github.com/JICio/tcm-3d",
+      "pinned_commit_sha": "e8b9ad1c17e67a25e94406100e3fb5c296c24f7a",
+      "code_license": "MIT",
+      "asset_license": "CC BY 4.0",
+      "proposed_bridge_port": 8094,
+      "research_report": "research/reports/jicio--tcm-3d/v1/report.md"
+    }
+  ],
+  "rejected_inaccessible_candidates": [
     {
       "repo_id": "mockbiomed--msk-tools",
       "canonical_url": "https://github.com/mockbiomed/msk-tools",
-      "license": "MIT",
-      "static_analysis": "CLEAN_0_HIGH_RISK_HOOKS",
-      "current_status": "CLONED_PINNED; AWAITING_OPERATOR_RUN_APPROVAL"
+      "rejection_reason": "GITHUB_404_NOT_FOUND"
     },
     {
       "repo_id": "openanatomy--open-anatomy-browser",
       "canonical_url": "https://github.com/openanatomy/open-anatomy-browser",
-      "license": "Apache-2.0",
-      "static_analysis": "WEBGL_VIEWER_ANALYZED",
-      "current_status": "DISCOVERED_UNVERIFIED; AWAITING_CLONE_APPROVAL"
+      "rejection_reason": "GITHUB_404_NOT_FOUND"
     },
     {
       "repo_id": "whomed--acupuncture-3d",
       "canonical_url": "https://github.com/whomed/acupuncture-3d",
-      "license": "CC-BY-4.0",
-      "static_analysis": "ASSET_MODEL_ANALYZED",
-      "current_status": "DISCOVERED_UNVERIFIED; AWAITING_CLONE_APPROVAL"
+      "rejection_reason": "GITHUB_404_NOT_FOUND"
     }
   ]
 }

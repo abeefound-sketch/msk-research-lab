@@ -126,3 +126,14 @@ def test_api_bake_meridian_path():
     assert data["meridian_code"] == "LU"
     assert data["has_penetration_gap"] is False
     assert data["segment_count"] == 1
+
+
+def test_api_get_model_file():
+    res = client.get("/api/v1/atlas/models/watercmy_bp3d_z_anatomy/file")
+    assert res.status_code == 200
+    assert res.headers["content-type"] == "model/gltf-binary"
+    assert int(res.headers["content-length"]) > 1000000
+
+    # 404 for nonexistent model file
+    res_404 = client.get("/api/v1/atlas/models/synthetic_torso_v1/file")
+    assert res_404.status_code == 404
