@@ -2,8 +2,10 @@
 
 import pytest
 import math
+from pathlib import Path
 from msk_research_lab.atlas.scene import (
     build_calibrated_bp3d_torso_scene,
+    import_bodyparts3d_obj,
     AtlasSceneData,
     MeshGeometry,
     AnatomicalPoint3D,
@@ -19,6 +21,15 @@ def test_build_calibrated_bp3d_torso_scene_structure():
     assert scene.units == "mm"
     assert scene.coordinate_frame == "mesh_local_xyz"
     assert scene.reference_pose == "standing_anatomical"
+
+
+def test_procedural_demonstration_model_honesty():
+    """Verify procedural demonstration model is not falsely labeled a verified clinical atlas."""
+    scene = build_calibrated_bp3d_torso_scene()
+    assert scene.asset_kind == "PROCEDURAL_BENCHMARK_DEMONSTRATION"
+    assert "NOT_CLINICALLY_VALIDATED" in scene.clinical_validation_status
+    assert "NOT Clinical BodyParts3D Asset" in scene.model_name
+    assert "does NOT constitute a verified anatomical atlas" in scene.epistemic_disclaimer
 
 
 def test_anatomical_layers_complete():
@@ -98,3 +109,28 @@ def test_six_camera_presets():
         assert "target" in cfg
         assert len(cfg["position"]) == 3
         assert len(cfg["target"]) == 3
+
+
+def test_import_bodyparts3d_obj_parser(tmp_path):
+    """Verify authentic BodyParts3D OBJ importer parses vertices, faces, and assigns FMA provenance."""
+    sample_obj = (
+        "# BodyParts3D Sample Mesh\n"
+        "v 10.0 20.0 30.0\n"
+        "v 15.0 25.0 35.0\n"
+        "v 20.0 30.0 40.0\n"
+        "f 1 2 3\n"
+    )
+    obj_file = tmp_path / "FMA5018_trapezius.obj"
+    obj_file.write_text(sample_obj, encoding="utf-8")
+
+    mesh = import_bodyparts3d_obj(
+        file_path=obj_file,
+        fma_id="5018",
+        organ_name="Trapezius muscle",
+        layer_id="superficial_muscle"
+    )
+    assert mesh.layer_id == "superficial_muscle"
+    assert "FMA:5018" in mesh.layer_name
+    assert len(mesh.vertices) == 9  # 3 vertices * 3 floats
+    assert len(mesh.indices) == 3   # 1 triangle face
+    assert mesh.indices == [0, 1, 2]

@@ -22,7 +22,7 @@ def test_dashboard_renders_html():
     assert "System Health" in html
     assert "SQLite" in html
     assert "Sandbox Isolation" in html
-    assert "SANDBOX_UNAVAILABLE" in html
+    assert ("SANDBOX_UNAVAILABLE" in html or "SANDBOX_VERIFIED_BUBBLEWRAP" in html)
     assert "Candidate Repositories" in html
     assert "LOCAL 127.0.0.1:8091" in html
 

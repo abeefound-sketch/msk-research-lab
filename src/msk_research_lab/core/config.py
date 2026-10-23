@@ -12,13 +12,13 @@ except ImportError:
 
 
 def _find_repo_root() -> Path:
-    cwd = Path(os.getcwd()).resolve()
-    if (cwd / "2data").exists() or (cwd / "pyproject.toml").exists():
-        return cwd
     anchor = Path(__file__).resolve().parent.parent.parent.parent
     if (anchor / "pyproject.toml").exists():
         return anchor
-    return cwd
+    cwd = Path(os.getcwd()).resolve()
+    if (cwd / "pyproject.toml").exists():
+        return cwd
+    return anchor
 
 
 class ServerConfig(BaseModel):
@@ -58,7 +58,10 @@ class AppConfig(BaseModel):
 
     @property
     def data_dir(self) -> Path:
-        return self.storage.data_dir
+        p = self.storage.data_dir
+        if not p.is_absolute():
+            return (self.storage.root_dir / p).resolve()
+        return p.resolve()
 
     @property
     def root_dir(self) -> Path:

@@ -6,9 +6,15 @@ from typing import List, Dict, Any, Optional
 from msk_research_lab.core.db import get_db
 
 
+from msk_research_lab.core.config import get_config
+
+
 def load_catalog_seed(catalog_path: Optional[Path] = None) -> List[Dict[str, Any]]:
     """Load untrusted candidate repos from catalog JSON file."""
     path = catalog_path or Path("config/repo_catalog.json")
+    if not path.is_absolute() and not path.exists():
+        cfg = get_config()
+        path = cfg.storage.root_dir / path
     if not path.exists():
         return []
     with open(path, "r", encoding="utf-8") as f:

@@ -155,6 +155,6 @@ def test_dashboard_renders_r1d_and_rebaselined_gates(client):
     assert resp.status_code == 200
     html = resp.text
     assert "Discovery &amp; Research Pipeline Candidates (R1D" in html or "Discovery & Research Pipeline Candidates (R1D" in html
-    assert "BLOCKED (WSL)" in html
+    assert ("BLOCKED (WSL)" in html or "BLOCKED (APPROVAL REQ)" in html)
     assert "R1D: Discovery" in html
     assert "PASS" in html

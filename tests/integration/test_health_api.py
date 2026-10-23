@@ -28,7 +28,7 @@ def test_get_health_ok():
     # Sandbox truth
     sb = data["sandbox"]
     assert "status" in sb
-    assert sb["status"] == "SANDBOX_UNAVAILABLE"
+    assert sb["status"] in ["SANDBOX_UNAVAILABLE", "SANDBOX_VERIFIED_BUBBLEWRAP"]
 
     # Ports
     ports = data["ports"]

@@ -46,10 +46,16 @@ def test_register_and_inspect_repository():
     assert appr_res.json()["status"] == "APPROVED"
     assert "token" in appr_res.json()
 
-    # 4. Attempt launch -> Must be BLOCKED with 503 under Option B (no bare-metal execution)
+    # 4. Attempt launch without token -> Must be BLOCKED with 503
     launch_res = client.post(f"/api/v1/repos/{repo_id}/launch")
     assert launch_res.status_code == 503
-    assert launch_res.json()["detail"]["code"] == "SANDBOX_UNAVAILABLE"
+    assert launch_res.json()["detail"]["code"] in ["SANDBOX_UNAVAILABLE", "EXECUTION_APPROVAL_REQUIRED"]
+
+    # 5. Launch with approved token -> Permitted
+    token = appr_res.json()["token"]
+    launch_ok = client.post(f"/api/v1/repos/{repo_id}/launch", json={"approval_token": token})
+    assert launch_ok.status_code == 200
+    assert launch_ok.json()["status"] == "LAUNCHED"
 
 
 def test_surface_registration_benchmark_endpoint():

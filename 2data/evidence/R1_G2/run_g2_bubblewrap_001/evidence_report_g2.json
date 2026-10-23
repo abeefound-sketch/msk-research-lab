@@ -1,0 +1,84 @@
+{
+  "gate": "G2",
+  "name": "Bubblewrap Rootless Sandbox & Process Isolation",
+  "status": "ISOLATION_VERIFIED",
+  "execution_gate": "BLOCKED_AWAITING_PER_REPO_APPROVAL",
+  "timestamp": "2026-10-23T11:34:31+07:00",
+  "environment": {
+    "os": "Ubuntu 22.04 LTS (WSL2) on Windows 10",
+    "runtime": "bubblewrap",
+    "runtime_version": "0.6.1",
+    "runtime_path": "/home/tuan/.local/bin/bwrap",
+    "user_namespaces": "ACTIVE_UNPRIVILEGED"
+  },
+  "deliverables": {
+    "probe_module": "src/msk_research_lab/sandbox/probe.py",
+    "runner_module": "src/msk_research_lab/repos/runner.py",
+    "security_test_suite": "tests/security/test_sandbox_bubblewrap.py",
+    "screenshot": "2data/evidence/R1_G2/run_g2_bubblewrap_001/dashboard_bubblewrap_sandbox_1366x768.png"
+  },
+  "verified_isolation_checks": {
+    "container_binary": true,
+    "mount_isolation": {
+      "verified": true,
+      "windows_c_drive_blocked": true,
+      "windows_d_drive_therapy_os_blocked": true,
+      "user_ssh_keys_blocked": true,
+      "system_secrets_blocked": true,
+      "allowed_mounts": ["/bin (ro)", "/lib (ro)", "/lib64 (ro)", "/usr (ro)", "/proc (isolated)", "/dev (minimal)", "/tmp (private tmpfs)", "/app (ro repo)"]
+    },
+    "network_denial": {
+      "verified": true,
+      "mechanism": "--unshare-net",
+      "loopback_access_denied": true,
+      "outbound_internet_denied": true
+    },
+    "process_namespace_isolation": {
+      "verified": true,
+      "mechanism": "--unshare-pid and --proc /proc",
+      "host_processes_invisible": true
+    },
+    "resource_and_memory_limits": {
+      "verified": true,
+      "mechanism": "POSIX resource.setrlimit(RLIMIT_AS)",
+      "virtual_memory_ceiling_mb": 500,
+      "over_allocation_handled": "MemoryError raised; system memory protected"
+    },
+    "process_governor_lifecycle": {
+      "verified": true,
+      "process_group_isolation": true,
+      "clean_teardown_sigterm_sigkill": true
+    },
+    "execution_approval_guard": {
+      "verified": true,
+      "unapproved_execution_blocked": true,
+      "exception_type": "ApprovalRequiredError"
+    }
+  },
+  "evidence_hashes": {
+    "dashboard_screenshot_sha256": "03be7923f6af68098b4ffb6121d4c5e6b49cde9ba70c6080c18af8c6a6a30b01"
+  },
+  "candidate_repositories_awaiting_execution_approval": [
+    {
+      "repo_id": "mockbiomed--msk-tools",
+      "canonical_url": "https://github.com/mockbiomed/msk-tools",
+      "license": "MIT",
+      "static_analysis": "CLEAN_0_HIGH_RISK_HOOKS",
+      "current_status": "CLONED_PINNED; AWAITING_OPERATOR_RUN_APPROVAL"
+    },
+    {
+      "repo_id": "openanatomy--open-anatomy-browser",
+      "canonical_url": "https://github.com/openanatomy/open-anatomy-browser",
+      "license": "Apache-2.0",
+      "static_analysis": "WEBGL_VIEWER_ANALYZED",
+      "current_status": "DISCOVERED_UNVERIFIED; AWAITING_CLONE_APPROVAL"
+    },
+    {
+      "repo_id": "whomed--acupuncture-3d",
+      "canonical_url": "https://github.com/whomed/acupuncture-3d",
+      "license": "CC-BY-4.0",
+      "static_analysis": "ASSET_MODEL_ANALYZED",
+      "current_status": "DISCOVERED_UNVERIFIED; AWAITING_CLONE_APPROVAL"
+    }
+  ]
+}

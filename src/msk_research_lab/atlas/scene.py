@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import json
 import math
+from pathlib import Path
 from typing import Dict, Any, List, Optional
 from pydantic import BaseModel, Field
 
@@ -52,6 +53,12 @@ class MeridianTrajectory(BaseModel):
 class AtlasSceneData(BaseModel):
     model_id: str
     model_name: str
+    asset_kind: str = "PROCEDURAL_BENCHMARK_DEMONSTRATION"
+    clinical_validation_status: str = "NOT_CLINICALLY_VALIDATED; PROCEDURAL_BENCHMARK_ONLY"
+    epistemic_disclaimer: str = (
+        "Procedural demonstration geometry only; does NOT constitute a verified anatomical atlas or clinical BodyParts3D asset. "
+        "Real clinical registration requires DBCLS BodyParts3D polygon mesh imports."
+    )
     units: str = "mm"
     coordinate_frame: str = "mesh_local_xyz"
     reference_pose: str = "standing_anatomical"
@@ -427,7 +434,13 @@ def build_calibrated_bp3d_torso_scene() -> AtlasSceneData:
 
     return AtlasSceneData(
         model_id="bodyparts3d_v4_ref_torso",
-        model_name="BodyParts3D v4.0 Calibrated Cervical-Thoracic Reference",
+        model_name="Procedural Demonstration Torso (Calibrated Geometric Envelope; NOT Clinical BodyParts3D Asset)",
+        asset_kind="PROCEDURAL_BENCHMARK_DEMONSTRATION",
+        clinical_validation_status="NOT_CLINICALLY_VALIDATED; PROCEDURAL_BENCHMARK_ONLY",
+        epistemic_disclaimer=(
+            "Procedural demonstration geometry only; does NOT constitute a verified anatomical atlas or clinical BodyParts3D asset. "
+            "Real clinical registration requires DBCLS BodyParts3D polygon mesh imports."
+        ),
         units="mm",
         coordinate_frame="mesh_local_xyz",
         reference_pose="standing_anatomical",
@@ -436,4 +449,48 @@ def build_calibrated_bp3d_torso_scene() -> AtlasSceneData:
         points=points,
         meridians=meridians,
         camera_presets=camera_presets
+    )
+
+
+def import_bodyparts3d_obj(
+    file_path: Any,
+    fma_id: str,
+    organ_name: str,
+    layer_id: str = "bp3d_clinical",
+    color: str = "#cbd5e1",
+    opacity: float = 1.0
+) -> MeshGeometry:
+    """Import an authentic BodyParts3D Wavefront OBJ mesh file with FMA ontology provenance.
+
+    Parses standard OBJ vertices (v x y z) and triangle faces (f v1 v2 v3),
+    converting 1-based OBJ indices to 0-based mesh indices.
+    """
+    path = Path(file_path) if not isinstance(file_path, Path) else file_path
+    if not path.exists():
+        raise FileNotFoundError(f"BodyParts3D OBJ file not found: {path}")
+
+    vertices: List[float] = []
+    indices: List[int] = []
+
+    with open(path, "r", encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if line.startswith("v "):
+                parts = line.split()[1:4]
+                vertices.extend([float(parts[0]), float(parts[1]), float(parts[2])])
+            elif line.startswith("f "):
+                parts = line.split()[1:4]
+                for p in parts:
+                    v_idx = int(p.split("/")[0]) - 1
+                    indices.append(v_idx)
+
+    return MeshGeometry(
+        layer_id=layer_id,
+        layer_name=f"{organ_name} (FMA:{fma_id})",
+        color=color,
+        opacity=opacity,
+        wireframe=False,
+        visible=True,
+        vertices=vertices,
+        indices=indices
     )

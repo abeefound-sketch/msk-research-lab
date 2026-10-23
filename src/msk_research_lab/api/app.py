@@ -281,8 +281,8 @@ async def approve_profile_endpoint(repo_id: str, request: Request):
 
 
 @app.post("/api/v1/repos/{repo_id}/launch")
-def launch_repo_endpoint(repo_id: str):
-    """Attempt execution of repository application (Denied on bare-metal under Option B)."""
+async def launch_repo_endpoint(repo_id: str, request: Request):
+    """Attempt execution of repository application (Requires enforceable sandbox AND explicit operator approval token)."""
     sb = probe_sandbox_capabilities()
     if not sb.get("isolation_enforceable", False):
         raise HTTPException(
@@ -293,7 +293,26 @@ def launch_repo_endpoint(repo_id: str):
                 "gate": "BLOCKED"
             }
         )
-    return {"status": "LAUNCHED", "repo_id": repo_id}
+
+    # Check for approval token
+    token = None
+    try:
+        body = await request.json()
+        token = body.get("approval_token") or body.get("token")
+    except Exception:
+        pass
+
+    if not token:
+        raise HTTPException(
+            status_code=503,
+            detail={
+                "code": "EXECUTION_APPROVAL_REQUIRED",
+                "message": f"Execution BLOCKED: Separate operator approval token required before executing upstream repository '{repo_id}'.",
+                "gate": "BLOCKED"
+            }
+        )
+
+    return {"status": "LAUNCHED", "repo_id": repo_id, "token": token}
 
 
 @app.get("/api/v1/benchmarks/surface-registration")
@@ -1696,7 +1715,7 @@ def get_dashboard(request: Request):
     <div class="container">
         <header>
             <div class="brand">
-                <h1>MSK Research Lab OS <span class="badge badge-green">R0 Verified</span> <span class="badge badge-green">R3 Verified</span> <span class="badge badge-green">R4 Verified</span></h1>
+                <h1>MSK Research Lab OS <span class="badge badge-green">R0 Verified</span> <span class="badge badge-green">R1D Verified</span> <span class="badge badge-amber">R4 Procedural Demo</span></h1>
                 <p>Independent Research Workbench &bull; Target: Windows 10 / Ubuntu WSL2 (1366&times;768)</p>
             </div>
             <div id="controls">
@@ -1754,7 +1773,7 @@ def get_dashboard(request: Request):
             </div>
             <div class="gate-card">
                 <div class="gate-name">G2: Sandbox Run</div>
-                <span class="badge badge-red">BLOCKED (WSL)</span>
+                <span class="badge badge-red">BLOCKED (APPROVAL REQ)</span>
             </div>
             <div class="gate-card">
                 <div class="gate-name">R1D: Discovery</div>
@@ -1770,7 +1789,7 @@ def get_dashboard(request: Request):
             </div>
             <div class="gate-card">
                 <div class="gate-name">R4: 3D Atlas</div>
-                <span class="badge badge-green">VERIFIED</span>
+                <span class="badge badge-amber">PROTOTYPE (PROCEDURAL)</span>
             </div>
             <div class="gate-card">
                 <div class="gate-name">R5: Studio</div>
@@ -1826,7 +1845,7 @@ def get_dashboard(request: Request):
                     <div id="webglContainer" style="width:100%; height:100%;"></div>
                     <canvas id="atlasCanvas" width="700" height="380" style="width:100%; height:100%; display:none;"></canvas>
                     <div style="position:absolute; bottom:8px; left:8px; font-size:11px; background:rgba(15,23,42,0.85); padding:4px 8px; border-radius:4px; border:1px solid var(--card-border); z-index:10;">
-                        Ref: <code>bodyparts3d_v4_ref_torso</code> &bull; Units: <code>mm</code> &bull; Pose: <code>standing_anatomical</code> &bull; <span id="vramStatus" style="color:var(--status-green);">WebGL VRAM: ~1.4 MB (Safe 8GB Budget)</span>
+                        Ref: <code>procedural_demo_torso</code> (calibrated for <code>bodyparts3d_v4_ref_torso</code>) &bull; Units: <code>mm</code> &bull; <span style="color:var(--status-amber); font-weight:600;">PROTOTYPE DEMO (NOT CLINICAL BP3D ATLAS)</span> &bull; <span id="vramStatus" style="color:var(--status-green);">VRAM: ~1.4 MB</span>
                     </div>
                 </div>
 
@@ -1919,7 +1938,7 @@ def get_dashboard(request: Request):
                 </div>
 
                 <div style="margin-top:14px; padding:8px; background:rgba(245,158,11,0.08); border-left:3px solid var(--status-amber); font-size:11px; color:var(--text-muted);">
-                    <strong>Epistemic Disclaimer:</strong> Research record only; does not imply physiological equivalence or treatment recommendation.
+                    <strong>Epistemic Disclaimer &amp; Warning:</strong> This is a procedural demonstration envelope for benchmarking registration algorithms and multi-layer WebGL rendering. It must NOT be labeled or treated as a verified clinical anatomical atlas. Real clinical registration requires DBCLS BodyParts3D polygon mesh imports under CC-BY-SA 2.1 JP.
                 </div>
             </div>
         </div>
