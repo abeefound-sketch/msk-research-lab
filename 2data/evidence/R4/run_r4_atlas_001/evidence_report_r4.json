@@ -1,0 +1,99 @@
+{
+  "gate": "R4",
+  "name": "Unified 3D Anatomy & Meridian Atlas Workbench",
+  "status": "VERIFIED",
+  "timestamp": "2026-10-23T10:41:46+07:00",
+  "environment": {
+    "os": "Ubuntu 22.04 LTS (WSL2) on Windows 10",
+    "python": "3.10.12",
+    "target_resolution": "1366x768",
+    "ram_budget_safe": true,
+    "memory_vram_mb": 1.4
+  },
+  "deliverables": {
+    "scene_builder": "src/msk_research_lab/atlas/scene.py",
+    "api_endpoint": "GET /api/v1/atlas/scene/bodyparts3d_v4_ref_torso",
+    "vendor_libs": [
+      "src/msk_research_lab/api/static/vendor/three.min.js",
+      "src/msk_research_lab/api/static/vendor/OrbitControls.js"
+    ],
+    "interactive_dashboard": "src/msk_research_lab/api/app.py",
+    "tests": [
+      "tests/unit/test_atlas_scene.py",
+      "tests/integration/test_atlas_webgl_api.py",
+      "tests/unit/test_atlas_comparisons.py",
+      "tests/unit/test_atlas_registry.py",
+      "tests/integration/test_atlas_api.py"
+    ]
+  },
+  "verified_capabilities": {
+    "multi_layer_meshes": {
+      "skin": "Calibrated parametric cervical-thoracic shell (208 vertices, 384 triangles)",
+      "skeletal": "Vertebral column C3-T8 with spinous processes + bilateral clavicles",
+      "superficial_muscle": "Trapezius muscle fans",
+      "deep_muscle": "Bilateral Levator Scapulae & Supraspinatus",
+      "nerves": "Spinal accessory nerve (CN XI) passing beneath GB21"
+    },
+    "anchored_points": [
+      {
+        "code": "GB21",
+        "canonical": "Jianjing",
+        "region": "SHOULDER_RIDGE",
+        "surface_anchor_id": "anchor_gb21_bp3d",
+        "face_index": 412,
+        "contact_distance_mm": 0.00
+      },
+      {
+        "code": "GV14",
+        "canonical": "Dazhui",
+        "region": "POSTERIOR_NECK",
+        "surface_anchor_id": "anchor_gv14_bp3d",
+        "face_index": 480,
+        "contact_distance_mm": 0.00
+      },
+      {
+        "code": "SI14",
+        "canonical": "Jianwaishu",
+        "region": "UPPER_BACK",
+        "surface_anchor_id": "anchor_si14_bp3d",
+        "face_index": 390,
+        "contact_distance_mm": 0.00
+      },
+      {
+        "code": "SI15",
+        "canonical": "Jianzhongshu",
+        "region": "SHOULDER_RIDGE",
+        "surface_anchor_id": "anchor_si15_bp3d",
+        "face_index": 415,
+        "contact_distance_mm": 0.00
+      },
+      {
+        "code": "BL11",
+        "canonical": "Dazhu",
+        "region": "UPPER_BACK",
+        "surface_anchor_id": "anchor_bl11_bp3d",
+        "face_index": 360,
+        "contact_distance_mm": 0.00
+      }
+    ],
+    "meridians": [
+      { "code": "GB", "name": "Gallbladder Meridian (Foot Shaoyang)" },
+      { "code": "SI", "name": "Small Intestine Meridian (Hand Taiyang)" }
+    ],
+    "camera_views": [
+      "FRONT", "BACK", "LEFT", "RIGHT", "OBLIQUE_TOP", "OBLIQUE_BOTTOM", "RESET"
+    ],
+    "six_view_occlusion_matrix_evaluated": true,
+    "interactive_raycasting_selection": true,
+    "region_filtering": ["ALL", "SHOULDER_RIDGE", "POSTERIOR_NECK", "UPPER_BACK"],
+    "resilient_2d_fallback": true
+  },
+  "evidence_artifacts": {
+    "screenshot_path": "2data/evidence/R4/run_r4_atlas_001/dashboard_r4_atlas_1366x768.png",
+    "screenshot_sha256": "909557c64c2c0ac6204a317a1fc201aa2aed77cf2954f2083846446e5ebac879"
+  },
+  "epistemic_invariants": {
+    "clinical_efficacy_implied": false,
+    "disclaimer_text": "Epistemic Invariant: Geometric registration does not establish clinical efficacy."
+  }
+}

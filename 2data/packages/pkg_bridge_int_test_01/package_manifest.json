@@ -1,8 +1,8 @@
 {
   "schema_version": "3.0.0",
   "package_id": "pkg_bridge_int_test_01",
-  "snapshot_id": "rel_bridge_01339268",
-  "created_at": "2026-10-23T03:11:18.502517+00:00",
+  "snapshot_id": "rel_bridge_6152b4a2",
+  "created_at": "2026-10-23T03:42:51.555741+00:00",
   "rights_review_state": "ALLOWED",
   "source_ids": [
     "who_standard_2008"
@@ -10,10 +10,10 @@
   "members": [
     {
       "relative_path": "points/gb21.json",
-      "sha256": "2d51d4c430977efe294fb076377749be892dd4751df18199a16654e42f90c418",
+      "sha256": "0d601e3c39d836791ba91d46072efdff963cd71a0aa67211999cec5d21a25564",
       "rights_status": "ALLOWED"
     }
   ],
-  "manifest_sha256": "d9e4f36718235cb5dd642d0a290c3f80be78dcfff421dbed60fbacbbf59ae8d5",
-  "signature": "LOCAL_RESEARCH_AUTHORITY_ED25519_SIG:d9e4f36718235cb5"
+  "manifest_sha256": "3c88b276d9eb1d979764a27091d013b10c589ae7ab0985342b31e0cf0c5ffabc",
+  "signature": "LOCAL_RESEARCH_AUTHORITY_ED25519_SIG:3c88b276d9eb1d97"
 }

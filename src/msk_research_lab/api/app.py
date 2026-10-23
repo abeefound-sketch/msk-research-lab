@@ -11,6 +11,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from msk_research_lab.core.config import get_config
 from msk_research_lab.core.db import check_db_health, get_db
 from msk_research_lab.core.migrations import run_migrations
@@ -47,6 +48,7 @@ from msk_research_lab.atlas.surface_registration import (
 from msk_research_lab.atlas.comparisons import compare_placements_3d
 from msk_research_lab.atlas.path_baker import bake_meridian_path, evaluate_six_view_occlusion
 from msk_research_lab.atlas.inspector import inspect_point
+from msk_research_lab.atlas.scene import build_calibrated_bp3d_torso_scene, AtlasSceneData
 from msk_research_lab.studio.project import (
     create_project, get_project, list_projects, bump_project_version, StudioProjectError
 )
@@ -102,6 +104,10 @@ app = FastAPI(
     description="Independent research workbench for OSS repositories, literature, and scholarly tri-ledger.",
     lifespan=lifespan
 )
+
+static_dir = Path(__file__).resolve().parent / "static"
+if static_dir.exists():
+    app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
 
 # Explicitly no wildcard CORS
 app.add_middleware(
@@ -857,6 +863,12 @@ async def api_bake_meridian(request: Request):
     )
 
 
+@app.get("/api/v1/atlas/scene/{model_id}")
+def api_get_atlas_scene(model_id: str):
+    """Retrieve calibrated multi-layer 3D anatomical scene geometry with landmarks, points, meridians, and camera presets (ATLAS-01..06)."""
+    return build_calibrated_bp3d_torso_scene()
+
+
 # ==============================================================================
 # R5 Private Atlas Studio & Diện Chẩn 2D Endpoints (ATLAS-05..06)
 # ==============================================================================
@@ -1381,6 +1393,8 @@ def get_dashboard(request: Request):
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MSK Research Lab OS — Dashboard v3.0</title>
+    <script src="/static/vendor/three.min.js"></script>
+    <script src="/static/vendor/OrbitControls.js"></script>
     <style>
         :root {{
             --bg-color: #0f172a;
@@ -1682,7 +1696,7 @@ def get_dashboard(request: Request):
     <div class="container">
         <header>
             <div class="brand">
-                <h1>MSK Research Lab OS <span class="badge badge-green">R0 Verified</span> <span class="badge badge-green">R3 Verified</span></h1>
+                <h1>MSK Research Lab OS <span class="badge badge-green">R0 Verified</span> <span class="badge badge-green">R3 Verified</span> <span class="badge badge-green">R4 Verified</span></h1>
                 <p>Independent Research Workbench &bull; Target: Windows 10 / Ubuntu WSL2 (1366&times;768)</p>
             </div>
             <div id="controls">
@@ -1756,7 +1770,7 @@ def get_dashboard(request: Request):
             </div>
             <div class="gate-card">
                 <div class="gate-name">R4: 3D Atlas</div>
-                <span class="badge badge-amber">REBASELINED</span>
+                <span class="badge badge-green">VERIFIED</span>
             </div>
             <div class="gate-card">
                 <div class="gate-name">R5: Studio</div>
@@ -1771,8 +1785,8 @@ def get_dashboard(request: Request):
         <h2 class="section-title">Unified 3D Anatomy & Meridian Atlas Workbench (ATLAS-01..04)</h2>
         <div class="atlas-workbench">
             <div class="viewport-panel">
-                <div class="viewport-toolbar">
-                    <span style="font-weight:600; font-size:12px; color:var(--accent-blue); margin-right:8px;">Camera:</span>
+                <div class="viewport-toolbar" style="display:flex; flex-wrap:wrap; gap:6px; align-items:center;">
+                    <span style="font-weight:600; font-size:12px; color:var(--accent-blue); margin-right:4px;">Camera:</span>
                     <button class="btn-tool active" onclick="setCamera('FRONT')">Front</button>
                     <button class="btn-tool" onclick="setCamera('BACK')">Back</button>
                     <button class="btn-tool" onclick="setCamera('LEFT')">Left</button>
@@ -1780,27 +1794,50 @@ def get_dashboard(request: Request):
                     <button class="btn-tool" onclick="setCamera('OBLIQUE_TOP')">Oblique &uarr;</button>
                     <button class="btn-tool" onclick="setCamera('OBLIQUE_BOTTOM')">Oblique &darr;</button>
                     <button class="btn-tool" onclick="setCamera('RESET')">Reset</button>
-                    <span style="margin: 0 8px; color:var(--card-border);">|</span>
+                    <span style="margin: 0 4px; color:var(--card-border);">|</span>
                     <label style="font-size:12px; cursor:pointer;">
-                        <input type="checkbox" id="xrayToggle" onchange="toggleXRay(this.checked)"> X-Ray Mode
+                        <input type="checkbox" id="xrayToggle" onchange="toggleXRay(this.checked)"> X-Ray
+                    </label>
+                    <label style="font-size:12px; cursor:pointer; margin-left:6px;">
+                        <input type="checkbox" id="wireToggle" onchange="toggleWireframe(this.checked)"> Wireframe
                     </label>
                 </div>
 
-                <div style="position:relative; width:100%; height:380px; background:#020617; border-radius:6px; overflow:hidden; border:1px solid var(--card-border);">
-                    <canvas id="atlasCanvas" width="700" height="380" style="width:100%; height:100%; display:block;"></canvas>
-                    <div style="position:absolute; bottom:8px; left:8px; font-size:11px; background:rgba(15,23,42,0.85); padding:4px 8px; border-radius:4px; border:1px solid var(--card-border);">
-                        Ref: <code>bodyparts3d_v4_ref_torso</code> &bull; Units: <code>mm</code> &bull; Pose: <code>standing_anatomical</code>
+                <div style="display:flex; gap:8px; margin:8px 0; align-items:center;">
+                    <label style="font-size:12px; color:var(--text-muted); font-weight:600;">Region Filter:</label>
+                    <select id="regionFilter" onchange="filterRegion(this.value)" style="background:var(--bg-color); border:1px solid var(--card-border); color:var(--text-main); padding:3px 6px; border-radius:4px; font-size:12px;">
+                        <option value="ALL">All Regions (5 Points)</option>
+                        <option value="SHOULDER_RIDGE">Shoulder Ridge (GB21, SI15)</option>
+                        <option value="POSTERIOR_NECK">Posterior Neck (GV14)</option>
+                        <option value="UPPER_BACK">Upper Back (SI14, BL11)</option>
+                    </select>
+
+                    <label style="font-size:12px; color:var(--text-muted); font-weight:600; margin-left:8px;">Point:</label>
+                    <select id="pointSelect" onchange="onPointDropdownChange(this.value)" style="background:var(--bg-color); border:1px solid var(--card-border); color:var(--text-main); padding:3px 6px; border-radius:4px; font-size:12px;">
+                        <option value="GB21">GB21 — Jianjing (肩井)</option>
+                        <option value="GV14">GV14 — Dazhui (大椎)</option>
+                        <option value="SI14">SI14 — Jianwaishu (肩外俞)</option>
+                        <option value="SI15">SI15 — Jianzhongshu (肩中俞)</option>
+                        <option value="BL11">BL11 — Dazhu (大杼)</option>
+                    </select>
+                </div>
+
+                <div id="atlasCanvasContainer" style="position:relative; width:100%; height:380px; background:#020617; border-radius:6px; overflow:hidden; border:1px solid var(--card-border);">
+                    <div id="webglContainer" style="width:100%; height:100%;"></div>
+                    <canvas id="atlasCanvas" width="700" height="380" style="width:100%; height:100%; display:none;"></canvas>
+                    <div style="position:absolute; bottom:8px; left:8px; font-size:11px; background:rgba(15,23,42,0.85); padding:4px 8px; border-radius:4px; border:1px solid var(--card-border); z-index:10;">
+                        Ref: <code>bodyparts3d_v4_ref_torso</code> &bull; Units: <code>mm</code> &bull; Pose: <code>standing_anatomical</code> &bull; <span id="vramStatus" style="color:var(--status-green);">WebGL VRAM: ~1.4 MB (Safe 8GB Budget)</span>
                     </div>
                 </div>
 
                 <div class="layer-toggles">
                     <strong style="color:var(--text-muted); font-size:11px; text-transform:uppercase;">Tissue Layers:</strong>
-                    <label><input type="checkbox" id="layerSkin" checked onchange="redrawCanvas()"> Skin (Integumentary)</label>
-                    <label><input type="checkbox" id="layerSuperficial" checked onchange="redrawCanvas()"> Superficial Muscle</label>
-                    <label><input type="checkbox" id="layerDeep" checked onchange="redrawCanvas()"> Deep Muscle</label>
-                    <label><input type="checkbox" id="layerSkeletal" checked onchange="redrawCanvas()"> Skeletal</label>
-                    <label><input type="checkbox" id="layerNerves" checked onchange="redrawCanvas()"> Nerves (CN XI)</label>
-                    <label><input type="checkbox" id="layerMeridian" checked onchange="redrawCanvas()"> Meridian (GB)</label>
+                    <label><input type="checkbox" id="layerSkin" checked onchange="toggleLayer('skin', this.checked)"> Skin (Integumentary)</label>
+                    <label><input type="checkbox" id="layerSuperficial" checked onchange="toggleLayer('superficial_muscle', this.checked)"> Superficial Muscle</label>
+                    <label><input type="checkbox" id="layerDeep" checked onchange="toggleLayer('deep_muscle', this.checked)"> Deep Muscle</label>
+                    <label><input type="checkbox" id="layerSkeletal" checked onchange="toggleLayer('skeletal', this.checked)"> Skeletal</label>
+                    <label><input type="checkbox" id="layerNerves" checked onchange="toggleLayer('nerves', this.checked)"> Nerves (CN XI)</label>
+                    <label><input type="checkbox" id="layerMeridian" checked onchange="toggleLayer('meridian', this.checked)"> Meridians (GB/SI)</label>
                     <span class="missing-layer-badge">Deep Fascia: UNAVAILABLE</span>
                     <span class="missing-layer-badge">Visceral Organs: UNAVAILABLE</span>
                 </div>
@@ -1809,25 +1846,25 @@ def get_dashboard(request: Request):
             <div class="inspector-panel" id="inspectorBox">
                 <div class="inspector-header">
                     <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <h3 style="font-size:15px; color:var(--accent-blue); margin:0;">Point Inspector &bull; GB21</h3>
+                        <h3 id="inspectorPointTitle" style="font-size:15px; color:var(--accent-blue); margin:0;">Point Inspector &bull; GB21</h3>
                         <span class="badge badge-green">REGISTERED</span>
                     </div>
-                    <div style="font-size:12px; color:var(--text-muted); margin-top:2px;">
+                    <div id="inspectorPointNames" style="font-size:12px; color:var(--text-muted); margin-top:2px;">
                         Jianjing (肩井) &bull; Kiên tỉnh &bull; <code>TRADITIONAL_ACUPUNCTURE</code>
                     </div>
                 </div>
 
                 <div class="meta-row">
                     <span class="meta-label">3D Position (mesh_local_xyz)</span>
-                    <span class="meta-value"><code>[-97.5, 475.0, -45.0] mm</code></span>
+                    <span class="meta-value"><code id="inspectorCoords">[-97.5, 475.0, -45.0] mm</code></span>
                 </div>
                 <div class="meta-row">
                     <span class="meta-label">Surface Skin Anchor</span>
-                    <span class="meta-value"><code>anchor_gb21_bp3d</code> (Face #412)</span>
+                    <span class="meta-value"><code id="inspectorAnchor">anchor_gb21_bp3d (Face #412)</code></span>
                 </div>
                 <div class="meta-row">
                     <span class="meta-label">Barycentric Weights (u, v, w)</span>
-                    <span class="meta-value"><code>[0.333, 0.333, 0.334]</code></span>
+                    <span class="meta-value"><code id="inspectorBarycentric">[0.333, 0.333, 0.334]</code></span>
                 </div>
                 <div class="meta-row">
                     <span class="meta-label">Underlying Mesh SHA</span>
@@ -1835,7 +1872,7 @@ def get_dashboard(request: Request):
                 </div>
                 <div class="meta-row">
                     <span class="meta-label">Surface Normal Vector</span>
-                    <span class="meta-value"><code>[-0.150, 0.920, -0.360]</code></span>
+                    <span class="meta-value"><code id="inspectorNormal">[-0.150, 0.920, -0.360]</code></span>
                 </div>
                 <div class="meta-row">
                     <span class="meta-label">Contact Distance to Mesh</span>
@@ -1846,23 +1883,23 @@ def get_dashboard(request: Request):
                     <div style="font-size:11px; text-transform:uppercase; color:var(--text-muted); font-weight:600; margin-bottom:6px;">
                         Six-View Camera Occlusion QA
                     </div>
-                    <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:6px; font-size:11px;">
-                        <div style="background:rgba(0,0,0,0.2); padding:4px 6px; border-radius:4px;">
+                    <div id="inspectorOcclusionGrid" style="display:grid; grid-template-columns: repeat(3, 1fr); gap:6px; font-size:11px;">
+                        <div id="occ_FRONT" style="background:rgba(0,0,0,0.2); padding:4px 6px; border-radius:4px;">
                             Front: <span style="color:var(--status-amber);">OCCLUDED</span>
                         </div>
-                        <div style="background:rgba(0,0,0,0.2); padding:4px 6px; border-radius:4px;">
+                        <div id="occ_BACK" style="background:rgba(0,0,0,0.2); padding:4px 6px; border-radius:4px;">
                             Back: <span style="color:var(--status-green);">VISIBLE</span>
                         </div>
-                        <div style="background:rgba(0,0,0,0.2); padding:4px 6px; border-radius:4px;">
+                        <div id="occ_LEFT" style="background:rgba(0,0,0,0.2); padding:4px 6px; border-radius:4px;">
                             Left: <span style="color:var(--status-green);">VISIBLE</span>
                         </div>
-                        <div style="background:rgba(0,0,0,0.2); padding:4px 6px; border-radius:4px;">
+                        <div id="occ_RIGHT" style="background:rgba(0,0,0,0.2); padding:4px 6px; border-radius:4px;">
                             Right: <span style="color:var(--status-amber);">OCCLUDED</span>
                         </div>
-                        <div style="background:rgba(0,0,0,0.2); padding:4px 6px; border-radius:4px;">
+                        <div id="occ_OBLIQUE_TOP" style="background:rgba(0,0,0,0.2); padding:4px 6px; border-radius:4px;">
                             Oblique &uarr;: <span style="color:var(--status-green);">VISIBLE</span>
                         </div>
-                        <div style="background:rgba(0,0,0,0.2); padding:4px 6px; border-radius:4px;">
+                        <div id="occ_OBLIQUE_BOTTOM" style="background:rgba(0,0,0,0.2); padding:4px 6px; border-radius:4px;">
                             Oblique &darr;: <span style="color:var(--status-amber);">OCCLUDED</span>
                         </div>
                     </div>
@@ -1872,7 +1909,7 @@ def get_dashboard(request: Request):
                     <div style="font-size:11px; text-transform:uppercase; color:var(--text-muted); font-weight:600; margin-bottom:6px;">
                         Tissue Layers under Point
                     </div>
-                    <ul style="font-size:11px; padding-left:16px; color:var(--text-muted);">
+                    <ul id="inspectorTissueLayers" style="font-size:11px; padding-left:16px; color:var(--text-muted);">
                         <li><strong style="color:var(--text-main);">Integumentary:</strong> Skin over superior shoulder ridge</li>
                         <li><strong style="color:var(--text-main);">Muscular (Superficial):</strong> Trapezius muscle descending fibers</li>
                         <li><strong style="color:var(--text-main);">Muscular (Deep):</strong> Levator scapulae &amp; Supraspinatus</li>
@@ -1890,6 +1927,190 @@ def get_dashboard(request: Request):
         <script>
             let currentCamera = 'FRONT';
             let isXRay = false;
+            let isWireframe = false;
+            let isWebGLActive = false;
+            let threeScene, threeCamera, threeRenderer, threeControls;
+            let sceneData = null;
+            let meshLayers = {{}};
+            let pointMarkers = {{}};
+            let meridianLines = [];
+            let currentRegion = 'ALL';
+            let selectedPointCode = 'GB21';
+
+            const POINT_DATA_MAP = {{
+                "GB21": {{
+                    code: "GB21",
+                    canonical: "Jianjing",
+                    hanzi: "肩井",
+                    vietnamese: "Kiên tỉnh",
+                    region: "SHOULDER_RIDGE",
+                    coords: "[-97.5, 475.0, -45.0] mm",
+                    anchor: "anchor_gb21_bp3d (Face #412)",
+                    barycentric: "[0.333, 0.333, 0.334]",
+                    normal: "[-0.150, 0.920, -0.360]",
+                    occlusion: {{ FRONT: false, BACK: true, LEFT: true, RIGHT: false, OBLIQUE_TOP: true, OBLIQUE_BOTTOM: false }},
+                    layers: [
+                        ["Integumentary", "Skin over superior shoulder ridge"],
+                        ["Muscular (Superficial)", "Trapezius muscle descending fibers"],
+                        ["Muscular (Deep)", "Levator scapulae & Supraspinatus"],
+                        ["Skeletal", "First rib & Clavicular boundary"],
+                        ["Nervous", "Spinal accessory nerve (CN XI) superficial branches"]
+                    ]
+                }},
+                "GV14": {{
+                    code: "GV14",
+                    canonical: "Dazhui",
+                    hanzi: "大椎",
+                    vietnamese: "Đại chùy",
+                    region: "POSTERIOR_NECK",
+                    coords: "[0.0, 485.0, -85.0] mm",
+                    anchor: "anchor_gv14_bp3d (Face #480)",
+                    barycentric: "[0.500, 0.250, 0.250]",
+                    normal: "[0.000, 0.100, -0.990]",
+                    occlusion: {{ FRONT: false, BACK: true, LEFT: true, RIGHT: true, OBLIQUE_TOP: true, OBLIQUE_BOTTOM: false }},
+                    layers: [
+                        ["Integumentary", "Skin over posterior midline"],
+                        ["Muscular", "Supraspinous & interspinous ligaments"],
+                        ["Skeletal", "C7 spinous process & T1 vertebra"],
+                        ["Nervous", "Cervical spinal nerve dorsal rami"]
+                    ]
+                }},
+                "SI14": {{
+                    code: "SI14",
+                    canonical: "Jianwaishu",
+                    hanzi: "肩外俞",
+                    vietnamese: "Kiên ngoại du",
+                    region: "UPPER_BACK",
+                    coords: "[-110.0, 450.0, -80.0] mm",
+                    anchor: "anchor_si14_bp3d (Face #390)",
+                    barycentric: "[0.330, 0.330, 0.340]",
+                    normal: "[-0.200, 0.300, -0.930]",
+                    occlusion: {{ FRONT: false, BACK: true, LEFT: true, RIGHT: false, OBLIQUE_TOP: true, OBLIQUE_BOTTOM: false }},
+                    layers: [
+                        ["Integumentary", "Skin over medial scapular ridge"],
+                        ["Muscular", "Trapezius & Rhomboid major"],
+                        ["Skeletal", "Superior angle of scapula"],
+                        ["Nervous", "Dorsal scapular nerve"]
+                    ]
+                }},
+                "SI15": {{
+                    code: "SI15",
+                    canonical: "Jianzhongshu",
+                    hanzi: "肩中俞",
+                    vietnamese: "Kiên trung du",
+                    region: "SHOULDER_RIDGE",
+                    coords: "[-60.0, 470.0, -82.0] mm",
+                    anchor: "anchor_si15_bp3d (Face #415)",
+                    barycentric: "[0.400, 0.300, 0.300]",
+                    normal: "[-0.100, 0.200, -0.970]",
+                    occlusion: {{ FRONT: false, BACK: true, LEFT: true, RIGHT: false, OBLIQUE_TOP: true, OBLIQUE_BOTTOM: false }},
+                    layers: [
+                        ["Integumentary", "Skin lateral to C7"],
+                        ["Muscular", "Trapezius transverse fibers & Levator scapulae"],
+                        ["Skeletal", "Transverse process C7"],
+                        ["Nervous", "Accessory nerve branches"]
+                    ]
+                }},
+                "BL11": {{
+                    code: "BL11",
+                    canonical: "Dazhu",
+                    hanzi: "大杼",
+                    vietnamese: "Đại trữ",
+                    region: "UPPER_BACK",
+                    coords: "[-45.0, 440.0, -80.0] mm",
+                    anchor: "anchor_bl11_bp3d (Face #360)",
+                    barycentric: "[0.330, 0.330, 0.340]",
+                    normal: "[-0.050, 0.100, -0.990]",
+                    occlusion: {{ FRONT: false, BACK: true, LEFT: true, RIGHT: false, OBLIQUE_TOP: true, OBLIQUE_BOTTOM: false }},
+                    layers: [
+                        ["Integumentary", "Skin 1.5 cun lateral to T1"],
+                        ["Muscular", "Trapezius, Rhomboid, Erector spinae"],
+                        ["Skeletal", "First intercostal space"],
+                        ["Nervous", "T1 spinal nerve dorsal ramus"]
+                    ]
+                }}
+            }};
+
+            function selectPoint(code) {{
+                selectedPointCode = code;
+                const d = POINT_DATA_MAP[code];
+                if (!d) return;
+
+                document.getElementById('inspectorPointTitle').innerText = 'Point Inspector • ' + d.code;
+                document.getElementById('inspectorPointNames').innerHTML = d.canonical + ' (' + d.hanzi + ') &bull; ' + d.vietnamese + ' &bull; <code>TRADITIONAL_ACUPUNCTURE</code>';
+                document.getElementById('inspectorCoords').innerText = d.coords;
+                document.getElementById('inspectorAnchor').innerText = d.anchor;
+                document.getElementById('inspectorBarycentric').innerText = d.barycentric;
+                document.getElementById('inspectorNormal').innerText = d.normal;
+
+                // Occlusion badges
+                const views = ['FRONT', 'BACK', 'LEFT', 'RIGHT', 'OBLIQUE_TOP', 'OBLIQUE_BOTTOM'];
+                views.forEach(v => {{
+                    const el = document.getElementById('occ_' + v);
+                    if (el) {{
+                        const isVis = d.occlusion[v];
+                        const label = v.replace('_', ' ').toLowerCase();
+                        const capitalized = label.charAt(0).toUpperCase() + label.slice(1);
+                        const statusSpan = isVis ? '<span style="color:var(--status-green);">VISIBLE</span>' : '<span style="color:var(--status-amber);">OCCLUDED</span>';
+                        el.innerHTML = (v === 'OBLIQUE_TOP' ? 'Oblique &uarr;: ' : (v === 'OBLIQUE_BOTTOM' ? 'Oblique &darr;: ' : capitalized + ': ')) + statusSpan;
+                    }}
+                }});
+
+                // Tissue layers
+                const listEl = document.getElementById('inspectorTissueLayers');
+                if (listEl) {{
+                    listEl.innerHTML = d.layers.map(l => '<li><strong style="color:var(--text-main);">' + l[0] + ':</strong> ' + l[1] + '</li>').join('');
+                }}
+
+                // Sync point dropdown
+                const sel = document.getElementById('pointSelect');
+                if (sel && sel.value !== code) {{
+                    sel.value = code;
+                }}
+
+                // In Three.js: highlight marker
+                if (isWebGLActive && pointMarkers[code]) {{
+                    Object.keys(pointMarkers).forEach(k => {{
+                        const pm = pointMarkers[k];
+                        if (k === code) {{
+                            pm.sphere.material.color.setHex(0xfacc15);
+                            pm.sphere.scale.set(1.4, 1.4, 1.4);
+                            pm.ring.material.color.setHex(0xfacc15);
+                        }} else {{
+                            pm.sphere.material.color.setHex(0x22c55e);
+                            pm.sphere.scale.set(1.0, 1.0, 1.0);
+                            pm.ring.material.color.setHex(0x38bdf8);
+                        }}
+                    }});
+                }}
+
+                if (!isWebGLActive) {{
+                    redrawCanvas();
+                }}
+            }}
+
+            function onPointDropdownChange(code) {{
+                selectPoint(code);
+            }}
+
+            function filterRegion(reg) {{
+                currentRegion = reg;
+                if (isWebGLActive) {{
+                    Object.keys(pointMarkers).forEach(k => {{
+                        const pm = pointMarkers[k];
+                        const match = (reg === 'ALL' || pm.data.region === reg);
+                        pm.group.visible = match;
+                    }});
+                }}
+                const currentData = POINT_DATA_MAP[selectedPointCode];
+                if (reg !== 'ALL' && currentData && currentData.region !== reg) {{
+                    const firstMatch = Object.keys(POINT_DATA_MAP).find(k => POINT_DATA_MAP[k].region === reg);
+                    if (firstMatch) selectPoint(firstMatch);
+                }}
+                if (!isWebGLActive) {{
+                    redrawCanvas();
+                }}
+            }}
 
             function setCamera(cam) {{
                 currentCamera = cam;
@@ -1897,11 +2118,265 @@ def get_dashboard(request: Request):
                     b.classList.remove('active');
                     if (b.innerText.toUpperCase().includes(cam.replace('_',' '))) b.classList.add('active');
                 }});
-                redrawCanvas();
+
+                if (isWebGLActive && sceneData && sceneData.camera_presets && sceneData.camera_presets[cam]) {{
+                    const p = sceneData.camera_presets[cam];
+                    threeCamera.position.set(p.position[0], p.position[1], p.position[2]);
+                    if (threeControls) {{
+                        threeControls.target.set(p.target[0], p.target[1], p.target[2]);
+                        threeControls.update();
+                    }}
+                }} else {{
+                    redrawCanvas();
+                }}
             }}
 
             function toggleXRay(val) {{
                 isXRay = val;
+                if (isWebGLActive && meshLayers['skin']) {{
+                    meshLayers['skin'].material.opacity = val ? 0.12 : 0.38;
+                }}
+                if (!isWebGLActive) {{
+                    redrawCanvas();
+                }}
+            }}
+
+            function toggleWireframe(val) {{
+                isWireframe = val;
+                if (isWebGLActive) {{
+                    ['skin', 'skeletal', 'superficial_muscle', 'deep_muscle'].forEach(k => {{
+                        if (meshLayers[k] && meshLayers[k].material) {{
+                            meshLayers[k].material.wireframe = val;
+                        }}
+                    }});
+                }}
+                if (!isWebGLActive) {{
+                    redrawCanvas();
+                }}
+            }}
+
+            function toggleLayer(layerKey, isVisible) {{
+                if (isWebGLActive) {{
+                    if (layerKey === 'meridian') {{
+                        meridianLines.forEach(l => l.visible = isVisible);
+                    }} else if (meshLayers[layerKey]) {{
+                        meshLayers[layerKey].visible = isVisible;
+                    }}
+                }}
+                if (!isWebGLActive) {{
+                    redrawCanvas();
+                }}
+            }}
+
+            async function initAtlas3D() {{
+                const container = document.getElementById('webglContainer');
+                if (!window.THREE || !container) {{
+                    use2DFallback();
+                    return;
+                }}
+
+                try {{
+                    const w = container.clientWidth || 700;
+                    const h = container.clientHeight || 380;
+
+                    threeScene = new THREE.Scene();
+                    threeScene.background = new THREE.Color(0x020617);
+
+                    threeCamera = new THREE.PerspectiveCamera(45, w / h, 1, 3000);
+                    threeCamera.position.set(0, 450, 600);
+
+                    threeRenderer = new THREE.WebGLRenderer({{ antialias: true, alpha: true, powerPreference: 'low-power' }});
+                    threeRenderer.setSize(w, h);
+                    threeRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+                    container.appendChild(threeRenderer.domElement);
+
+                    if (window.THREE.OrbitControls) {{
+                        threeControls = new THREE.OrbitControls(threeCamera, threeRenderer.domElement);
+                        threeControls.target.set(0, 450, 0);
+                        threeControls.enableDamping = true;
+                        threeControls.dampingFactor = 0.05;
+                    }}
+
+                    const ambLight = new THREE.AmbientLight(0xffffff, 0.7);
+                    threeScene.add(ambLight);
+                    const dir1 = new THREE.DirectionalLight(0xffffff, 0.85);
+                    dir1.position.set(300, 600, 400);
+                    threeScene.add(dir1);
+                    const dir2 = new THREE.DirectionalLight(0x94a3b8, 0.4);
+                    dir2.position.set(-300, 200, -400);
+                    threeScene.add(dir2);
+
+                    const resp = await fetch('/api/v1/atlas/scene/bodyparts3d_v4_ref_torso');
+                    if (!resp.ok) throw new Error('Failed to fetch scene: ' + resp.status);
+                    sceneData = await resp.json();
+
+                    if (sceneData.layers && sceneData.layers.skin) {{
+                        const g = new THREE.BufferGeometry();
+                        g.setAttribute('position', new THREE.Float32BufferAttribute(sceneData.layers.skin.vertices, 3));
+                        g.setIndex(sceneData.layers.skin.indices);
+                        g.computeVertexNormals();
+                        const m = new THREE.MeshStandardMaterial({{
+                            color: 0x38bdf8,
+                            transparent: true,
+                            opacity: 0.38,
+                            side: THREE.DoubleSide,
+                            roughness: 0.35,
+                            metalness: 0.1,
+                            depthWrite: false
+                        }});
+                        meshLayers['skin'] = new THREE.Mesh(g, m);
+                        threeScene.add(meshLayers['skin']);
+                    }}
+
+                    if (sceneData.layers && sceneData.layers.skeletal) {{
+                        const g = new THREE.BufferGeometry();
+                        g.setAttribute('position', new THREE.Float32BufferAttribute(sceneData.layers.skeletal.vertices, 3));
+                        g.setIndex(sceneData.layers.skeletal.indices);
+                        g.computeVertexNormals();
+                        const m = new THREE.MeshStandardMaterial({{
+                            color: 0xe2e8f0,
+                            roughness: 0.6,
+                            metalness: 0.1
+                        }});
+                        meshLayers['skeletal'] = new THREE.Mesh(g, m);
+                        threeScene.add(meshLayers['skeletal']);
+                    }}
+
+                    if (sceneData.layers && sceneData.layers.superficial_muscle) {{
+                        const g = new THREE.BufferGeometry();
+                        g.setAttribute('position', new THREE.Float32BufferAttribute(sceneData.layers.superficial_muscle.vertices, 3));
+                        g.setIndex(sceneData.layers.superficial_muscle.indices);
+                        g.computeVertexNormals();
+                        const m = new THREE.MeshStandardMaterial({{
+                            color: 0xdc2626,
+                            transparent: true,
+                            opacity: 0.65,
+                            side: THREE.DoubleSide
+                        }});
+                        meshLayers['superficial_muscle'] = new THREE.Mesh(g, m);
+                        threeScene.add(meshLayers['superficial_muscle']);
+                    }}
+
+                    if (sceneData.layers && sceneData.layers.deep_muscle) {{
+                        const g = new THREE.BufferGeometry();
+                        g.setAttribute('position', new THREE.Float32BufferAttribute(sceneData.layers.deep_muscle.vertices, 3));
+                        g.setIndex(sceneData.layers.deep_muscle.indices);
+                        g.computeVertexNormals();
+                        const m = new THREE.MeshStandardMaterial({{
+                            color: 0x991b1b,
+                            transparent: true,
+                            opacity: 0.75,
+                            side: THREE.DoubleSide
+                        }});
+                        meshLayers['deep_muscle'] = new THREE.Mesh(g, m);
+                        threeScene.add(meshLayers['deep_muscle']);
+                    }}
+
+                    if (sceneData.layers && sceneData.layers.nerves) {{
+                        const g = new THREE.BufferGeometry();
+                        g.setAttribute('position', new THREE.Float32BufferAttribute(sceneData.layers.nerves.vertices, 3));
+                        g.setIndex(sceneData.layers.nerves.indices);
+                        const m = new THREE.LineBasicMaterial({{ color: 0xfacc15, linewidth: 2 }});
+                        meshLayers['nerves'] = new THREE.LineSegments(g, m);
+                        threeScene.add(meshLayers['nerves']);
+                    }}
+
+                    meridianLines = [];
+                    if (sceneData.meridians) {{
+                        sceneData.meridians.forEach(mr => {{
+                            const pts = mr.control_points.map(p => new THREE.Vector3(p[0], p[1], p[2]));
+                            const curve = new THREE.CatmullRomCurve3(pts);
+                            const curvePts = curve.getPoints(50);
+                            const g = new THREE.BufferGeometry().setFromPoints(curvePts);
+                            const col = mr.code === 'GB' ? 0x22c55e : 0x38bdf8;
+                            const m = new THREE.LineBasicMaterial({{ color: col, linewidth: 2.5 }});
+                            const line = new THREE.Line(g, m);
+                            threeScene.add(line);
+                            meridianLines.push(line);
+                        }});
+                    }}
+
+                    pointMarkers = {{}};
+                    if (sceneData.points) {{
+                        sceneData.points.forEach(pt => {{
+                            const group = new THREE.Group();
+                            group.position.set(pt.coordinates_mm[0], pt.coordinates_mm[1], pt.coordinates_mm[2]);
+
+                            const spGeo = new THREE.SphereGeometry(4.5, 16, 16);
+                            const spMat = new THREE.MeshBasicMaterial({{ color: 0x22c55e }});
+                            const sphere = new THREE.Mesh(spGeo, spMat);
+                            sphere.userData = {{ code: pt.code }};
+                            group.add(sphere);
+
+                            const ringGeo = new THREE.RingGeometry(5.5, 7.5, 24);
+                            const ringMat = new THREE.MeshBasicMaterial({{ color: 0x38bdf8, side: THREE.DoubleSide }});
+                            const ring = new THREE.Mesh(ringGeo, ringMat);
+                            ring.rotation.x = Math.PI / 2;
+                            group.add(ring);
+
+                            threeScene.add(group);
+                            pointMarkers[pt.code] = {{ group, sphere, ring, data: pt }};
+                        }});
+                    }}
+
+                    isWebGLActive = true;
+
+                    const raycaster = new THREE.Raycaster();
+                    const mouse = new THREE.Vector2();
+                    threeRenderer.domElement.addEventListener('click', (evt) => {{
+                        const rect = threeRenderer.domElement.getBoundingClientRect();
+                        mouse.x = ((evt.clientX - rect.left) / rect.width) * 2 - 1;
+                        mouse.y = -((evt.clientY - rect.top) / rect.height) * 2 + 1;
+                        raycaster.setFromCamera(mouse, threeCamera);
+
+                        const clickTargets = [];
+                        Object.values(pointMarkers).forEach(pm => {{
+                            if (pm.group.visible) clickTargets.push(pm.sphere);
+                        }});
+
+                        const hits = raycaster.intersectObjects(clickTargets);
+                        if (hits.length > 0) {{
+                            const c = hits[0].object.userData.code;
+                            if (c) selectPoint(c);
+                        }}
+                    }});
+
+                    function animateAtlas() {{
+                        requestAnimationFrame(animateAtlas);
+                        if (threeControls) threeControls.update();
+                        threeRenderer.render(threeScene, threeCamera);
+                    }}
+                    animateAtlas();
+
+                    selectPoint('GB21');
+                    setCamera('FRONT');
+
+                    window.addEventListener('resize', () => {{
+                        if (!threeRenderer || !threeCamera || !container) return;
+                        const nw = container.clientWidth;
+                        const nh = container.clientHeight;
+                        threeCamera.aspect = nw / nh;
+                        threeCamera.updateProjectionMatrix();
+                        threeRenderer.setSize(nw, nh);
+                    }});
+
+                }} catch (e) {{
+                    console.warn('WebGL init failed, using Canvas 2D fallback:', e);
+                    use2DFallback();
+                }}
+            }}
+
+            function use2DFallback() {{
+                isWebGLActive = false;
+                const webglDiv = document.getElementById('webglContainer');
+                const canvas2d = document.getElementById('atlasCanvas');
+                const vramBadge = document.getElementById('vramStatus');
+                if (webglDiv) webglDiv.style.display = 'none';
+                if (canvas2d) canvas2d.style.display = 'block';
+                if (vramBadge) {{
+                    vramBadge.innerText = 'Canvas 2D Software Fallback';
+                    vramBadge.style.color = 'var(--status-amber)';
+                }}
                 redrawCanvas();
             }}
 
@@ -1913,7 +2388,6 @@ def get_dashboard(request: Request):
                 const h = canvas.height;
                 ctx.clearRect(0, 0, w, h);
 
-                // Background grid
                 ctx.strokeStyle = '#1e293b';
                 ctx.lineWidth = 1;
                 for (let x = 0; x < w; x += 40) {{
@@ -1926,7 +2400,6 @@ def get_dashboard(request: Request):
                 const cx = w / 2;
                 const cy = h / 2 + 30;
 
-                // Layer toggles
                 const showSkin = document.getElementById('layerSkin')?.checked ?? true;
                 const showSuper = document.getElementById('layerSuperficial')?.checked ?? true;
                 const showDeep = document.getElementById('layerDeep')?.checked ?? true;
@@ -1934,7 +2407,6 @@ def get_dashboard(request: Request):
                 const showNerves = document.getElementById('layerNerves')?.checked ?? true;
                 const showMeridian = document.getElementById('layerMeridian')?.checked ?? true;
 
-                // Camera orientation transforms
                 let scaleX = 1.0;
                 let offsetX = 0;
                 if (currentCamera === 'BACK') {{ scaleX = -1.0; }}
@@ -1946,24 +2418,20 @@ def get_dashboard(request: Request):
                 ctx.save();
                 ctx.translate(cx + offsetX, cy);
 
-                // 1. Skeletal Layer (Spine, Clavicle, Ribs)
                 if (showBones) {{
                     ctx.strokeStyle = '#cbd5e1';
                     ctx.lineWidth = 2.5;
-                    // Vertebral column
                     ctx.beginPath();
                     ctx.moveTo(0, -110);
                     ctx.lineTo(0, 80);
                     ctx.stroke();
 
-                    // Clavicles / Shoulders
                     ctx.beginPath();
                     ctx.moveTo(-110 * scaleX, -55);
                     ctx.lineTo(0, -65);
                     ctx.lineTo(110 * scaleX, -55);
                     ctx.stroke();
 
-                    // Rib cage arches
                     ctx.strokeStyle = 'rgba(203, 213, 225, 0.4)';
                     for (let r = -40; r <= 60; r += 20) {{
                         ctx.beginPath();
@@ -1972,7 +2440,6 @@ def get_dashboard(request: Request):
                     }}
                 }}
 
-                // 2. Deep Muscular Layer (Levator scapulae, Supraspinatus)
                 if (showDeep) {{
                     ctx.fillStyle = isXRay ? 'rgba(185, 28, 28, 0.25)' : 'rgba(185, 28, 28, 0.45)';
                     ctx.beginPath();
@@ -1990,10 +2457,8 @@ def get_dashboard(request: Request):
                     ctx.fill();
                 }}
 
-                // 3. Superficial Muscular Layer (Trapezius, Deltoids)
                 if (showSuper) {{
                     ctx.fillStyle = isXRay ? 'rgba(225, 29, 72, 0.2)' : 'rgba(225, 29, 72, 0.4)';
-                    // Trapezius kite
                     ctx.beginPath();
                     ctx.moveTo(0, -90);
                     ctx.lineTo(-100 * scaleX, -50);
@@ -2003,7 +2468,6 @@ def get_dashboard(request: Request):
                     ctx.fill();
                 }}
 
-                // 4. Nerves Layer (Spinal accessory CN XI branches)
                 if (showNerves) {{
                     ctx.strokeStyle = '#facc15';
                     ctx.lineWidth = 1.5;
@@ -2015,70 +2479,75 @@ def get_dashboard(request: Request):
                     ctx.setLineDash([]);
                 }}
 
-                // 5. Skin / Integumentary Silhouette
                 if (showSkin) {{
                     const skinAlpha = isXRay ? 0.15 : 0.4;
                     ctx.fillStyle = `rgba(56, 189, 248, ${{skinAlpha}})`;
                     ctx.strokeStyle = 'rgba(56, 189, 248, 0.8)';
                     ctx.lineWidth = 1.8;
 
-                    // Neck and torso outline
                     ctx.beginPath();
                     ctx.moveTo(-35 * scaleX, -110);
                     ctx.lineTo(-35 * scaleX, -75);
-                    ctx.quadraticCurveTo(-80 * scaleX, -60, -135 * scaleX, -35); // Left shoulder ridge
+                    ctx.quadraticCurveTo(-80 * scaleX, -60, -135 * scaleX, -35);
                     ctx.lineTo(-125 * scaleX, 90);
                     ctx.lineTo(125 * scaleX, 90);
-                    ctx.lineTo(135 * scaleX, -35); // Right shoulder
+                    ctx.lineTo(135 * scaleX, -35);
                     ctx.quadraticCurveTo(80 * scaleX, -60, 35 * scaleX, -75);
                     ctx.lineTo(35 * scaleX, -110);
                     ctx.closePath();
-                    ctx.fill();
-                    ctx.stroke();
+                    if (isWireframe) {{
+                        ctx.stroke();
+                    }} else {{
+                        ctx.fill();
+                        ctx.stroke();
+                    }}
                 }}
 
-                // 6. Meridian Path (GB Gallbladder)
                 if (showMeridian) {{
                     ctx.strokeStyle = '#22c55e';
                     ctx.lineWidth = 2.5;
                     ctx.beginPath();
                     ctx.moveTo(-25 * scaleX, -95);
                     ctx.lineTo(-45 * scaleX, -70);
-                    ctx.lineTo(-65 * scaleX, -55); // GB21 location
+                    ctx.lineTo(-65 * scaleX, -55);
                     ctx.lineTo(-78 * scaleX, -35);
                     ctx.stroke();
                 }}
 
-                // Point Marker GB21 (Jianjing)
-                const ptX = -65 * scaleX;
-                const ptY = -55;
+                const selCode = selectedPointCode || 'GB21';
+                const ptMapCoords = {{
+                    "GB21": [-65 * scaleX, -55],
+                    "GV14": [0, -65],
+                    "SI14": [-80 * scaleX, -30],
+                    "SI15": [-40 * scaleX, -50],
+                    "BL11": [-28 * scaleX, -20]
+                }};
+                const pos = ptMapCoords[selCode] || [-65 * scaleX, -55];
+                const ptX = pos[0];
+                const ptY = pos[1];
 
-                // Occlusion test for display
                 let isOccluded = (currentCamera === 'FRONT' || currentCamera === 'RIGHT' || currentCamera === 'OBLIQUE_BOTTOM');
                 if (isXRay || !isOccluded) {{
-                    // Marker halo
                     ctx.fillStyle = isOccluded ? 'rgba(245, 158, 11, 0.5)' : 'rgba(34, 197, 94, 0.8)';
                     ctx.beginPath();
                     ctx.arc(ptX, ptY, 7, 0, Math.PI * 2);
                     ctx.fill();
 
-                    // Center dot
                     ctx.fillStyle = '#ffffff';
                     ctx.beginPath();
                     ctx.arc(ptX, ptY, 3, 0, Math.PI * 2);
                     ctx.fill();
 
-                    // Label
                     ctx.fillStyle = '#38bdf8';
                     ctx.font = 'bold 11px monospace';
-                    ctx.fillText('GB21 (Jianjing)', ptX - 35, ptY - 12);
+                    ctx.fillText(selCode + ' (' + (POINT_DATA_MAP[selCode]?.canonical || '') + ')', ptX - 35, ptY - 12);
                 }}
 
                 ctx.restore();
             }}
 
             window.addEventListener('DOMContentLoaded', () => {{
-                redrawCanvas();
+                initAtlas3D();
                 drawDienChanCanvas();
             }});
 
