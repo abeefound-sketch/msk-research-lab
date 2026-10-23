@@ -1,0 +1,31 @@
+{
+  "unregistered_comparison": {
+    "point_code": "GB21",
+    "source_a": "tcm_3d",
+    "source_b": "open_anatomy",
+    "model_a": "model_alpha",
+    "model_b": "model_beta",
+    "classification": "NOT_COMPARABLE",
+    "geometric_comparability_state": "UNREGISTERED; NUMERIC DISTANCE NOT MEANINGFUL",
+    "measured_distance_mm": null,
+    "displacement_vector": null,
+    "reason": "Source A uses model 'model_alpha' and Source B uses model 'model_beta' without verified anatomical landmark registration. Numeric millimeter subtraction across unaligned frames is prohibited."
+  },
+  "registered_match_comparison": {
+    "point_code": "GB21",
+    "source_a": "who_2008",
+    "source_b": "nam_2015",
+    "model_a": "bodyparts3d_v4_ref_torso",
+    "model_b": "bodyparts3d_v4_ref_torso",
+    "classification": "MATCH",
+    "geometric_comparability_state": "REGISTERED_COMMON_FRAME",
+    "measured_distance_mm": 0.735,
+    "tolerance_mm": 5.0,
+    "displacement_vector": {
+      "dx": -0.5,
+      "dy": 0.5,
+      "dz": -0.2
+    },
+    "reason": "Positions compared within registered common frame. Displacement: 0.735 mm."
+  }
+}

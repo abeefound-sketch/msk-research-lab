@@ -1,0 +1,32 @@
+{
+  "FRONT": {
+    "visible": false,
+    "occluded": true,
+    "normal_alignment": -0.36
+  },
+  "BACK": {
+    "visible": true,
+    "occluded": false,
+    "normal_alignment": 0.36
+  },
+  "LEFT": {
+    "visible": true,
+    "occluded": false,
+    "normal_alignment": 0.15
+  },
+  "RIGHT": {
+    "visible": false,
+    "occluded": true,
+    "normal_alignment": -0.15
+  },
+  "OBLIQUE_TOP": {
+    "visible": true,
+    "occluded": false,
+    "normal_alignment": 0.2367
+  },
+  "OBLIQUE_BOTTOM": {
+    "visible": false,
+    "occluded": true,
+    "normal_alignment": -0.2367
+  }
+}

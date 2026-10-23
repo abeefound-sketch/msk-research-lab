@@ -1,0 +1,29 @@
+{
+  "snap_result": {
+    "status": "PASS",
+    "distance_mm": 0.0,
+    "tolerance_mm": 5.0,
+    "face_index": 412,
+    "barycentric": [
+      1.0,
+      0.0,
+      0.0
+    ],
+    "surface_point": [
+      -97.5,
+      475.0,
+      -45.0
+    ],
+    "surface_normal": [
+      0.5547001962252291,
+      0.0,
+      0.8320502943378437
+    ]
+  },
+  "invalidation_test": {
+    "valid": false,
+    "anchor_id": "anchor_gb21_bp3d",
+    "status": "INVALIDATED_TOPOLOGY_CHANGED",
+    "reason": "Underlying mesh checksum changed from e3b0c442... to ffffffff... Face index 412 is no longer meaningful."
+  }
+}

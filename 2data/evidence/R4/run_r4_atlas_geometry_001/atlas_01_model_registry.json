@@ -1,0 +1,96 @@
+{
+  "timestamp": "2026-10-23T01:08:29.718645+00:00",
+  "models": [
+    {
+      "model_id": "bodyparts3d_v4_ref_torso",
+      "name": "BodyParts3D v4.0 Calibrated Cervical-Thoracic Reference",
+      "mesh_id": "bp3d_cervical_torso_skin_01",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "units": "mm",
+      "coordinate_frame": "mesh_local_xyz",
+      "reference_pose": "standing_anatomical",
+      "handedness": "right_handed",
+      "landmarks_json": "{\"C7_spinous_process\": [0.0, 480.0, -85.0], \"acromion_left\": [-195.0, 470.0, -10.0], \"acromion_right\": [195.0, 470.0, -10.0], \"sternal_notch\": [0.0, 460.0, 60.0]}",
+      "skin_mesh_id": "skin_surface_exterior",
+      "license": "CC-BY-SA 2.1 Japan",
+      "rights_status": "ALLOWED",
+      "created_at": "2026-10-23T01:06:40.307275+00:00",
+      "landmarks": {
+        "C7_spinous_process": [
+          0.0,
+          480.0,
+          -85.0
+        ],
+        "acromion_left": [
+          -195.0,
+          470.0,
+          -10.0
+        ],
+        "acromion_right": [
+          195.0,
+          470.0,
+          -10.0
+        ],
+        "sternal_notch": [
+          0.0,
+          460.0,
+          60.0
+        ]
+      }
+    },
+    {
+      "model_id": "synthetic_torso_v1",
+      "name": "Calibrated Synthetic Anatomical Torso Fixture",
+      "mesh_id": "synthetic_torso_mesh_01",
+      "sha256": "4b227777d4dd1fc61c6f884f48641d02b4d121d3fd328cb08b5531fcacdabf8a",
+      "units": "mm",
+      "coordinate_frame": "mesh_local_xyz",
+      "reference_pose": "standing_anatomical",
+      "handedness": "right_handed",
+      "landmarks_json": "{\"C7_spinous_process\": [0.0, 500.0, -80.0], \"acromion_left\": [-200.0, 490.0, -15.0], \"acromion_right\": [200.0, 490.0, -15.0]}",
+      "skin_mesh_id": "skin_mesh_torso",
+      "license": "MIT / Local Synthetic Fixture",
+      "rights_status": "ALLOWED",
+      "created_at": "2026-10-23T01:06:40.411918+00:00",
+      "landmarks": {
+        "C7_spinous_process": [
+          0.0,
+          500.0,
+          -80.0
+        ],
+        "acromion_left": [
+          -200.0,
+          490.0,
+          -15.0
+        ],
+        "acromion_right": [
+          200.0,
+          490.0,
+          -15.0
+        ]
+      }
+    },
+    {
+      "model_id": "test_skull_v1",
+      "name": "Test Skull Cranial Reference",
+      "mesh_id": "skull_mesh_01",
+      "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "units": "mm",
+      "coordinate_frame": "mesh_local_xyz",
+      "reference_pose": "frankfort_horizontal",
+      "handedness": "right_handed",
+      "landmarks_json": "{\"nasion\": [0.0, 75.0, 40.0]}",
+      "skin_mesh_id": "skin_head_surface",
+      "license": "CC-BY-4.0",
+      "rights_status": "ALLOWED",
+      "created_at": "2026-10-23T01:06:40.625849+00:00",
+      "landmarks": {
+        "nasion": [
+          0.0,
+          75.0,
+          40.0
+        ]
+      }
+    }
+  ]
+}

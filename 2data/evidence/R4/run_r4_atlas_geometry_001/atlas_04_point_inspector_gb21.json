@@ -1,0 +1,761 @@
+{
+  "point_code": "GB21",
+  "concept": {
+    "concept_id": "tcm:acupoint:GB21",
+    "namespace": "TRADITIONAL_ACUPUNCTURE",
+    "canonical_label": "GB21",
+    "review_state": "UNREVIEWED",
+    "clinical_status": "NOT_ASSESSED",
+    "definition_source_ids": [],
+    "source_conflict_notes": null,
+    "created_at": "2026-10-23T00:44:37.087Z",
+    "match_type": "CANONICAL",
+    "matched_term": "GB21",
+    "aliases": [
+      {
+        "value": "Jianjing",
+        "language": "zh-Latn",
+        "kind": "TRANSLITERATION",
+        "review_state": "UNREVIEWED"
+      },
+      {
+        "value": "Ki\u00ean t\u1ec9nh",
+        "language": "vi",
+        "kind": "TRADITIONAL_NAME",
+        "review_state": "UNREVIEWED"
+      }
+    ],
+    "is_physiological_asserted": false,
+    "disclaimer": "Term alias mapping only; does not imply physiological equivalence or clinical efficacy."
+  },
+  "placements_3d": [
+    {
+      "placement_id": "placement_gb21_bp3d",
+      "concept_id": "GB21",
+      "canonical_label": "GB21",
+      "source_id": "who_standard_2008",
+      "model_id": "bodyparts3d_v4_ref_torso",
+      "anchor_id": "anchor_gb21_bp3d",
+      "side": "left",
+      "raw_x": -97.5,
+      "raw_y": 475.0,
+      "raw_z": -45.0,
+      "frame_registered": 1,
+      "registration_method": "BARYCENTRIC_SURFACE_PROJECTION",
+      "registration_status": "REGISTERED",
+      "created_at": "2026-10-23T01:06:40.496194+00:00",
+      "face_index": 412,
+      "barycentric_u": 0.333333,
+      "barycentric_v": 0.333333,
+      "barycentric_w": 0.333334,
+      "surface_x": -97.5,
+      "surface_y": 475.0,
+      "surface_z": -45.0,
+      "normal_x": -0.15,
+      "normal_y": 0.92,
+      "normal_z": -0.36,
+      "anchor_status": "INVALIDATED_TOPOLOGY_CHANGED"
+    }
+  ],
+  "claims": [
+    {
+      "claim_id": "claim:v1:broad",
+      "statement": "Acupoint GB21 cures all upper trapezius tension.",
+      "claim_kind": "TRADITIONAL_THEORY",
+      "status": "REVISED",
+      "review_state": "UNREVIEWED",
+      "clinical_evidence_assessment": null,
+      "reviewer_id": null,
+      "review_rationale": null
+    },
+    {
+      "claim_id": "claim:v2:narrow",
+      "statement": "Traditional sources describe GB21 as indicated for regional shoulder and neck stiffness.",
+      "claim_kind": "TRADITIONAL_THEORY",
+      "status": "DRAFT",
+      "review_state": "UNREVIEWED",
+      "clinical_evidence_assessment": null,
+      "reviewer_id": null,
+      "review_rationale": null
+    },
+    {
+      "claim_id": "claim:gb21:trapezius",
+      "statement": "GB21 is located on the highest point of the trapezius muscle ridge.",
+      "claim_kind": "SOURCE_DESCRIPTION",
+      "status": "SOURCE_SUPPORTED",
+      "review_state": "CONTENT_REVIEWED",
+      "clinical_evidence_assessment": null,
+      "reviewer_id": "human_curator_01",
+      "review_rationale": "Verified against textbook page 10 source passage."
+    },
+    {
+      "claim_id": "claim:gb21:nerve_effect",
+      "statement": "Stimulating GB21 directly activates the accessory nerve for shoulder stiffness.",
+      "claim_kind": "INTERVENTION_EFFECT",
+      "status": "DRAFT",
+      "review_state": "UNREVIEWED",
+      "clinical_evidence_assessment": null,
+      "reviewer_id": null,
+      "review_rationale": null
+    },
+    {
+      "claim_id": "claim:pub:gb21",
+      "statement": "Educational source description for GB21 landmark.",
+      "claim_kind": "SOURCE_DESCRIPTION",
+      "status": "SOURCE_SUPPORTED",
+      "review_state": "CONTENT_REVIEWED",
+      "clinical_evidence_assessment": null,
+      "reviewer_id": "lead_reviewer_01",
+      "review_rationale": "Verified and approved for publication snapshot."
+    },
+    {
+      "claim_id": "claim:pub:v1",
+      "statement": "Educational source description for GB21 landmark.",
+      "claim_kind": "SOURCE_DESCRIPTION",
+      "status": "SOURCE_SUPPORTED",
+      "review_state": "CONTENT_REVIEWED",
+      "clinical_evidence_assessment": null,
+      "reviewer_id": "lead_reviewer_01",
+      "review_rationale": "Verified and approved for publication snapshot."
+    },
+    {
+      "claim_id": "claim:pub:gb21_point",
+      "statement": "Educational source description for GB21 landmark.",
+      "claim_kind": "SOURCE_DESCRIPTION",
+      "status": "SOURCE_SUPPORTED",
+      "review_state": "CONTENT_REVIEWED",
+      "clinical_evidence_assessment": null,
+      "reviewer_id": "lead_reviewer_01",
+      "review_rationale": "Verified and approved for publication snapshot."
+    },
+    {
+      "claim_id": "claim:gb21:trapezius:f41636b4",
+      "statement": "GB21 is located on the highest point of the trapezius muscle ridge.",
+      "claim_kind": "SOURCE_DESCRIPTION",
+      "status": "SOURCE_SUPPORTED",
+      "review_state": "CONTENT_REVIEWED",
+      "clinical_evidence_assessment": null,
+      "reviewer_id": "human_curator_01",
+      "review_rationale": "Verified against textbook page 10 source passage."
+    },
+    {
+      "claim_id": "claim:gb21:nerve_effect:d4ab81e5",
+      "statement": "Stimulating GB21 directly activates the accessory nerve for shoulder stiffness.",
+      "claim_kind": "INTERVENTION_EFFECT",
+      "status": "DRAFT",
+      "review_state": "UNREVIEWED",
+      "clinical_evidence_assessment": null,
+      "reviewer_id": null,
+      "review_rationale": null
+    },
+    {
+      "claim_id": "claim:v1:broad:9473ae4f",
+      "statement": "Acupoint GB21 cures all upper trapezius tension.",
+      "claim_kind": "TRADITIONAL_THEORY",
+      "status": "REVISED",
+      "review_state": "UNREVIEWED",
+      "clinical_evidence_assessment": null,
+      "reviewer_id": null,
+      "review_rationale": null
+    },
+    {
+      "claim_id": "claim:v2:narrow:9473ae4f",
+      "statement": "Traditional sources describe GB21 as indicated for regional shoulder and neck stiffness.",
+      "claim_kind": "TRADITIONAL_THEORY",
+      "status": "DRAFT",
+      "review_state": "UNREVIEWED",
+      "clinical_evidence_assessment": null,
+      "reviewer_id": null,
+      "review_rationale": null
+    },
+    {
+      "claim_id": "claim:pub:gb21:847fa978",
+      "statement": "Educational source description for GB21 landmark.",
+      "claim_kind": "SOURCE_DESCRIPTION",
+      "status": "SOURCE_SUPPORTED",
+      "review_state": "CONTENT_REVIEWED",
+      "clinical_evidence_assessment": null,
+      "reviewer_id": "lead_reviewer_01",
+      "review_rationale": "Verified and approved for publication snapshot."
+    },
+    {
+      "claim_id": "claim:pub:v1:68b72473",
+      "statement": "Educational source description for GB21 landmark.",
+      "claim_kind": "SOURCE_DESCRIPTION",
+      "status": "SOURCE_SUPPORTED",
+      "review_state": "CONTENT_REVIEWED",
+      "clinical_evidence_assessment": null,
+      "reviewer_id": "lead_reviewer_01",
+      "review_rationale": "Verified and approved for publication snapshot."
+    },
+    {
+      "claim_id": "claim:gb21:trapezius:f79516ee",
+      "statement": "GB21 is located on the highest point of the trapezius muscle ridge.",
+      "claim_kind": "SOURCE_DESCRIPTION",
+      "status": "SOURCE_SUPPORTED",
+      "review_state": "CONTENT_REVIEWED",
+      "clinical_evidence_assessment": null,
+      "reviewer_id": "human_curator_01",
+      "review_rationale": "Verified against textbook page 10 source passage."
+    },
+    {
+      "claim_id": "claim:gb21:nerve_effect:f1cbb838",
+      "statement": "Stimulating GB21 directly activates the accessory nerve for shoulder stiffness.",
+      "claim_kind": "INTERVENTION_EFFECT",
+      "status": "DRAFT",
+      "review_state": "UNREVIEWED",
+      "clinical_evidence_assessment": null,
+      "reviewer_id": null,
+      "review_rationale": null
+    },
+    {
+      "claim_id": "claim:v1:broad:bd9adf4a",
+      "statement": "Acupoint GB21 cures all upper trapezius tension.",
+      "claim_kind": "TRADITIONAL_THEORY",
+      "status": "REVISED",
+      "review_state": "UNREVIEWED",
+      "clinical_evidence_assessment": null,
+      "reviewer_id": null,
+      "review_rationale": null
+    },
+    {
+      "claim_id": "claim:v2:narrow:bd9adf4a",
+      "statement": "Traditional sources describe GB21 as indicated for regional shoulder and neck stiffness.",
+      "claim_kind": "TRADITIONAL_THEORY",
+      "status": "DRAFT",
+      "review_state": "UNREVIEWED",
+      "clinical_evidence_assessment": null,
+      "reviewer_id": null,
+      "review_rationale": null
+    },
+    {
+      "claim_id": "claim:pub:gb21:df6a4876",
+      "statement": "Educational source description for GB21 landmark.",
+      "claim_kind": "SOURCE_DESCRIPTION",
+      "status": "SOURCE_SUPPORTED",
+      "review_state": "CONTENT_REVIEWED",
+      "clinical_evidence_assessment": null,
+      "reviewer_id": "lead_reviewer_01",
+      "review_rationale": "Verified and approved for publication snapshot."
+    },
+    {
+      "claim_id": "claim:pub:v1:69e4d1dc",
+      "statement": "Educational source description for GB21 landmark.",
+      "claim_kind": "SOURCE_DESCRIPTION",
+      "status": "SOURCE_SUPPORTED",
+      "review_state": "CONTENT_REVIEWED",
+      "clinical_evidence_assessment": null,
+      "reviewer_id": "lead_reviewer_01",
+      "review_rationale": "Verified and approved for publication snapshot."
+    },
+    {
+      "claim_id": "claim:pub:gb21_dd8ac804",
+      "statement": "Educational source description for GB21 landmark.",
+      "claim_kind": "SOURCE_DESCRIPTION",
+      "status": "SOURCE_SUPPORTED",
+      "review_state": "CONTENT_REVIEWED",
+      "clinical_evidence_assessment": null,
+      "reviewer_id": "lead_reviewer_01",
+      "review_rationale": "Verified and approved for publication snapshot."
+    },
+    {
+      "claim_id": "claim:pub:gb21_ee7498f9",
+      "statement": "Educational source description for GB21 landmark.",
+      "claim_kind": "SOURCE_DESCRIPTION",
+      "status": "SOURCE_SUPPORTED",
+      "review_state": "CONTENT_REVIEWED",
+      "clinical_evidence_assessment": null,
+      "reviewer_id": "lead_reviewer_01",
+      "review_rationale": "Verified and approved for publication snapshot."
+    },
+    {
+      "claim_id": "claim:pub:gb21:a9c8e19a",
+      "statement": "Educational source description for GB21 landmark.",
+      "claim_kind": "SOURCE_DESCRIPTION",
+      "status": "SOURCE_SUPPORTED",
+      "review_state": "CONTENT_REVIEWED",
+      "clinical_evidence_assessment": null,
+      "reviewer_id": "lead_reviewer_01",
+      "review_rationale": "Verified and approved for publication snapshot."
+    },
+    {
+      "claim_id": "claim:pub:v1:6a580a66",
+      "statement": "Educational source description for GB21 landmark.",
+      "claim_kind": "SOURCE_DESCRIPTION",
+      "status": "SOURCE_SUPPORTED",
+      "review_state": "CONTENT_REVIEWED",
+      "clinical_evidence_assessment": null,
+      "reviewer_id": "lead_reviewer_01",
+      "review_rationale": "Verified and approved for publication snapshot."
+    },
+    {
+      "claim_id": "claim:gb21:trapezius:a7ecc0e1",
+      "statement": "GB21 is located on the highest point of the trapezius muscle ridge.",
+      "claim_kind": "SOURCE_DESCRIPTION",
+      "status": "SOURCE_SUPPORTED",
+      "review_state": "CONTENT_REVIEWED",
+      "clinical_evidence_assessment": null,
+      "reviewer_id": "human_curator_01",
+      "review_rationale": "Verified against textbook page 10 source passage."
+    },
+    {
+      "claim_id": "claim:gb21:nerve_effect:4c92f2d6",
+      "statement": "Stimulating GB21 directly activates the accessory nerve for shoulder stiffness.",
+      "claim_kind": "INTERVENTION_EFFECT",
+      "status": "DRAFT",
+      "review_state": "UNREVIEWED",
+      "clinical_evidence_assessment": null,
+      "reviewer_id": null,
+      "review_rationale": null
+    },
+    {
+      "claim_id": "claim:v1:broad:252b305f",
+      "statement": "Acupoint GB21 cures all upper trapezius tension.",
+      "claim_kind": "TRADITIONAL_THEORY",
+      "status": "REVISED",
+      "review_state": "UNREVIEWED",
+      "clinical_evidence_assessment": null,
+      "reviewer_id": null,
+      "review_rationale": null
+    },
+    {
+      "claim_id": "claim:v2:narrow:252b305f",
+      "statement": "Traditional sources describe GB21 as indicated for regional shoulder and neck stiffness.",
+      "claim_kind": "TRADITIONAL_THEORY",
+      "status": "DRAFT",
+      "review_state": "UNREVIEWED",
+      "clinical_evidence_assessment": null,
+      "reviewer_id": null,
+      "review_rationale": null
+    },
+    {
+      "claim_id": "claim:pub:gb21_9f24445b",
+      "statement": "Educational source description for GB21 landmark.",
+      "claim_kind": "SOURCE_DESCRIPTION",
+      "status": "SOURCE_SUPPORTED",
+      "review_state": "CONTENT_REVIEWED",
+      "clinical_evidence_assessment": null,
+      "reviewer_id": "lead_reviewer_01",
+      "review_rationale": "Verified and approved for publication snapshot."
+    },
+    {
+      "claim_id": "claim:pub:gb21:2ffbb07e",
+      "statement": "Educational source description for GB21 landmark.",
+      "claim_kind": "SOURCE_DESCRIPTION",
+      "status": "SOURCE_SUPPORTED",
+      "review_state": "CONTENT_REVIEWED",
+      "clinical_evidence_assessment": null,
+      "reviewer_id": "lead_reviewer_01",
+      "review_rationale": "Verified and approved for publication snapshot."
+    },
+    {
+      "claim_id": "claim:pub:v1:130ff9ea",
+      "statement": "Educational source description for GB21 landmark.",
+      "claim_kind": "SOURCE_DESCRIPTION",
+      "status": "SOURCE_SUPPORTED",
+      "review_state": "CONTENT_REVIEWED",
+      "clinical_evidence_assessment": null,
+      "reviewer_id": "lead_reviewer_01",
+      "review_rationale": "Verified and approved for publication snapshot."
+    },
+    {
+      "claim_id": "claim:gb21:trapezius:dd339643",
+      "statement": "GB21 is located on the highest point of the trapezius muscle ridge.",
+      "claim_kind": "SOURCE_DESCRIPTION",
+      "status": "SOURCE_SUPPORTED",
+      "review_state": "CONTENT_REVIEWED",
+      "clinical_evidence_assessment": null,
+      "reviewer_id": "human_curator_01",
+      "review_rationale": "Verified against textbook page 10 source passage."
+    },
+    {
+      "claim_id": "claim:gb21:nerve_effect:74e67b5c",
+      "statement": "Stimulating GB21 directly activates the accessory nerve for shoulder stiffness.",
+      "claim_kind": "INTERVENTION_EFFECT",
+      "status": "DRAFT",
+      "review_state": "UNREVIEWED",
+      "clinical_evidence_assessment": null,
+      "reviewer_id": null,
+      "review_rationale": null
+    },
+    {
+      "claim_id": "claim:v1:broad:3a8d178b",
+      "statement": "Acupoint GB21 cures all upper trapezius tension.",
+      "claim_kind": "TRADITIONAL_THEORY",
+      "status": "REVISED",
+      "review_state": "UNREVIEWED",
+      "clinical_evidence_assessment": null,
+      "reviewer_id": null,
+      "review_rationale": null
+    },
+    {
+      "claim_id": "claim:v2:narrow:3a8d178b",
+      "statement": "Traditional sources describe GB21 as indicated for regional shoulder and neck stiffness.",
+      "claim_kind": "TRADITIONAL_THEORY",
+      "status": "DRAFT",
+      "review_state": "UNREVIEWED",
+      "clinical_evidence_assessment": null,
+      "reviewer_id": null,
+      "review_rationale": null
+    },
+    {
+      "claim_id": "claim:r3:gb21:location",
+      "statement": "GB21 is located on the shoulder midway between the spinous process of C7 and the acromion.",
+      "claim_kind": "SOURCE_DESCRIPTION",
+      "status": "REVISED",
+      "review_state": "CONTENT_REVIEWED",
+      "clinical_evidence_assessment": null,
+      "reviewer_id": "lead_engineer_human",
+      "review_rationale": "Verified against primary textbook passage at page 42."
+    },
+    {
+      "claim_id": "claim:r3:gb21:location:v2",
+      "statement": "GB21 is described as located midway between C7 and acromion, with documented classical school variations.",
+      "claim_kind": "SOURCE_DESCRIPTION",
+      "status": "DRAFT",
+      "review_state": "UNREVIEWED",
+      "clinical_evidence_assessment": null,
+      "reviewer_id": null,
+      "review_rationale": null
+    },
+    {
+      "claim_id": "claim:pub:gb21_d7ea25fb",
+      "statement": "Educational source description for GB21 landmark.",
+      "claim_kind": "SOURCE_DESCRIPTION",
+      "status": "SOURCE_SUPPORTED",
+      "review_state": "CONTENT_REVIEWED",
+      "clinical_evidence_assessment": null,
+      "reviewer_id": "lead_reviewer_01",
+      "review_rationale": "Verified and approved for publication snapshot."
+    },
+    {
+      "claim_id": "claim:pub:gb21:ab7afcc9",
+      "statement": "Educational source description for GB21 landmark.",
+      "claim_kind": "SOURCE_DESCRIPTION",
+      "status": "SOURCE_SUPPORTED",
+      "review_state": "CONTENT_REVIEWED",
+      "clinical_evidence_assessment": null,
+      "reviewer_id": "lead_reviewer_01",
+      "review_rationale": "Verified and approved for publication snapshot."
+    },
+    {
+      "claim_id": "claim:pub:v1:b76bff24",
+      "statement": "Educational source description for GB21 landmark.",
+      "claim_kind": "SOURCE_DESCRIPTION",
+      "status": "SOURCE_SUPPORTED",
+      "review_state": "CONTENT_REVIEWED",
+      "clinical_evidence_assessment": null,
+      "reviewer_id": "lead_reviewer_01",
+      "review_rationale": "Verified and approved for publication snapshot."
+    },
+    {
+      "claim_id": "claim:gb21:trapezius:a0203cd3",
+      "statement": "GB21 is located on the highest point of the trapezius muscle ridge.",
+      "claim_kind": "SOURCE_DESCRIPTION",
+      "status": "SOURCE_SUPPORTED",
+      "review_state": "CONTENT_REVIEWED",
+      "clinical_evidence_assessment": null,
+      "reviewer_id": "human_curator_01",
+      "review_rationale": "Verified against textbook page 10 source passage."
+    },
+    {
+      "claim_id": "claim:gb21:nerve_effect:9f77efbc",
+      "statement": "Stimulating GB21 directly activates the accessory nerve for shoulder stiffness.",
+      "claim_kind": "INTERVENTION_EFFECT",
+      "status": "DRAFT",
+      "review_state": "UNREVIEWED",
+      "clinical_evidence_assessment": null,
+      "reviewer_id": null,
+      "review_rationale": null
+    },
+    {
+      "claim_id": "claim:v1:broad:c861f143",
+      "statement": "Acupoint GB21 cures all upper trapezius tension.",
+      "claim_kind": "TRADITIONAL_THEORY",
+      "status": "REVISED",
+      "review_state": "UNREVIEWED",
+      "clinical_evidence_assessment": null,
+      "reviewer_id": null,
+      "review_rationale": null
+    },
+    {
+      "claim_id": "claim:v2:narrow:c861f143",
+      "statement": "Traditional sources describe GB21 as indicated for regional shoulder and neck stiffness.",
+      "claim_kind": "TRADITIONAL_THEORY",
+      "status": "DRAFT",
+      "review_state": "UNREVIEWED",
+      "clinical_evidence_assessment": null,
+      "reviewer_id": null,
+      "review_rationale": null
+    },
+    {
+      "claim_id": "claim:pub:gb21_1f065943",
+      "statement": "Educational source description for GB21 landmark.",
+      "claim_kind": "SOURCE_DESCRIPTION",
+      "status": "SOURCE_SUPPORTED",
+      "review_state": "CONTENT_REVIEWED",
+      "clinical_evidence_assessment": null,
+      "reviewer_id": "lead_reviewer_01",
+      "review_rationale": "Verified and approved for publication snapshot."
+    },
+    {
+      "claim_id": "claim:pub:gb21:a8d1c19d",
+      "statement": "Educational source description for GB21 landmark.",
+      "claim_kind": "SOURCE_DESCRIPTION",
+      "status": "SOURCE_SUPPORTED",
+      "review_state": "CONTENT_REVIEWED",
+      "clinical_evidence_assessment": null,
+      "reviewer_id": "lead_reviewer_01",
+      "review_rationale": "Verified and approved for publication snapshot."
+    },
+    {
+      "claim_id": "claim:pub:v1:e7258cd7",
+      "statement": "Educational source description for GB21 landmark.",
+      "claim_kind": "SOURCE_DESCRIPTION",
+      "status": "SOURCE_SUPPORTED",
+      "review_state": "CONTENT_REVIEWED",
+      "clinical_evidence_assessment": null,
+      "reviewer_id": "lead_reviewer_01",
+      "review_rationale": "Verified and approved for publication snapshot."
+    },
+    {
+      "claim_id": "claim:gb21:trapezius:3b5354cd",
+      "statement": "GB21 is located on the highest point of the trapezius muscle ridge.",
+      "claim_kind": "SOURCE_DESCRIPTION",
+      "status": "SOURCE_SUPPORTED",
+      "review_state": "CONTENT_REVIEWED",
+      "clinical_evidence_assessment": null,
+      "reviewer_id": "human_curator_01",
+      "review_rationale": "Verified against textbook page 10 source passage."
+    },
+    {
+      "claim_id": "claim:gb21:nerve_effect:d94409b3",
+      "statement": "Stimulating GB21 directly activates the accessory nerve for shoulder stiffness.",
+      "claim_kind": "INTERVENTION_EFFECT",
+      "status": "DRAFT",
+      "review_state": "UNREVIEWED",
+      "clinical_evidence_assessment": null,
+      "reviewer_id": null,
+      "review_rationale": null
+    },
+    {
+      "claim_id": "claim:v1:broad:8f0961a4",
+      "statement": "Acupoint GB21 cures all upper trapezius tension.",
+      "claim_kind": "TRADITIONAL_THEORY",
+      "status": "REVISED",
+      "review_state": "UNREVIEWED",
+      "clinical_evidence_assessment": null,
+      "reviewer_id": null,
+      "review_rationale": null
+    },
+    {
+      "claim_id": "claim:v2:narrow:8f0961a4",
+      "statement": "Traditional sources describe GB21 as indicated for regional shoulder and neck stiffness.",
+      "claim_kind": "TRADITIONAL_THEORY",
+      "status": "DRAFT",
+      "review_state": "UNREVIEWED",
+      "clinical_evidence_assessment": null,
+      "reviewer_id": null,
+      "review_rationale": null
+    },
+    {
+      "claim_id": "claim:pub:gb21_3c42d42b",
+      "statement": "Educational source description for GB21 landmark.",
+      "claim_kind": "SOURCE_DESCRIPTION",
+      "status": "SOURCE_SUPPORTED",
+      "review_state": "CONTENT_REVIEWED",
+      "clinical_evidence_assessment": null,
+      "reviewer_id": "lead_reviewer_01",
+      "review_rationale": "Verified and approved for publication snapshot."
+    },
+    {
+      "claim_id": "claim:pub:gb21:fc9eae7c",
+      "statement": "Educational source description for GB21 landmark.",
+      "claim_kind": "SOURCE_DESCRIPTION",
+      "status": "SOURCE_SUPPORTED",
+      "review_state": "CONTENT_REVIEWED",
+      "clinical_evidence_assessment": null,
+      "reviewer_id": "lead_reviewer_01",
+      "review_rationale": "Verified and approved for publication snapshot."
+    },
+    {
+      "claim_id": "claim:pub:v1:ca393cb6",
+      "statement": "Educational source description for GB21 landmark.",
+      "claim_kind": "SOURCE_DESCRIPTION",
+      "status": "SOURCE_SUPPORTED",
+      "review_state": "CONTENT_REVIEWED",
+      "clinical_evidence_assessment": null,
+      "reviewer_id": "lead_reviewer_01",
+      "review_rationale": "Verified and approved for publication snapshot."
+    },
+    {
+      "claim_id": "claim:gb21:trapezius:aef669e1",
+      "statement": "GB21 is located on the highest point of the trapezius muscle ridge.",
+      "claim_kind": "SOURCE_DESCRIPTION",
+      "status": "SOURCE_SUPPORTED",
+      "review_state": "CONTENT_REVIEWED",
+      "clinical_evidence_assessment": null,
+      "reviewer_id": "human_curator_01",
+      "review_rationale": "Verified against textbook page 10 source passage."
+    },
+    {
+      "claim_id": "claim:gb21:nerve_effect:a9b3fbbb",
+      "statement": "Stimulating GB21 directly activates the accessory nerve for shoulder stiffness.",
+      "claim_kind": "INTERVENTION_EFFECT",
+      "status": "DRAFT",
+      "review_state": "UNREVIEWED",
+      "clinical_evidence_assessment": null,
+      "reviewer_id": null,
+      "review_rationale": null
+    },
+    {
+      "claim_id": "claim:v1:broad:57bf4acf",
+      "statement": "Acupoint GB21 cures all upper trapezius tension.",
+      "claim_kind": "TRADITIONAL_THEORY",
+      "status": "REVISED",
+      "review_state": "UNREVIEWED",
+      "clinical_evidence_assessment": null,
+      "reviewer_id": null,
+      "review_rationale": null
+    },
+    {
+      "claim_id": "claim:v2:narrow:57bf4acf",
+      "statement": "Traditional sources describe GB21 as indicated for regional shoulder and neck stiffness.",
+      "claim_kind": "TRADITIONAL_THEORY",
+      "status": "DRAFT",
+      "review_state": "UNREVIEWED",
+      "clinical_evidence_assessment": null,
+      "reviewer_id": null,
+      "review_rationale": null
+    }
+  ],
+  "contradictions": [
+    {
+      "contradiction_id": "cd:nerve:001",
+      "claim_a_id": "claim:gb21:nerve_effect",
+      "claim_b_id": null,
+      "counter_evidence_id": "ev:counter:01",
+      "conflict_kind": "CLINICAL_EVIDENCE_CONFLICT",
+      "state": "OPEN",
+      "rationale": "Conflicting imaging findings regarding nerve stimulation.",
+      "created_at": "2026-10-23T00:44:34.992242+00:00",
+      "updated_at": "2026-10-23T00:45:13.358371+00:00"
+    },
+    {
+      "contradiction_id": "cd:nerve:d4ab81e5",
+      "claim_a_id": "claim:gb21:nerve_effect:d4ab81e5",
+      "claim_b_id": null,
+      "counter_evidence_id": "ev:counter:d4ab81e5",
+      "conflict_kind": "CLINICAL_EVIDENCE_CONFLICT",
+      "state": "OPEN",
+      "rationale": "Conflicting imaging findings regarding nerve stimulation.",
+      "created_at": "2026-10-23T00:46:44.842878+00:00",
+      "updated_at": "2026-10-23T00:46:44.842878+00:00"
+    },
+    {
+      "contradiction_id": "cd:nerve:f1cbb838",
+      "claim_a_id": "claim:gb21:nerve_effect:f1cbb838",
+      "claim_b_id": null,
+      "counter_evidence_id": "ev:counter:f1cbb838",
+      "conflict_kind": "CLINICAL_EVIDENCE_CONFLICT",
+      "state": "OPEN",
+      "rationale": "Conflicting imaging findings regarding nerve stimulation.",
+      "created_at": "2026-10-23T00:47:28.237440+00:00",
+      "updated_at": "2026-10-23T00:47:28.237440+00:00"
+    },
+    {
+      "contradiction_id": "cd:nerve:4c92f2d6",
+      "claim_a_id": "claim:gb21:nerve_effect:4c92f2d6",
+      "claim_b_id": null,
+      "counter_evidence_id": "ev:counter:4c92f2d6",
+      "conflict_kind": "CLINICAL_EVIDENCE_CONFLICT",
+      "state": "OPEN",
+      "rationale": "Conflicting imaging findings regarding nerve stimulation.",
+      "created_at": "2026-10-23T00:48:19.686542+00:00",
+      "updated_at": "2026-10-23T00:48:19.686542+00:00"
+    },
+    {
+      "contradiction_id": "cd:nerve:74e67b5c",
+      "claim_a_id": "claim:gb21:nerve_effect:74e67b5c",
+      "claim_b_id": null,
+      "counter_evidence_id": "ev:counter:74e67b5c",
+      "conflict_kind": "CLINICAL_EVIDENCE_CONFLICT",
+      "state": "OPEN",
+      "rationale": "Conflicting imaging findings regarding nerve stimulation.",
+      "created_at": "2026-10-23T00:50:51.093730+00:00",
+      "updated_at": "2026-10-23T00:50:51.093730+00:00"
+    },
+    {
+      "contradiction_id": "cd:r3:gb21:variance",
+      "claim_a_id": "claim:r3:gb21:location",
+      "claim_b_id": null,
+      "counter_evidence_id": "ev:r3:gb21:variant",
+      "conflict_kind": "MEASUREMENT_DIFFERENCE",
+      "state": "OPEN",
+      "rationale": "0.5 cun variance described across classical schools.",
+      "created_at": "2026-10-23T00:51:57.326299+00:00",
+      "updated_at": "2026-10-23T00:51:57.326299+00:00"
+    },
+    {
+      "contradiction_id": "cd:nerve:9f77efbc",
+      "claim_a_id": "claim:gb21:nerve_effect:9f77efbc",
+      "claim_b_id": null,
+      "counter_evidence_id": "ev:counter:9f77efbc",
+      "conflict_kind": "CLINICAL_EVIDENCE_CONFLICT",
+      "state": "OPEN",
+      "rationale": "Conflicting imaging findings regarding nerve stimulation.",
+      "created_at": "2026-10-23T00:53:32.739911+00:00",
+      "updated_at": "2026-10-23T00:53:32.739911+00:00"
+    },
+    {
+      "contradiction_id": "cd:nerve:d94409b3",
+      "claim_a_id": "claim:gb21:nerve_effect:d94409b3",
+      "claim_b_id": null,
+      "counter_evidence_id": "ev:counter:d94409b3",
+      "conflict_kind": "CLINICAL_EVIDENCE_CONFLICT",
+      "state": "OPEN",
+      "rationale": "Conflicting imaging findings regarding nerve stimulation.",
+      "created_at": "2026-10-23T01:01:53.019098+00:00",
+      "updated_at": "2026-10-23T01:01:53.019098+00:00"
+    },
+    {
+      "contradiction_id": "cd:nerve:a9b3fbbb",
+      "claim_a_id": "claim:gb21:nerve_effect:a9b3fbbb",
+      "claim_b_id": null,
+      "counter_evidence_id": "ev:counter:a9b3fbbb",
+      "conflict_kind": "CLINICAL_EVIDENCE_CONFLICT",
+      "state": "OPEN",
+      "rationale": "Conflicting imaging findings regarding nerve stimulation.",
+      "created_at": "2026-10-23T01:07:53.291372+00:00",
+      "updated_at": "2026-10-23T01:07:53.291372+00:00"
+    }
+  ],
+  "regional_anatomy": [
+    {
+      "layer": "integumentary",
+      "structure": "Skin over superior shoulder ridge",
+      "status": "AVAILABLE"
+    },
+    {
+      "layer": "muscular_superficial",
+      "structure": "Trapezius muscle (descending fibers)",
+      "status": "AVAILABLE"
+    },
+    {
+      "layer": "muscular_deep",
+      "structure": "Levator scapulae & Supraspinatus",
+      "status": "AVAILABLE"
+    },
+    {
+      "layer": "skeletal",
+      "structure": "Clavicle, Acromion, C7\u2013T1 spinous processes",
+      "status": "AVAILABLE"
+    },
+    {
+      "layer": "nervous",
+      "structure": "Spinal accessory nerve (CN XI) superficial branches",
+      "status": "AVAILABLE"
+    }
+  ],
+  "disclaimer": "Research record only; does not imply physiological equivalence or treatment recommendation."
+}

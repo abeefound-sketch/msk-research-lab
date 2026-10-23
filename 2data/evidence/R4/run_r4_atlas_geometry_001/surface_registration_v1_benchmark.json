@@ -1,0 +1,91 @@
+{
+  "suite": "surface-registration-v1",
+  "method": "reference_bvh",
+  "total_cases": 10,
+  "passed": 10,
+  "failed": 0,
+  "duration_seconds": 0.0018,
+  "overall_status": "PASS",
+  "cases": [
+    {
+      "case_id": "SR-01",
+      "name": "Frame and Unit Transform",
+      "status": "PASS",
+      "error_metric": 0.0,
+      "unit": "mm",
+      "comparability": "COMPARABLE"
+    },
+    {
+      "case_id": "SR-02",
+      "name": "Surface Snap Distance",
+      "status": "PASS",
+      "error_metric": 0.0,
+      "unit": "mm",
+      "comparability": "COMPARABLE"
+    },
+    {
+      "case_id": "SR-03",
+      "name": "Barycentric Invariance",
+      "status": "PASS",
+      "error_metric": 0.0,
+      "unit": "dimensionless",
+      "comparability": "COMPARABLE"
+    },
+    {
+      "case_id": "SR-04",
+      "name": "Path Topology Constraint",
+      "status": "PASS",
+      "error_metric": 1.4210854715202004e-14,
+      "unit": "mm",
+      "comparability": "COMPARABLE"
+    },
+    {
+      "case_id": "SR-05",
+      "name": "Laterality and Mirror Check",
+      "status": "PASS",
+      "error_metric": 0.0,
+      "unit": "flag",
+      "comparability": "COMPARABLE"
+    },
+    {
+      "case_id": "SR-06",
+      "name": "Region Bounding Filter",
+      "status": "PASS",
+      "error_metric": 0.0,
+      "unit": "boolean",
+      "comparability": "COMPARABLE"
+    },
+    {
+      "case_id": "SR-07",
+      "name": "Front/Back Occlusion Check",
+      "status": "PASS",
+      "error_metric": 0.0,
+      "unit": "boolean",
+      "comparability": "COMPARABLE"
+    },
+    {
+      "case_id": "SR-08",
+      "name": "Negative and Corrupt Coordinate Rejection",
+      "status": "PASS",
+      "error_metric": 0.0,
+      "unit": "count",
+      "comparability": "COMPARABLE"
+    },
+    {
+      "case_id": "SR-09",
+      "name": "Math Performance Budget",
+      "status": "PASS",
+      "error_metric": 1.72,
+      "unit": "ms",
+      "comparability": "COMPARABLE"
+    },
+    {
+      "case_id": "SR-10",
+      "name": "Three-run Determinism",
+      "status": "PASS",
+      "error_metric": 0.0,
+      "unit": "delta",
+      "comparability": "COMPARABLE"
+    }
+  ]
+}

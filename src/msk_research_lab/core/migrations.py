@@ -448,6 +448,89 @@ MIGRATIONS: List[Tuple[int, str, str]] = [
         CREATE INDEX IF NOT EXISTS idx_graph_edges_src ON graph_edges(source_node_id);
         CREATE INDEX IF NOT EXISTS idx_graph_edges_tgt ON graph_edges(target_node_id);
         """
+    ),
+    (
+        5,
+        "0005_r4_atlas_3d_models_and_anchors",
+        """
+        -- R4 ATLAS-01..03: 3D Model Registry
+        CREATE TABLE IF NOT EXISTS models_3d (
+            model_id TEXT PRIMARY KEY,
+            name TEXT NOT NULL,
+            mesh_id TEXT NOT NULL,
+            sha256 TEXT NOT NULL,
+            units TEXT NOT NULL DEFAULT 'mm',
+            coordinate_frame TEXT NOT NULL DEFAULT 'mesh_local_xyz',
+            reference_pose TEXT NOT NULL DEFAULT 'standing_anatomical',
+            handedness TEXT NOT NULL DEFAULT 'right_handed',
+            landmarks_json TEXT NOT NULL DEFAULT '{}',
+            skin_mesh_id TEXT NOT NULL,
+            license TEXT NOT NULL,
+            rights_status TEXT NOT NULL DEFAULT 'ALLOWED',
+            created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+        );
+
+        -- R4 ATLAS-02: Barycentric Surface Anchors on Declared Skin Mesh
+        CREATE TABLE IF NOT EXISTS skin_anchors (
+            anchor_id TEXT PRIMARY KEY,
+            model_id TEXT NOT NULL,
+            mesh_sha256 TEXT NOT NULL,
+            face_index INTEGER NOT NULL,
+            barycentric_u REAL NOT NULL,
+            barycentric_v REAL NOT NULL,
+            barycentric_w REAL NOT NULL,
+            surface_x REAL NOT NULL,
+            surface_y REAL NOT NULL,
+            surface_z REAL NOT NULL,
+            normal_x REAL NOT NULL,
+            normal_y REAL NOT NULL,
+            normal_z REAL NOT NULL,
+            status TEXT NOT NULL DEFAULT 'VALID',
+            created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+            FOREIGN KEY(model_id) REFERENCES models_3d(model_id) ON DELETE CASCADE
+        );
+
+        -- R4 ATLAS-02, 03: 3D Point Placements
+        CREATE TABLE IF NOT EXISTS point_placements_3d (
+            placement_id TEXT PRIMARY KEY,
+            concept_id TEXT NOT NULL,
+            canonical_label TEXT NOT NULL,
+            source_id TEXT NOT NULL,
+            model_id TEXT NOT NULL,
+            anchor_id TEXT,
+            side TEXT NOT NULL DEFAULT 'bilateral',
+            raw_x REAL NOT NULL,
+            raw_y REAL NOT NULL,
+            raw_z REAL NOT NULL,
+            frame_registered INTEGER NOT NULL DEFAULT 0,
+            registration_method TEXT NOT NULL DEFAULT 'NONE',
+            registration_status TEXT NOT NULL DEFAULT 'UNREGISTERED',
+            created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+            FOREIGN KEY(model_id) REFERENCES models_3d(model_id) ON DELETE CASCADE,
+            FOREIGN KEY(anchor_id) REFERENCES skin_anchors(anchor_id)
+        );
+
+        -- R4 ATLAS-02: Baked Meridian Paths on Skin Surface
+        CREATE TABLE IF NOT EXISTS meridian_paths_3d (
+            path_id TEXT PRIMARY KEY,
+            meridian_code TEXT NOT NULL,
+            source_id TEXT NOT NULL,
+            model_id TEXT NOT NULL,
+            ordered_points_json TEXT NOT NULL,
+            baked_segments_json TEXT NOT NULL,
+            has_penetration_gap INTEGER NOT NULL DEFAULT 0,
+            gap_warnings_json TEXT,
+            review_state TEXT NOT NULL DEFAULT 'UNREVIEWED',
+            created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+            FOREIGN KEY(model_id) REFERENCES models_3d(model_id) ON DELETE CASCADE
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_skin_anchors_model ON skin_anchors(model_id);
+        CREATE INDEX IF NOT EXISTS idx_skin_anchors_face ON skin_anchors(face_index);
+        CREATE INDEX IF NOT EXISTS idx_placements_concept ON point_placements_3d(concept_id);
+        CREATE INDEX IF NOT EXISTS idx_placements_label ON point_placements_3d(canonical_label);
+        CREATE INDEX IF NOT EXISTS idx_meridian_paths_code ON meridian_paths_3d(meridian_code);
+        """
     )
 ]
 
