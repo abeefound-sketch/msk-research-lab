@@ -1,0 +1,15 @@
+{
+  "point_code": "GB21",
+  "concept_id": "GB21",
+  "canonical_label": "Jianjing (\u80a9\u4e95)",
+  "namespace": "TRADITIONAL_ACUPUNCTURE",
+  "review_state": "EXPERT_REVIEWED",
+  "rights_status": "ALLOWED",
+  "snapshot_id": "rel_cert_1792843286",
+  "mesh_local_xyz_mm": [
+    -97.5,
+    475.0,
+    -45.0
+  ],
+  "disclaimer": "Educational research record; not medical advice or treatment recommendation."
+}

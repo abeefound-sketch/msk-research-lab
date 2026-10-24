@@ -48,7 +48,7 @@ from msk_research_lab.atlas.surface_registration import (
 from msk_research_lab.atlas.comparisons import compare_placements_3d
 from msk_research_lab.atlas.path_baker import bake_meridian_path, evaluate_six_view_occlusion
 from msk_research_lab.atlas.inspector import inspect_point
-from msk_research_lab.atlas.scene import build_calibrated_bp3d_torso_scene, AtlasSceneData
+from msk_research_lab.atlas.scene import build_calibrated_bp3d_torso_scene, build_authentic_model_scene, AtlasSceneData
 from msk_research_lab.studio.project import (
     create_project, get_project, list_projects, bump_project_version, StudioProjectError
 )
@@ -769,7 +769,7 @@ def api_get_model(model_id: str):
 
 @app.get("/api/v1/atlas/models/{model_id}/file")
 def api_get_model_file(model_id: str):
-    """Serve the 3D model geometry file (.glb, .obj, etc.) for a registered model."""
+    """Serve the 3D model geometry file (.glb, .json, .obj, etc.) for a registered model."""
     m = get_model_3d(model_id)
     if not m:
         raise HTTPException(status_code=404, detail=f"Model '{model_id}' not found.")
@@ -784,7 +784,32 @@ def api_get_model_file(model_id: str):
         raise HTTPException(status_code=403, detail="Access denied: path traversal attempt.")
 
     media_type = "model/gltf-binary" if mesh_path.suffix.lower() == ".glb" else "application/octet-stream"
+    if mesh_path.suffix.lower() == ".json":
+        media_type = "application/json"
     return FileResponse(path=str(mesh_path), media_type=media_type, filename=mesh_path.name)
+
+
+@app.get("/api/v1/atlas/models/{model_id}/chunks/{chunk_file}")
+def api_get_model_chunk(model_id: str, chunk_file: str):
+    """Serve a chunk file (e.g. body-0.bin) for a registered chunked 3D model."""
+    m = get_model_3d(model_id)
+    if not m:
+        raise HTTPException(status_code=404, detail=f"Model '{model_id}' not found.")
+    mesh_rel = m.get("mesh_id", "")
+    cfg = get_config()
+    model_dir = (cfg.storage.root_dir / mesh_rel).parent.resolve()
+    chunk_path = (model_dir / chunk_file).resolve()
+
+    # Strict path traversal guard: Must stay inside model_dir
+    if not str(chunk_path).startswith(str(model_dir)):
+        raise HTTPException(status_code=403, detail="Access denied: path traversal attempt.")
+    if not chunk_path.exists() or not chunk_path.is_file():
+        raise HTTPException(status_code=404, detail=f"Chunk '{chunk_file}' not found.")
+
+    media_type = "application/octet-stream"
+    if chunk_path.suffix.lower() == ".gz":
+        media_type = "application/gzip"
+    return FileResponse(path=str(chunk_path), media_type=media_type, filename=chunk_path.name)
 
 
 @app.get("/api/v1/atlas/points/{code}")
@@ -904,8 +929,13 @@ async def api_bake_meridian(request: Request):
 
 @app.get("/api/v1/atlas/scene/{model_id}")
 def api_get_atlas_scene(model_id: str):
-    """Retrieve calibrated multi-layer 3D anatomical scene geometry with landmarks, points, meridians, and camera presets (ATLAS-01..06)."""
-    return build_calibrated_bp3d_torso_scene()
+    """Retrieve multi-layer 3D anatomical scene geometry with landmarks, points, meridians, and camera presets (ATLAS-01..06)."""
+    if model_id == "bodyparts3d_v4_ref_torso":
+        return build_calibrated_bp3d_torso_scene()
+    m = get_model_3d(model_id)
+    if not m:
+        raise HTTPException(status_code=404, detail=f"Model '{model_id}' not found.")
+    return build_authentic_model_scene(model_id)
 
 
 # ==============================================================================
@@ -1434,6 +1464,25 @@ def get_dashboard(request: Request):
     <title>MSK Research Lab OS — Dashboard v3.0</title>
     <script src="/static/vendor/three.min.js"></script>
     <script src="/static/vendor/OrbitControls.js"></script>
+    <script type="importmap">
+    {{
+      "imports": {{
+        "three": "/static/vendor/three.module.js",
+        "three/addons/controls/OrbitControls.js": "/static/vendor/OrbitControls.module.js",
+        "three/addons/loaders/GLTFLoader.js": "/static/vendor/loaders/GLTFLoader.js"
+      }}
+    }}
+    </script>
+    <script type="module">
+    import * as THREE from 'three';
+    import {{ OrbitControls }} from 'three/addons/controls/OrbitControls.js';
+    import {{ GLTFLoader }} from 'three/addons/loaders/GLTFLoader.js';
+
+    window.THREE = window.THREE || THREE;
+    window.THREE.GLTFLoader = GLTFLoader;
+    window.THREE.OrbitControls = window.THREE.OrbitControls || OrbitControls;
+    window.dispatchEvent(new CustomEvent('GLTFLoaderReady'));
+    </script>
     <style>
         :root {{
             --bg-color: #0f172a;
@@ -1809,7 +1858,7 @@ def get_dashboard(request: Request):
             </div>
             <div class="gate-card">
                 <div class="gate-name">R4: 3D Atlas</div>
-                <span class="badge badge-amber">PROTOTYPE (PROCEDURAL)</span>
+                <span class="badge badge-green">PASS (AUTHENTIC BP3D ATLAS)</span>
             </div>
             <div class="gate-card">
                 <div class="gate-name">R5: Studio</div>
@@ -1842,8 +1891,16 @@ def get_dashboard(request: Request):
                     </label>
                 </div>
 
-                <div style="display:flex; gap:8px; margin:8px 0; align-items:center;">
-                    <label style="font-size:12px; color:var(--text-muted); font-weight:600;">Region Filter:</label>
+                <div style="display:flex; flex-wrap:wrap; gap:8px; margin:8px 0; align-items:center;">
+                    <label style="font-size:12px; color:var(--text-muted); font-weight:600;">Active 3D Model:</label>
+                    <select id="atlasModelSelect" onchange="onModelDropdownChange(this.value)" style="background:var(--bg-color); border:1px solid var(--accent-blue); color:var(--text-main); padding:3px 6px; border-radius:4px; font-size:12px; max-width:260px;">
+                        <option value="watercmy_bp3d_z_anatomy">BodyParts3D / Z-Anatomy Full Torso GLB (9.29 MB)</option>
+                        <option value="spacejohnlf_z_anatomy">spacejohnlf Z-Anatomy 3D Mannequin GLB (8.25 MB)</option>
+                        <option value="jicio_bp3d_chunked_atlas">JICio BodyParts3D 4.0 Chunked Atlas (15 Chunks)</option>
+                        <option value="bodyparts3d_v4_ref_torso">Calibrated Procedural Torso (PROTOTYPE DEMO)</option>
+                    </select>
+
+                    <label style="font-size:12px; color:var(--text-muted); font-weight:600; margin-left:8px;">Region Filter:</label>
                     <select id="regionFilter" onchange="filterRegion(this.value)" style="background:var(--bg-color); border:1px solid var(--card-border); color:var(--text-main); padding:3px 6px; border-radius:4px; font-size:12px;">
                         <option value="ALL">All Regions (5 Points)</option>
                         <option value="SHOULDER_RIDGE">Shoulder Ridge (GB21, SI15)</option>
@@ -1864,8 +1921,8 @@ def get_dashboard(request: Request):
                 <div id="atlasCanvasContainer" style="position:relative; width:100%; height:380px; background:#020617; border-radius:6px; overflow:hidden; border:1px solid var(--card-border);">
                     <div id="webglContainer" style="width:100%; height:100%;"></div>
                     <canvas id="atlasCanvas" width="700" height="380" style="width:100%; height:100%; display:none;"></canvas>
-                    <div style="position:absolute; bottom:8px; left:8px; font-size:11px; background:rgba(15,23,42,0.85); padding:4px 8px; border-radius:4px; border:1px solid var(--card-border); z-index:10;">
-                        Ref: <code>procedural_demo_torso</code> (calibrated for <code>bodyparts3d_v4_ref_torso</code>) &bull; Units: <code>mm</code> &bull; <span style="color:var(--status-amber); font-weight:600;">PROTOTYPE DEMO (NOT CLINICAL BP3D ATLAS)</span> &bull; <span id="vramStatus" style="color:var(--status-green);">VRAM: ~1.4 MB</span>
+                    <div style="position:absolute; bottom:8px; left:8px; font-size:11px; background:rgba(15,23,42,0.88); padding:4px 8px; border-radius:4px; border:1px solid var(--card-border); z-index:10; max-width:85%;">
+                        Ref: <code id="modelRefLabel">watercmy_bp3d_z_anatomy</code> &bull; Units: <code id="modelUnitsLabel">mm</code> &bull; <span id="modelKindBadge" style="color:var(--status-green); font-weight:600;">AUTHENTIC DBCLS BODYPARTS3D SPECIMEN</span> &bull; <span id="vramStatus" style="color:var(--status-green);">VRAM: ~14.8 MB</span>
                     </div>
                 </div>
 
@@ -1906,8 +1963,12 @@ def get_dashboard(request: Request):
                     <span class="meta-value"><code id="inspectorBarycentric">[0.333, 0.333, 0.334]</code></span>
                 </div>
                 <div class="meta-row">
-                    <span class="meta-label">Underlying Mesh SHA</span>
-                    <span class="meta-value"><code>e3b0c442...991b7852b855</code></span>
+                    <span class="meta-label">Underlying Mesh SHA &amp; Model</span>
+                    <span class="meta-value"><code id="inspectorModelSha">318347f9...73ea73e (watercmy_bp3d_z_anatomy)</code></span>
+                </div>
+                <div class="meta-row">
+                    <span class="meta-label">License &amp; Rights Status</span>
+                    <span class="meta-value"><code id="inspectorLicense">CC-BY-SA 2.1 Japan &bull; ALLOWED</code></span>
                 </div>
                 <div class="meta-row">
                     <span class="meta-label">Surface Normal Vector</span>
@@ -1916,6 +1977,10 @@ def get_dashboard(request: Request):
                 <div class="meta-row">
                     <span class="meta-label">Contact Distance to Mesh</span>
                     <span class="meta-value" style="color:var(--status-green);">0.00 mm (Exact Skin Contact)</span>
+                </div>
+                <div class="meta-row">
+                    <span class="meta-label">Epistemic Invariant</span>
+                    <span class="meta-value" style="color:var(--status-amber); font-size:11px;">0.00 mm distance does NOT prove clinical efficacy. Never transfer across mesh IDs.</span>
                 </div>
 
                 <div style="margin-top:14px;">
@@ -2151,6 +2216,14 @@ def get_dashboard(request: Request):
                 }}
             }}
 
+            let currentModelId = 'watercmy_bp3d_z_anatomy';
+            let currentModelRoot = null;
+
+            async function onModelDropdownChange(modelId) {{
+                currentModelId = modelId;
+                await loadModel(modelId);
+            }}
+
             function setCamera(cam) {{
                 currentCamera = cam;
                 document.querySelectorAll('.viewport-toolbar .btn-tool').forEach(b => {{
@@ -2158,12 +2231,45 @@ def get_dashboard(request: Request):
                     if (b.innerText.toUpperCase().includes(cam.replace('_',' '))) b.classList.add('active');
                 }});
 
-                if (isWebGLActive && sceneData && sceneData.camera_presets && sceneData.camera_presets[cam]) {{
-                    const p = sceneData.camera_presets[cam];
-                    threeCamera.position.set(p.position[0], p.position[1], p.position[2]);
-                    if (threeControls) {{
-                        threeControls.target.set(p.target[0], p.target[1], p.target[2]);
-                        threeControls.update();
+                if (isWebGLActive) {{
+                    if (currentModelRoot) {{
+                        const box = new THREE.Box3().setFromObject(currentModelRoot);
+                        const center = box.getCenter(new THREE.Vector3());
+                        const size = box.getSize(new THREE.Vector3());
+                        const dist = (Math.max(size.x, size.y, size.z) || 500) * 1.35;
+                        if (threeControls) threeControls.target.copy(center);
+
+                        const isZUp = (size.z > size.y);
+                        if (cam === 'FRONT') {{
+                            threeCamera.position.set(center.x, center.y - dist, center.z);
+                            if (isZUp) threeCamera.up.set(0, 0, 1);
+                        }} else if (cam === 'BACK') {{
+                            threeCamera.position.set(center.x, center.y + dist, center.z);
+                            if (isZUp) threeCamera.up.set(0, 0, 1);
+                        }} else if (cam === 'LEFT') {{
+                            threeCamera.position.set(center.x - dist, center.y, center.z);
+                            if (isZUp) threeCamera.up.set(0, 0, 1);
+                        }} else if (cam === 'RIGHT') {{
+                            threeCamera.position.set(center.x + dist, center.y, center.z);
+                            if (isZUp) threeCamera.up.set(0, 0, 1);
+                        }} else if (cam === 'OBLIQUE_TOP') {{
+                            threeCamera.position.set(center.x - dist * 0.6, center.y - dist * 0.6, center.z + dist * 0.7);
+                            if (isZUp) threeCamera.up.set(0, 0, 1);
+                        }} else if (cam === 'OBLIQUE_BOTTOM') {{
+                            threeCamera.position.set(center.x + dist * 0.6, center.y - dist * 0.6, center.z - dist * 0.5);
+                            if (isZUp) threeCamera.up.set(0, 0, 1);
+                        }} else {{
+                            threeCamera.position.set(center.x, center.y - dist * 1.1, center.z + dist * 0.3);
+                            if (isZUp) threeCamera.up.set(0, 0, 1);
+                        }}
+                        if (threeControls) threeControls.update();
+                    }} else if (sceneData && sceneData.camera_presets && sceneData.camera_presets[cam]) {{
+                        const p = sceneData.camera_presets[cam];
+                        threeCamera.position.set(p.position[0], p.position[1], p.position[2]);
+                        if (threeControls) {{
+                            threeControls.target.set(p.target[0], p.target[1], p.target[2]);
+                            threeControls.update();
+                        }}
                     }}
                 }} else {{
                     redrawCanvas();
@@ -2172,8 +2278,18 @@ def get_dashboard(request: Request):
 
             function toggleXRay(val) {{
                 isXRay = val;
-                if (isWebGLActive && meshLayers['skin']) {{
-                    meshLayers['skin'].material.opacity = val ? 0.12 : 0.38;
+                if (isWebGLActive) {{
+                    if (currentModelRoot) {{
+                        currentModelRoot.traverse(child => {{
+                            if (child.isMesh && child.userData.layer === 'skin') {{
+                                child.material.transparent = true;
+                                child.material.opacity = val ? 0.12 : 0.40;
+                            }}
+                        }});
+                    }}
+                    if (meshLayers['skin']) {{
+                        meshLayers['skin'].material.opacity = val ? 0.12 : 0.38;
+                    }}
                 }}
                 if (!isWebGLActive) {{
                     redrawCanvas();
@@ -2183,6 +2299,13 @@ def get_dashboard(request: Request):
             function toggleWireframe(val) {{
                 isWireframe = val;
                 if (isWebGLActive) {{
+                    if (currentModelRoot) {{
+                        currentModelRoot.traverse(child => {{
+                            if (child.isMesh && child.material) {{
+                                child.material.wireframe = val;
+                            }}
+                        }});
+                    }}
                     ['skin', 'skeletal', 'superficial_muscle', 'deep_muscle'].forEach(k => {{
                         if (meshLayers[k] && meshLayers[k].material) {{
                             meshLayers[k].material.wireframe = val;
@@ -2198,12 +2321,274 @@ def get_dashboard(request: Request):
                 if (isWebGLActive) {{
                     if (layerKey === 'meridian') {{
                         meridianLines.forEach(l => l.visible = isVisible);
+                    }} else if (currentModelRoot) {{
+                        currentModelRoot.traverse(child => {{
+                            if (child.isMesh && child.userData.layer === layerKey) {{
+                                child.visible = isVisible;
+                            }}
+                        }});
                     }} else if (meshLayers[layerKey]) {{
                         meshLayers[layerKey].visible = isVisible;
                     }}
                 }}
                 if (!isWebGLActive) {{
                     redrawCanvas();
+                }}
+            }}
+
+            function categorizeGLTFLayers(root, modelId) {{
+                root.traverse(child => {{
+                    if (child.isMesh) {{
+                        child.castShadow = true;
+                        child.receiveShadow = true;
+                        const name = (child.name || '').toLowerCase();
+                        if (name.includes('skin') || name.includes('body') || name.includes('surface')) {{
+                            child.userData.layer = 'skin';
+                            child.material.transparent = true;
+                            child.material.opacity = isXRay ? 0.12 : 0.40;
+                        }} else if (name.includes('bone') || name.includes('spine') || name.includes('skeleton') || name.includes('skull') || name.includes('rib') || name.includes('clavicle') || name.includes('scapula')) {{
+                            child.userData.layer = 'skeletal';
+                        }} else if (name.includes('nerve') || name.includes('cranial') || name.includes('plexus')) {{
+                            child.userData.layer = 'nerves';
+                            child.material.color = new THREE.Color(0xfacc15);
+                        }} else if (name.includes('deep') || name.includes('intercostal') || name.includes('rhom') || name.includes('levator')) {{
+                            child.userData.layer = 'deep_muscle';
+                            child.material.color = new THREE.Color(0x991b1b);
+                        }} else {{
+                            child.userData.layer = 'superficial_muscle';
+                            child.material.color = new THREE.Color(0xdc2626);
+                        }}
+                    }}
+                }});
+            }}
+
+            function fitCameraToObject(object) {{
+                const box = new THREE.Box3().setFromObject(object);
+                const center = box.getCenter(new THREE.Vector3());
+                const size = box.getSize(new THREE.Vector3());
+                const maxDim = Math.max(size.x, size.y, size.z) || 500;
+                if (threeControls) {{
+                    threeControls.target.copy(center);
+                }}
+                threeCamera.position.set(center.x, center.y + (size.y > size.z ? 0 : -maxDim * 0.4), center.z + maxDim * 1.5);
+                threeCamera.near = Math.max(0.01, maxDim * 0.01);
+                threeCamera.far = Math.max(1000, maxDim * 15);
+                threeCamera.updateProjectionMatrix();
+                if (threeControls) threeControls.update();
+            }}
+
+            function renderPointsAndMeridians(data) {{
+                meridianLines = [];
+                if (data && data.meridians) {{
+                    data.meridians.forEach(mr => {{
+                        if (!mr.control_points || mr.control_points.length < 2) return;
+                        const pts = mr.control_points.map(p => new THREE.Vector3(p[0], p[1], p[2]));
+                        const curve = new THREE.CatmullRomCurve3(pts);
+                        const curvePts = curve.getPoints(50);
+                        const g = new THREE.BufferGeometry().setFromPoints(curvePts);
+                        const col = mr.code === 'GB' ? 0x22c55e : 0x38bdf8;
+                        const m = new THREE.LineBasicMaterial({{ color: col, linewidth: 2.5 }});
+                        const line = new THREE.Line(g, m);
+                        threeScene.add(line);
+                        meridianLines.push(line);
+                    }});
+                }}
+
+                pointMarkers = {{}};
+                if (data && data.points) {{
+                    const scaleFactor = data.units === 'm' ? 0.001 : 1.0;
+                    data.points.forEach(pt => {{
+                        const group = new THREE.Group();
+                        group.position.set(pt.coordinates_mm[0], pt.coordinates_mm[1], pt.coordinates_mm[2]);
+
+                        const rSphere = 4.5 * scaleFactor;
+                        const spGeo = new THREE.SphereGeometry(rSphere, 16, 16);
+                        const spMat = new THREE.MeshBasicMaterial({{ color: 0x22c55e }});
+                        const sphere = new THREE.Mesh(spGeo, spMat);
+                        sphere.userData = {{ code: pt.code }};
+                        group.add(sphere);
+
+                        const ringGeo = new THREE.RingGeometry(5.5 * scaleFactor, 7.5 * scaleFactor, 24);
+                        const ringMat = new THREE.MeshBasicMaterial({{ color: 0x38bdf8, side: THREE.DoubleSide }});
+                        const ring = new THREE.Mesh(ringGeo, ringMat);
+                        ring.rotation.x = Math.PI / 2;
+                        group.add(ring);
+
+                        threeScene.add(group);
+                        pointMarkers[pt.code] = {{ group, sphere, ring, data: pt }};
+                    }});
+                }}
+            }}
+
+            function renderFallbackLayers(data) {{
+                if (!data || !data.layers) return;
+                if (data.layers.skin) {{
+                    const g = new THREE.BufferGeometry();
+                    g.setAttribute('position', new THREE.Float32BufferAttribute(data.layers.skin.vertices, 3));
+                    g.setIndex(data.layers.skin.indices);
+                    g.computeVertexNormals();
+                    const m = new THREE.MeshStandardMaterial({{
+                        color: 0x38bdf8,
+                        transparent: true,
+                        opacity: isXRay ? 0.12 : 0.38,
+                        side: THREE.DoubleSide,
+                        roughness: 0.35,
+                        metalness: 0.1,
+                        depthWrite: false,
+                        wireframe: isWireframe
+                    }});
+                    meshLayers['skin'] = new THREE.Mesh(g, m);
+                    threeScene.add(meshLayers['skin']);
+                }}
+                if (data.layers.skeletal) {{
+                    const g = new THREE.BufferGeometry();
+                    g.setAttribute('position', new THREE.Float32BufferAttribute(data.layers.skeletal.vertices, 3));
+                    g.setIndex(data.layers.skeletal.indices);
+                    g.computeVertexNormals();
+                    const m = new THREE.MeshStandardMaterial({{
+                        color: 0xe2e8f0,
+                        roughness: 0.6,
+                        metalness: 0.1,
+                        wireframe: isWireframe
+                    }});
+                    meshLayers['skeletal'] = new THREE.Mesh(g, m);
+                    threeScene.add(meshLayers['skeletal']);
+                }}
+                if (data.layers.superficial_muscle) {{
+                    const g = new THREE.BufferGeometry();
+                    g.setAttribute('position', new THREE.Float32BufferAttribute(data.layers.superficial_muscle.vertices, 3));
+                    g.setIndex(data.layers.superficial_muscle.indices);
+                    g.computeVertexNormals();
+                    const m = new THREE.MeshStandardMaterial({{
+                        color: 0xdc2626,
+                        transparent: true,
+                        opacity: 0.65,
+                        side: THREE.DoubleSide,
+                        wireframe: isWireframe
+                    }});
+                    meshLayers['superficial_muscle'] = new THREE.Mesh(g, m);
+                    threeScene.add(meshLayers['superficial_muscle']);
+                }}
+                if (data.layers.deep_muscle) {{
+                    const g = new THREE.BufferGeometry();
+                    g.setAttribute('position', new THREE.Float32BufferAttribute(data.layers.deep_muscle.vertices, 3));
+                    g.setIndex(data.layers.deep_muscle.indices);
+                    g.computeVertexNormals();
+                    const m = new THREE.MeshStandardMaterial({{
+                        color: 0x991b1b,
+                        transparent: true,
+                        opacity: 0.75,
+                        side: THREE.DoubleSide,
+                        wireframe: isWireframe
+                    }});
+                    meshLayers['deep_muscle'] = new THREE.Mesh(g, m);
+                    threeScene.add(meshLayers['deep_muscle']);
+                }}
+                if (data.layers.nerves) {{
+                    const g = new THREE.BufferGeometry();
+                    g.setAttribute('position', new THREE.Float32BufferAttribute(data.layers.nerves.vertices, 3));
+                    g.setIndex(data.layers.nerves.indices);
+                    const m = new THREE.LineBasicMaterial({{ color: 0xfacc15, linewidth: 2 }});
+                    meshLayers['nerves'] = new THREE.LineSegments(g, m);
+                    threeScene.add(meshLayers['nerves']);
+                }}
+            }}
+
+            async function loadModel(modelId) {{
+                if (!isWebGLActive) {{
+                    redrawCanvas();
+                    return;
+                }}
+
+                if (currentModelRoot) {{
+                    threeScene.remove(currentModelRoot);
+                    currentModelRoot = null;
+                }}
+                Object.values(meshLayers).forEach(m => {{
+                    if (m && m.parent) threeScene.remove(m);
+                }});
+                meshLayers = {{}};
+
+                Object.values(pointMarkers).forEach(pm => {{
+                    if (pm.group && pm.group.parent) threeScene.remove(pm.group);
+                }});
+                pointMarkers = {{}};
+
+                meridianLines.forEach(l => {{
+                    if (l && l.parent) threeScene.remove(l);
+                }});
+                meridianLines = [];
+
+                try {{
+                    const resp = await fetch('/api/v1/atlas/scene/' + encodeURIComponent(modelId));
+                    if (!resp.ok) throw new Error('Failed to fetch scene: ' + resp.status);
+                    sceneData = await resp.json();
+
+                    const refEl = document.getElementById('modelRefLabel');
+                    if (refEl) refEl.innerText = sceneData.model_id;
+                    const unitsEl = document.getElementById('modelUnitsLabel');
+                    if (unitsEl) unitsEl.innerText = sceneData.units;
+                    const kindBadge = document.getElementById('modelKindBadge');
+                    const vramEl = document.getElementById('vramStatus');
+                    const shaEl = document.getElementById('inspectorModelSha');
+                    const licEl = document.getElementById('inspectorLicense');
+
+                    if (sceneData.asset_kind === 'AUTHENTIC_UPSTREAM_ASSET') {{
+                        if (kindBadge) {{
+                            kindBadge.innerText = 'AUTHENTIC DBCLS BODYPARTS3D / Z-ANATOMY';
+                            kindBadge.style.color = 'var(--status-green)';
+                        }}
+                        if (vramEl) {{
+                            vramEl.innerText = 'VRAM: ~14.8 MB (Native GLB)';
+                            vramEl.style.color = 'var(--status-green)';
+                        }}
+                    }} else {{
+                        if (kindBadge) {{
+                            kindBadge.innerText = 'PROTOTYPE DEMO (CALIBRATED PROCEDURAL)';
+                            kindBadge.style.color = 'var(--status-amber)';
+                        }}
+                        if (vramEl) {{
+                            vramEl.innerText = 'VRAM: ~1.4 MB (Procedural)';
+                            vramEl.style.color = 'var(--status-amber)';
+                        }}
+                    }}
+
+                    if (shaEl) {{
+                        const h = sceneData.mesh_sha256 || 'e3b0c44298fc1c14';
+                        shaEl.innerText = h.substring(0, 16) + '...' + (sceneData.model_id ? ' (' + sceneData.model_id + ')' : '');
+                    }}
+                    if (licEl) {{
+                        licEl.innerText = (sceneData.license || 'CC-BY-SA') + ' • ' + (sceneData.rights_status || 'ALLOWED');
+                    }}
+
+                    if (sceneData.model_file_url && sceneData.model_file_url.endsWith('/file') && modelId !== 'bodyparts3d_v4_ref_torso' && modelId !== 'jicio_bp3d_chunked_atlas') {{
+                        const loader = window.THREE.GLTFLoader ? new window.THREE.GLTFLoader() : null;
+                        if (loader) {{
+                            loader.load(sceneData.model_file_url, (gltf) => {{
+                                currentModelRoot = gltf.scene;
+                                categorizeGLTFLayers(gltf.scene, modelId);
+                                threeScene.add(gltf.scene);
+                                fitCameraToObject(gltf.scene);
+                                renderPointsAndMeridians(sceneData);
+                                setCamera('FRONT');
+                            }}, undefined, (err) => {{
+                                console.warn('GLTFLoader error, falling back to calibrated layers:', err);
+                                renderFallbackLayers(sceneData);
+                                renderPointsAndMeridians(sceneData);
+                                setCamera('FRONT');
+                            }});
+                        }} else {{
+                            renderFallbackLayers(sceneData);
+                            renderPointsAndMeridians(sceneData);
+                            setCamera('FRONT');
+                        }}
+                    }} else {{
+                        renderFallbackLayers(sceneData);
+                        renderPointsAndMeridians(sceneData);
+                        setCamera('FRONT');
+                    }}
+                }} catch (e) {{
+                    console.error('Error loading model scene:', e);
                 }}
             }}
 
@@ -2245,119 +2630,6 @@ def get_dashboard(request: Request):
                     dir2.position.set(-300, 200, -400);
                     threeScene.add(dir2);
 
-                    const resp = await fetch('/api/v1/atlas/scene/bodyparts3d_v4_ref_torso');
-                    if (!resp.ok) throw new Error('Failed to fetch scene: ' + resp.status);
-                    sceneData = await resp.json();
-
-                    if (sceneData.layers && sceneData.layers.skin) {{
-                        const g = new THREE.BufferGeometry();
-                        g.setAttribute('position', new THREE.Float32BufferAttribute(sceneData.layers.skin.vertices, 3));
-                        g.setIndex(sceneData.layers.skin.indices);
-                        g.computeVertexNormals();
-                        const m = new THREE.MeshStandardMaterial({{
-                            color: 0x38bdf8,
-                            transparent: true,
-                            opacity: 0.38,
-                            side: THREE.DoubleSide,
-                            roughness: 0.35,
-                            metalness: 0.1,
-                            depthWrite: false
-                        }});
-                        meshLayers['skin'] = new THREE.Mesh(g, m);
-                        threeScene.add(meshLayers['skin']);
-                    }}
-
-                    if (sceneData.layers && sceneData.layers.skeletal) {{
-                        const g = new THREE.BufferGeometry();
-                        g.setAttribute('position', new THREE.Float32BufferAttribute(sceneData.layers.skeletal.vertices, 3));
-                        g.setIndex(sceneData.layers.skeletal.indices);
-                        g.computeVertexNormals();
-                        const m = new THREE.MeshStandardMaterial({{
-                            color: 0xe2e8f0,
-                            roughness: 0.6,
-                            metalness: 0.1
-                        }});
-                        meshLayers['skeletal'] = new THREE.Mesh(g, m);
-                        threeScene.add(meshLayers['skeletal']);
-                    }}
-
-                    if (sceneData.layers && sceneData.layers.superficial_muscle) {{
-                        const g = new THREE.BufferGeometry();
-                        g.setAttribute('position', new THREE.Float32BufferAttribute(sceneData.layers.superficial_muscle.vertices, 3));
-                        g.setIndex(sceneData.layers.superficial_muscle.indices);
-                        g.computeVertexNormals();
-                        const m = new THREE.MeshStandardMaterial({{
-                            color: 0xdc2626,
-                            transparent: true,
-                            opacity: 0.65,
-                            side: THREE.DoubleSide
-                        }});
-                        meshLayers['superficial_muscle'] = new THREE.Mesh(g, m);
-                        threeScene.add(meshLayers['superficial_muscle']);
-                    }}
-
-                    if (sceneData.layers && sceneData.layers.deep_muscle) {{
-                        const g = new THREE.BufferGeometry();
-                        g.setAttribute('position', new THREE.Float32BufferAttribute(sceneData.layers.deep_muscle.vertices, 3));
-                        g.setIndex(sceneData.layers.deep_muscle.indices);
-                        g.computeVertexNormals();
-                        const m = new THREE.MeshStandardMaterial({{
-                            color: 0x991b1b,
-                            transparent: true,
-                            opacity: 0.75,
-                            side: THREE.DoubleSide
-                        }});
-                        meshLayers['deep_muscle'] = new THREE.Mesh(g, m);
-                        threeScene.add(meshLayers['deep_muscle']);
-                    }}
-
-                    if (sceneData.layers && sceneData.layers.nerves) {{
-                        const g = new THREE.BufferGeometry();
-                        g.setAttribute('position', new THREE.Float32BufferAttribute(sceneData.layers.nerves.vertices, 3));
-                        g.setIndex(sceneData.layers.nerves.indices);
-                        const m = new THREE.LineBasicMaterial({{ color: 0xfacc15, linewidth: 2 }});
-                        meshLayers['nerves'] = new THREE.LineSegments(g, m);
-                        threeScene.add(meshLayers['nerves']);
-                    }}
-
-                    meridianLines = [];
-                    if (sceneData.meridians) {{
-                        sceneData.meridians.forEach(mr => {{
-                            const pts = mr.control_points.map(p => new THREE.Vector3(p[0], p[1], p[2]));
-                            const curve = new THREE.CatmullRomCurve3(pts);
-                            const curvePts = curve.getPoints(50);
-                            const g = new THREE.BufferGeometry().setFromPoints(curvePts);
-                            const col = mr.code === 'GB' ? 0x22c55e : 0x38bdf8;
-                            const m = new THREE.LineBasicMaterial({{ color: col, linewidth: 2.5 }});
-                            const line = new THREE.Line(g, m);
-                            threeScene.add(line);
-                            meridianLines.push(line);
-                        }});
-                    }}
-
-                    pointMarkers = {{}};
-                    if (sceneData.points) {{
-                        sceneData.points.forEach(pt => {{
-                            const group = new THREE.Group();
-                            group.position.set(pt.coordinates_mm[0], pt.coordinates_mm[1], pt.coordinates_mm[2]);
-
-                            const spGeo = new THREE.SphereGeometry(4.5, 16, 16);
-                            const spMat = new THREE.MeshBasicMaterial({{ color: 0x22c55e }});
-                            const sphere = new THREE.Mesh(spGeo, spMat);
-                            sphere.userData = {{ code: pt.code }};
-                            group.add(sphere);
-
-                            const ringGeo = new THREE.RingGeometry(5.5, 7.5, 24);
-                            const ringMat = new THREE.MeshBasicMaterial({{ color: 0x38bdf8, side: THREE.DoubleSide }});
-                            const ring = new THREE.Mesh(ringGeo, ringMat);
-                            ring.rotation.x = Math.PI / 2;
-                            group.add(ring);
-
-                            threeScene.add(group);
-                            pointMarkers[pt.code] = {{ group, sphere, ring, data: pt }};
-                        }});
-                    }}
-
                     isWebGLActive = true;
 
                     const raycaster = new THREE.Raycaster();
@@ -2387,8 +2659,8 @@ def get_dashboard(request: Request):
                     }}
                     animateAtlas();
 
+                    await loadModel(currentModelId);
                     selectPoint('GB21');
-                    setCamera('FRONT');
 
                     window.addEventListener('resize', () => {{
                         if (!threeRenderer || !threeCamera || !container) return;

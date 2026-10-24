@@ -1,0 +1,27 @@
+{
+  "candidate_id": "cand_watercmy_anatomy-3d",
+  "revision": 11,
+  "canonical_url": "https://github.com/WaterCMY/anatomy-3d",
+  "pinned_commit_sha": "e8d40dca7b1f63f54567395df21d8b1b38a7e840",
+  "decision": "ADAPT",
+  "reviewer": "Lead Engineer (Release Certification)",
+  "generated_at": "2026-10-24T12:01:03.710570Z",
+  "entrypoints": [
+    {
+      "type": "CONVENTIONAL_ENTRYPOINT",
+      "file": "index.html",
+      "line": 1
+    },
+    {
+      "type": "PYTHON_MAIN_BLOCK",
+      "file": "serve.py",
+      "line": 59
+    }
+  ],
+  "dependencies_count": 0,
+  "risk_hooks": [],
+  "ui_framework": "Vanilla JS / HTML5",
+  "model_formats": [
+    ".glb"
+  ]
+}

@@ -137,3 +137,35 @@ def test_api_get_model_file():
     # 404 for nonexistent model file
     res_404 = client.get("/api/v1/atlas/models/synthetic_torso_v1/file")
     assert res_404.status_code == 404
+
+
+def test_api_get_authentic_model_scenes():
+    # Test authentic model scene endpoints
+    models = ["watercmy_bp3d_z_anatomy", "spacejohnlf_z_anatomy", "jicio_bp3d_chunked_atlas"]
+    for mid in models:
+        res = client.get(f"/api/v1/atlas/scene/{mid}")
+        assert res.status_code == 200
+        data = res.json()
+        assert data["model_id"] == mid
+        assert data["asset_kind"] == "AUTHENTIC_UPSTREAM_ASSET"
+        assert "deep_fascia" in data["unavailable_layers"]
+        assert "A geometric surface contact distance of 0.00 mm does NOT constitute clinical efficacy" in data["epistemic_disclaimer"]
+        assert data["model_file_url"] == f"/api/v1/atlas/models/{mid}/file"
+        assert len(data["points"]) > 0
+        assert "FRONT" in data["camera_presets"]
+
+
+def test_api_get_model_chunk_and_traversal_guard():
+    # Test valid chunk retrieval for jicio chunked model
+    res = client.get("/api/v1/atlas/models/jicio_bp3d_chunked_atlas/chunks/body-0.bin")
+    assert res.status_code == 200
+    assert int(res.headers["content-length"]) > 0
+
+    # Test 404 for missing chunk
+    res_404 = client.get("/api/v1/atlas/models/jicio_bp3d_chunked_atlas/chunks/body-999.bin")
+    assert res_404.status_code == 404
+
+    # Test 403/guard against traversal attack
+    res_traversal = client.get("/api/v1/atlas/models/jicio_bp3d_chunked_atlas/chunks/../../../../etc/passwd")
+    assert res_traversal.status_code in (403, 404)
+

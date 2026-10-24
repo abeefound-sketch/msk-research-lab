@@ -1,0 +1,20 @@
+{
+  "candidate_id": "cand_jicio_tcm-3d",
+  "revision": 2,
+  "canonical_url": "https://github.com/JICio/tcm-3d",
+  "pinned_commit_sha": "e8b9ad1c17e67a25e94406100e3fb5c296c24f7a",
+  "decision": "ADAPT",
+  "reviewer": "Lead Engineer (Release Certification)",
+  "generated_at": "2026-10-24T11:42:41.024319Z",
+  "entrypoints": [
+    {
+      "type": "CONVENTIONAL_ENTRYPOINT",
+      "file": "web/index.html",
+      "line": 1
+    }
+  ],
+  "dependencies_count": 38,
+  "risk_hooks": [],
+  "ui_framework": "Three.js / WebGL 3D",
+  "model_formats": []
+}

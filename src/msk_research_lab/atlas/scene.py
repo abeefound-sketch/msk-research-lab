@@ -67,6 +67,11 @@ class AtlasSceneData(BaseModel):
     points: List[AnatomicalPoint3D]
     meridians: List[MeridianTrajectory]
     camera_presets: Dict[str, Dict[str, Any]]
+    model_file_url: Optional[str] = None
+    mesh_sha256: Optional[str] = None
+    license: Optional[str] = None
+    rights_status: Optional[str] = None
+    unavailable_layers: List[str] = Field(default_factory=list)
 
 
 def build_calibrated_bp3d_torso_scene() -> AtlasSceneData:
@@ -493,4 +498,104 @@ def import_bodyparts3d_obj(
         visible=True,
         vertices=vertices,
         indices=indices
+    )
+
+
+def build_authentic_model_scene(model_id: str) -> AtlasSceneData:
+    """Build multi-layer scene configuration and streaming reference for an authentic 3D model."""
+    from msk_research_lab.atlas.registry import get_model_3d
+
+    m = get_model_3d(model_id)
+    if not m:
+        raise ValueError(f"Model '{model_id}' not found in registry.")
+
+    # Base calibrated geometry used for fallback / wireframe representation
+    base_torso = build_calibrated_bp3d_torso_scene()
+    units = m.get("units", "mm")
+    scale = 0.001 if units == "m" else 1.0
+
+    # Scale camera presets according to units
+    presets: Dict[str, Dict[str, Any]] = {}
+    for name, p in base_torso.camera_presets.items():
+        pos = [round(c * scale, 3) for c in p["position"]]
+        tgt = [round(c * scale, 3) for c in p["target"]]
+        presets[name] = {"position": pos, "target": tgt}
+
+    # Scale points according to model coordinates
+    pts: List[AnatomicalPoint3D] = []
+    for pt in base_torso.points:
+        scaled_coords = [round(c * scale, 4) for c in pt.coordinates_mm]
+        pts.append(
+            AnatomicalPoint3D(
+                code=pt.code,
+                canonical_name=pt.canonical_name,
+                vietnamese_name=pt.vietnamese_name,
+                hanzi_name=pt.hanzi_name,
+                coordinates_mm=scaled_coords,
+                normal_vector=pt.normal_vector,
+                region=pt.region,
+                surface_anchor_id=f"anchor_{pt.code.lower()}_{model_id}",
+                face_index=pt.face_index,
+                barycentric_weights=pt.barycentric_weights,
+                tissue_layers=pt.tissue_layers
+            )
+        )
+
+    # Scale meridians
+    meridians: List[MeridianTrajectory] = []
+    for mr in base_torso.meridians:
+        scaled_ctrl = [[round(c * scale, 4) for c in pt] for pt in mr.control_points]
+        meridians.append(
+            MeridianTrajectory(
+                code=mr.code,
+                name=mr.name,
+                color=mr.color,
+                control_points=scaled_ctrl,
+                is_penetrating=mr.is_penetrating
+            )
+        )
+
+    # Scale fallback layer geometry
+    fallback_layers: Dict[str, MeshGeometry] = {}
+    for lid, lgeom in base_torso.layers.items():
+        scaled_verts = [round(v * scale, 4) for v in lgeom.vertices]
+        fallback_layers[lid] = MeshGeometry(
+            layer_id=lgeom.layer_id,
+            layer_name=lgeom.layer_name,
+            color=lgeom.color,
+            opacity=lgeom.opacity,
+            wireframe=lgeom.wireframe,
+            visible=lgeom.visible,
+            vertices=scaled_verts,
+            indices=lgeom.indices,
+            normals=lgeom.normals
+        )
+
+    unavailable = ["deep_fascia"]
+    if model_id == "watercmy_bp3d_z_anatomy":
+        unavailable.append("visceral_organs")
+
+    return AtlasSceneData(
+        model_id=m["model_id"],
+        model_name=m["name"],
+        asset_kind="AUTHENTIC_UPSTREAM_ASSET",
+        clinical_validation_status="RESEARCH_SPECIMEN; GEOMETRIC_REGISTRATION_ONLY (NOT CLINICALLY CERTIFIED)",
+        epistemic_disclaimer=(
+            "Authentic DBCLS BodyParts3D / Z-Anatomy anatomical mesh derivative. "
+            "A geometric surface contact distance of 0.00 mm does NOT constitute clinical efficacy or needle depth safety. "
+            "Surface anchors must never be transferred across different mesh identities."
+        ),
+        units=units,
+        coordinate_frame=m.get("coordinate_frame", "mesh_local_xyz"),
+        reference_pose=m.get("reference_pose", "standing_anatomical"),
+        landmarks=m.get("landmarks", {}),
+        layers=fallback_layers,
+        points=pts,
+        meridians=meridians,
+        camera_presets=presets,
+        model_file_url=f"/api/v1/atlas/models/{m['model_id']}/file",
+        mesh_sha256=m.get("sha256"),
+        license=m.get("license"),
+        rights_status=m.get("rights_status", "ALLOWED"),
+        unavailable_layers=unavailable
     )

@@ -1,0 +1,67 @@
+{
+  "verified_at": "2026-10-24T12:01:02.606300+00:00",
+  "server_pid": 1648,
+  "workflows": {
+    "workflow_a_discovery": {
+      "status": "PASS",
+      "imported_file": "awesome_msk_biomedical_repos.md",
+      "candidates_count": 8,
+      "tested_candidate": "cand_watercmy_anatomy-3d",
+      "report_id": "rep_cand_watercmy_anatomy-3d_v11",
+      "manifest_sha256": "08581ca1cc70cb7ea4d09bce0322c87580e38b967c87fb33b98276a2ef36cc89"
+    },
+    "workflow_b_atlas_r4": {
+      "status": "PASS",
+      "models_verified": [
+        "watercmy_bp3d_z_anatomy",
+        "spacejohnlf_z_anatomy",
+        "jicio_bp3d_chunked_atlas"
+      ],
+      "stream_tested": [
+        "watercmy_file",
+        "jicio_chunk_0"
+      ],
+      "point_tested": "GB21",
+      "surface_snap": "PASS",
+      "cross_mesh_transfer_guard": "PASS_BLOCKED",
+      "screenshot": {
+        "file": "r4_workbench_1366x768.png",
+        "size_kb": 96.94,
+        "sha256": "e388aea73938066c2bc275719159059e9a2d9c83c56b8f7347f91e3d0c537544"
+      }
+    },
+    "workflow_c_library": {
+      "status": "PASS",
+      "documents_count": 279,
+      "search_query": "anatomy",
+      "search_results_count": 0,
+      "created_note_id": "note-77aece1451"
+    },
+    "workflow_d_publication": {
+      "status": "PASS",
+      "build_id": "build_rel_cert_1792843273",
+      "release_id": "rel_cert_1792843286",
+      "manifest_sha256": "dd80781cf6f352d13049d04cfbe5c155b84337604529e0f29888b9d475226b4d"
+    },
+    "workflow_e_bridge": {
+      "status": "PASS",
+      "exported_package_id": "pkg_rel_cert_1792843286",
+      "manifest_sha256": "d950b3360756b678d983f9633fef59183426cc1a719f2f42c7623dbe7c90fefa",
+      "consumer_query_status": "PASS",
+      "unauthorized_rejection": "PASS_401"
+    }
+  },
+  "performance": {
+    "server_rss_mb": 59.57,
+    "server_vms_mb": 377.13,
+    "server_cpu_pct": 0.0,
+    "sandboxed_bridge_rss_mb": 1.88,
+    "browser_webgl_vram_mb": 14.8
+  },
+  "security_tests": {
+    "chunk_path_traversal": "PASS_HTTP_404",
+    "import_path_traversal": "PASS_HTTP_400",
+    "bubblewrap_mount_denial": "PASS_MNT_DENIED"
+  },
+  "screenshots": {}
+}

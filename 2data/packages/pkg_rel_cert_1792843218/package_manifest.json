@@ -1,0 +1,19 @@
+{
+  "schema_version": "3.0.0",
+  "package_id": "pkg_rel_cert_1792843218",
+  "snapshot_id": "rel_cert_1792843217",
+  "created_at": "2026-10-24T12:00:18.354680+00:00",
+  "rights_review_state": "ALLOWED",
+  "source_ids": [
+    "who_standard_2008"
+  ],
+  "members": [
+    {
+      "relative_path": "points/gb21.json",
+      "sha256": "4d8c438df1e515682fb1a4ebe709722e67c9b59df6d2746e7ef5e404afd591e1",
+      "rights_status": "ALLOWED"
+    }
+  ],
+  "manifest_sha256": "4ce33181d0e6e36118813455793b8290723b145eb0a0206729f97ade610be5d9",
+  "signature": "LOCAL_RESEARCH_AUTHORITY_ED25519_SIG:4ce33181d0e6e361"
+}
