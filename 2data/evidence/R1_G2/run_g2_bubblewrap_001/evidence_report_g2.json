@@ -1,8 +1,8 @@
 {
   "gate": "G2",
   "name": "Bubblewrap Rootless Sandbox & Upstream Isolation Verification",
-  "overall_status": "IN_PROGRESS (2/3 DEMOS VERIFIED; AWAITING CANDIDATE 3 APPROVAL)",
-  "timestamp": "2026-10-24T06:04:00+00:00",
+  "overall_status": "PASS (VERIFIED - 3/3 UPSTREAM DEMOS VALIDATED UNDER BUBBLEWRAP ISOLATION)",
+  "timestamp": "2026-10-24T07:56:00+00:00",
   "environment": {
     "os": "Ubuntu 22.04 LTS (WSL2) on Windows 10",
     "runtime": "bubblewrap",
@@ -20,7 +20,9 @@
     "candidate1_report": "2data/evidence/R1_G2/run_g2_candidate1_watercmy/evidence_report_candidate1.json",
     "candidate1_screenshot": "2data/evidence/R1_G2/run_g2_candidate1_watercmy/candidate1_watercmy_default_1366x768.png",
     "candidate2_report": "2data/evidence/R1_G2/run_g2_candidate2_spacejohnlf/evidence_report_candidate2.json",
-    "candidate2_screenshot": "2data/evidence/R1_G2/run_g2_candidate2_spacejohnlf/candidate2_spacejohnlf_default_1366x768.png"
+    "candidate2_screenshot": "2data/evidence/R1_G2/run_g2_candidate2_spacejohnlf/candidate2_spacejohnlf_default_1366x768.png",
+    "candidate3_report": "2data/evidence/R1_G2/run_g2_candidate3_jicio/evidence_report_candidate3.json",
+    "candidate3_screenshot": "2data/evidence/R1_G2/run_g2_candidate3_jicio/candidate3_jicio_default_1366x768.png"
   },
   "verified_isolation_checks": {
     "container_binary": true,
@@ -113,14 +115,20 @@
     {
       "candidate_id": "jicio--tcm-3d",
       "demonstration_index": "3 of 3",
-      "verdict": "AWAITING_OPERATOR_APPROVAL",
+      "verdict": "PASS (VERIFIED)",
       "canonical_url": "https://github.com/JICio/tcm-3d",
       "pinned_commit_sha": "e8b9ad1c17e67a25e94406100e3fb5c296c24f7a",
       "code_license": "MIT",
       "asset_license": "CC BY 4.0",
-      "asset_model": "public/models/atlas.json + chunked body-*.bin (BodyParts3D 4.0, ~60 MB)",
-      "proposed_bridge_port": 8094,
-      "research_report": "research/reports/jicio--tcm-3d/v1/report.md"
+      "asset_model": "public/models/atlas.json + 15 chunked body binary meshes (BodyParts3D 4.0)",
+      "model_registered_in_lab_os": "jicio_bp3d_chunked_atlas",
+      "bridge_port": 8094,
+      "observed_rss_mb": 1.88,
+      "observed_vms_mb": 3.57,
+      "screenshot_path": "2data/evidence/R1_G2/run_g2_candidate3_jicio/candidate3_jicio_default_1366x768.png",
+      "screenshot_sha256": "e5da06820b0146be090f692e656c3810c8d2c1b57d4516b389ed70051b01ca85",
+      "screenshot_size_bytes": 191345,
+      "report_path": "2data/evidence/R1_G2/run_g2_candidate3_jicio/evidence_report_candidate3.json"
     }
   ],
   "rejected_inaccessible_candidates": [

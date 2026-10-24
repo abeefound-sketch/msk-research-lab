@@ -1793,7 +1793,7 @@ def get_dashboard(request: Request):
             </div>
             <div class="gate-card">
                 <div class="gate-name">G2: Sandbox Run</div>
-                <span class="badge badge-amber">IN PROGRESS (2/3 DEMOS)</span>
+                <span class="badge badge-green">PASS (VERIFIED)</span>
             </div>
             <div class="gate-card">
                 <div class="gate-name">R1D: Discovery</div>
