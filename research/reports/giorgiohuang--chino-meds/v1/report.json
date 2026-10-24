@@ -1,0 +1,14 @@
+{
+  "candidate_id": "cand_giorgiohuang_chino-meds",
+  "revision": 1,
+  "canonical_url": "https://github.com/GiorgioHuang/chino-meds",
+  "pinned_commit_sha": "NOT_CLONED",
+  "decision": "DEFER",
+  "reviewer": "OPERATOR",
+  "generated_at": "2026-10-24T15:35:50.509767Z",
+  "entrypoints": [],
+  "dependencies_count": 0,
+  "risk_hooks": [],
+  "ui_framework": "UNKNOWN",
+  "model_formats": []
+}

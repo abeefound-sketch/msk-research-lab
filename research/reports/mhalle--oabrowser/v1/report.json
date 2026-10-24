@@ -1,0 +1,14 @@
+{
+  "candidate_id": "cand_mhalle_oabrowser",
+  "revision": 1,
+  "canonical_url": "https://github.com/mhalle/oabrowser",
+  "pinned_commit_sha": "NOT_CLONED",
+  "decision": "DEFER",
+  "reviewer": "OPERATOR",
+  "generated_at": "2026-10-24T15:36:06.264748Z",
+  "entrypoints": [],
+  "dependencies_count": 0,
+  "risk_hooks": [],
+  "ui_framework": "UNKNOWN",
+  "model_formats": []
+}

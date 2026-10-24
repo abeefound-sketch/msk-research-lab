@@ -1,0 +1,14 @@
+{
+  "candidate_id": "cand_openpifpaf_openpifpaf",
+  "revision": 1,
+  "canonical_url": "https://github.com/openpifpaf/openpifpaf",
+  "pinned_commit_sha": "NOT_CLONED",
+  "decision": "DEFER",
+  "reviewer": "OPERATOR",
+  "generated_at": "2026-10-24T15:36:07.555964Z",
+  "entrypoints": [],
+  "dependencies_count": 0,
+  "risk_hooks": [],
+  "ui_framework": "UNKNOWN",
+  "model_formats": []
+}

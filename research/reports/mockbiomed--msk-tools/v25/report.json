@@ -1,0 +1,14 @@
+{
+  "candidate_id": "cand_mockbiomed_msk-tools",
+  "revision": 25,
+  "canonical_url": "https://github.com/mockbiomed/msk-tools",
+  "pinned_commit_sha": "NOT_CLONED",
+  "decision": "ADAPT",
+  "reviewer": "LEAD_ARCHITECT",
+  "generated_at": "2026-10-24T15:36:15.318474Z",
+  "entrypoints": [],
+  "dependencies_count": 0,
+  "risk_hooks": [],
+  "ui_framework": "UNKNOWN",
+  "model_formats": []
+}
