@@ -1,8 +1,8 @@
 {
   "gate": "G2",
   "name": "Bubblewrap Rootless Sandbox & Upstream Isolation Verification",
-  "overall_status": "IN_PROGRESS (1/3 DEMOS VERIFIED; AWAITING CANDIDATE 2 APPROVAL)",
-  "timestamp": "2026-10-23T13:06:00+00:00",
+  "overall_status": "IN_PROGRESS (1/3 DEMOS VERIFIED; CANDIDATE 2 BLOCKED ON OFFLINE CACHE MISS)",
+  "timestamp": "2026-10-24T04:42:00+00:00",
   "environment": {
     "os": "Ubuntu 22.04 LTS (WSL2) on Windows 10",
     "runtime": "bubblewrap",
@@ -36,7 +36,7 @@
         "/proc (isolated)",
         "/dev (minimal)",
         "/tmp (private tmpfs)",
-        "/app (ro repo)",
+        "/app (ro repo or isolated build)",
         "/bridge (private socket dir)"
       ]
     },
@@ -93,11 +93,22 @@
     {
       "candidate_id": "spacejohnlf--tcm-acupoints",
       "demonstration_index": "2 of 3",
-      "verdict": "AWAITING_OPERATOR_APPROVAL",
+      "verdict": "BLOCKED (OFFLINE_CACHE_MISS; AWAITING_NETWORK_DEP_APPROVAL)",
       "canonical_url": "https://github.com/spacejohnlf/tcm-acupoints",
       "pinned_commit_sha": "04e35abb66585eb29c7250ea8ab5243c8c744f64",
       "code_license": "MIT",
       "asset_license": "CC BY-SA 4.0",
+      "asset_model": "public/models/body.glb (8.25 MB, SHA256: 0886b6a068e655b284903664e2178d7964f80b1c0ce798461909ac806bcef2e3, 1872 nodes)",
+      "model_registered_in_lab_os": "spacejohnlf_z_anatomy",
+      "sandbox_build_attempt": {
+        "engine": "bubblewrap",
+        "command": "npm ci --ignore-scripts --offline --cache /home/tuan/.npm",
+        "exit_code": 1,
+        "error_code": "ENOTCACHED",
+        "error_detail": "request to https://registry.npmjs.org/vite/-/vite-8.2.0.tgz failed: cache mode is only-if-cached but no cached response is available",
+        "isolation_preserved": true,
+        "unauthorized_network_access_bypassed": false
+      },
       "proposed_bridge_port": 8093,
       "research_report": "research/reports/spacejohnlf--tcm-acupoints/v1/report.md"
     },
@@ -109,6 +120,7 @@
       "pinned_commit_sha": "e8b9ad1c17e67a25e94406100e3fb5c296c24f7a",
       "code_license": "MIT",
       "asset_license": "CC BY 4.0",
+      "asset_model": "public/models/atlas.json + chunked body-*.bin (BodyParts3D 4.0, ~60 MB)",
       "proposed_bridge_port": 8094,
       "research_report": "research/reports/jicio--tcm-3d/v1/report.md"
     }
