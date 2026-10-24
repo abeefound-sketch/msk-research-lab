@@ -1,0 +1,14 @@
+{
+  "candidate_id": "cand_meiroo_m-glxuewei",
+  "revision": 1,
+  "canonical_url": "https://github.com/meiroo/m-glxuewei",
+  "pinned_commit_sha": "NOT_CLONED",
+  "decision": "DEFER",
+  "reviewer": "Lead Engineer (Discovery Pipeline)",
+  "generated_at": "2026-10-24T15:12:46.533562Z",
+  "entrypoints": [],
+  "dependencies_count": 0,
+  "risk_hooks": [],
+  "ui_framework": "UNKNOWN",
+  "model_formats": []
+}
