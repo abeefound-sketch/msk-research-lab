@@ -24,15 +24,40 @@ In accordance with DISC-01, importing this file establishes source provenance an
 
 ---
 
-### Category 3: Evidence-Based Medicine & Safety Metadata (Y học chứng cứ & An toàn lâm sàng)
+### Category 3: Evidence-Based Medicine, Safety & Clinical Knowledge Graphs (Y học chứng cứ, An toàn & Đồ thị tri thức)
 
 | Repository | Focus Area | Stated License |
 |---|---|---|
 | [Chino Meds](https://github.com/GiorgioHuang/chino-meds) | Evidence-based acupuncture platform with Grades A–D (`evidence.json`), clinical contraindications, and myofascial trigger point correlations cited via PubMed/Cochrane | MIT |
+| [AcuKG](https://github.com/yimingli99/AcuKG-Knowledge-graph-for-medical-acupuncture) | Comprehensive medical acupuncture knowledge graph integrating clinical practice guidelines, PubMed, ClinicalTrials.gov, and biomedical ontologies (SNOMED CT, MeSH, UBERON) | MIT |
 
 ---
 
-### Category 4: Alternative 3D Trajectory & Simulation Repositories (Kinh huyệt & Mô phỏng bổ trợ)
+### Category 4: Classical Literature, Ancient Text Corpora & Historical Practice (Ngữ liệu y điển & Y án cổ truyền)
+
+| Repository | Focus Area | Stated License |
+|---|---|---|
+| [TCM Open Classics](https://github.com/lab99x/tcmoc) | Open-source structured classical TCM literature corpus (Huangdi Neijing, Nanjing, Shanghan Lun, Zhenjiu Tuina, and historical clinical case records) | Apache-2.0 |
+
+---
+
+### Category 5: Computer Vision, Action Assessment & Technique Evaluation (Thị giác máy tính & Đánh giá thao tác)
+
+| Repository | Focus Area | Stated License |
+|---|---|---|
+| [CME-AQA](https://github.com/FrancisXZhang/cme-aqa) | Cross-view multimodal action quality assessment framework for Acupuncture (`TCM-AQA61-A`) and Tuina (`TCM-AQA61-T`) rehabilitation training with egocentric/exocentric video | Open Research |
+
+---
+
+### Category 6: Massage Therapy & MSK Clinical Strategy Databases (Cơ sở dữ liệu bệnh lý cơ xương & Phác đồ xoa bóp)
+
+| Repository | Focus Area | Stated License |
+|---|---|---|
+| [Massage Therapy Database](https://github.com/LillianChernin/massage-therapy-database-v2) | Web-based musculoskeletal condition knowledge base mapping disorders, kinesiology/anatomy fundamentals, and targeted massage treatment protocols | MIT |
+
+---
+
+### Category 7: Alternative 3D Trajectory & Simulation Repositories (Kinh huyệt & Mô phỏng bổ trợ)
 
 | Repository | Focus Area | Stated License |
 |---|---|---|
@@ -43,7 +68,7 @@ In accordance with DISC-01, importing this file establishes source provenance an
 
 ---
 
-### Category 5: Advanced MSK Biomechanics, Anatomical Segmentation & Kinematics (Cơ sinh học MSK & AI thị giác y sinh)
+### Category 8: Advanced MSK Biomechanics, Anatomical Segmentation & Kinematics (Cơ sinh học MSK & AI thị giác y sinh)
 
 | Repository | Focus Area | Stated License |
 |---|---|---|
@@ -60,7 +85,7 @@ In accordance with DISC-01, importing this file establishes source provenance an
 
 ---
 
-### Category 6: Audited Inaccessible Repositories (GitHub 404 - Audit History)
+### Category 9: Audited Inaccessible Repositories (GitHub 404 - Audit History)
 
 - [mockbiomed/msk-tools](https://github.com/mockbiomed/msk-tools) (Audited 404)
 - [openanatomy/open-anatomy-browser](https://github.com/openanatomy/open-anatomy-browser) (Audited 404 - superseded by `mhalle/oabrowser`)

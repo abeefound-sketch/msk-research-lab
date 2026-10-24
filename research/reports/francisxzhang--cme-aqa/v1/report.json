@@ -1,0 +1,14 @@
+{
+  "candidate_id": "cand_francisxzhang_cme-aqa",
+  "revision": 1,
+  "canonical_url": "https://github.com/FrancisXZhang/cme-aqa",
+  "pinned_commit_sha": "NOT_CLONED",
+  "decision": "DEFER",
+  "reviewer": "OPERATOR",
+  "generated_at": "2026-10-24T15:46:28.502540Z",
+  "entrypoints": [],
+  "dependencies_count": 0,
+  "risk_hooks": [],
+  "ui_framework": "UNKNOWN",
+  "model_formats": []
+}
