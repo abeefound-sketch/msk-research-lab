@@ -1,0 +1,14 @@
+{
+  "candidate_id": "cand_muelea_shapy",
+  "revision": 1,
+  "canonical_url": "https://github.com/muelea/shapy",
+  "pinned_commit_sha": "NOT_CLONED",
+  "decision": "DEFER",
+  "reviewer": "OPERATOR",
+  "generated_at": "2026-10-24T15:50:14.748868Z",
+  "entrypoints": [],
+  "dependencies_count": 0,
+  "risk_hooks": [],
+  "ui_framework": "UNKNOWN",
+  "model_formats": []
+}

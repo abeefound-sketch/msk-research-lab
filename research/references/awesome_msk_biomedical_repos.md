@@ -57,7 +57,19 @@ In accordance with DISC-01, importing this file establishes source provenance an
 
 ---
 
-### Category 7: Alternative 3D Trajectory & Simulation Repositories (Kinh huyệt & Mô phỏng bổ trợ)
+### Category 7: Parametric Human Body Models & Anthropometric 3D Avatars (Mô hình người tham số & Avatar nhân trắc học 3D)
+
+| Repository | Focus Area | Stated License |
+|---|---|---|
+| [MakeHuman Community](https://github.com/makehumancommunity/makehuman) | Open-source parametric 3D human character generator with commercial-friendly export, supporting height, weight, body proportions, and rigged musculoskeletal armature | AGPL-3.0 / CC0 Mesh |
+| [SHAPY](https://github.com/muelea/shapy) | Accurate 3D body shape regression from 2D RGB image conditioned on metric attributes (height, weight, chest/waist/hip circumferences) | Open Research / MIT |
+| [SMPL-X](https://github.com/vchoutas/smplx) | Expressive parametric human body model (body shape, pose, hands, face) from Max Planck Institute for Intelligent Systems (strictly non-commercial license) | Non-Commercial Research |
+| [COLMAP](https://github.com/colmap/colmap) | General-purpose Structure-from-Motion (SfM) and Multi-View Stereo (MVS) 3D photogrammetric reconstruction | BSD-3-Clause |
+| [Three.js](https://github.com/mrdoob/three.js) | In-browser 3D WebGL engine for real-time mesh rendering, landmark snapping, geodesic measurement, and longitudinal visit heatmaps | MIT |
+
+---
+
+### Category 8: Alternative 3D Trajectory & Simulation Repositories (Kinh huyệt & Mô phỏng bổ trợ)
 
 | Repository | Focus Area | Stated License |
 |---|---|---|
@@ -68,7 +80,7 @@ In accordance with DISC-01, importing this file establishes source provenance an
 
 ---
 
-### Category 8: Advanced MSK Biomechanics, Anatomical Segmentation & Kinematics (Cơ sinh học MSK & AI thị giác y sinh)
+### Category 9: Advanced MSK Biomechanics, Anatomical Segmentation & Kinematics (Cơ sinh học MSK & AI thị giác y sinh)
 
 | Repository | Focus Area | Stated License |
 |---|---|---|
@@ -85,7 +97,7 @@ In accordance with DISC-01, importing this file establishes source provenance an
 
 ---
 
-### Category 9: Audited Inaccessible Repositories (GitHub 404 - Audit History)
+### Category 10: Audited Inaccessible Repositories (GitHub 404 - Audit History)
 
 - [mockbiomed/msk-tools](https://github.com/mockbiomed/msk-tools) (Audited 404)
 - [openanatomy/open-anatomy-browser](https://github.com/openanatomy/open-anatomy-browser) (Audited 404 - superseded by `mhalle/oabrowser`)
