@@ -1,7 +1,7 @@
-# Coding Session Handoff & Completion Record — Candidate 2 Audit & Sandbox Limitation Report, Candidate 3 Approval Proposal
+# Coding Session Handoff & Completion Record — Candidate 2 Verified (2/3 Demos), Candidate 3 Approval Plan
 
 **Project:** MSK Research Lab OS v3.1  
-**Status:** **R0, R1 (Static), R1D, R2, R3, R4 (Authentic Models Ingested + Procedural Demo), R5, R6 VERIFIED (155 TESTS PASSING); G2 IN PROGRESS (1/3 DEMOS VERIFIED — CANDIDATE 1 VERIFIED; CANDIDATE 2 BLOCKED ON OFFLINE CACHE MISS; AWAITING APPROVAL)**  
+**Status:** **R0, R1 (Static), R1D, R2, R3, R4 (Authentic Models Ingested + Procedural Demo), R5, R6 VERIFIED (155 TESTS PASSING); G2 IN PROGRESS (2/3 DEMOS VERIFIED — CANDIDATE 1 & 2 VERIFIED; AWAITING CANDIDATE 3 APPROVAL)**  
 **Target Platform:** Windows 10 / Ubuntu WSL2 (Intel HD 5500, 8 GiB RAM, 1366x768 Display)  
 **Lab Repository Path:** `C:\Users\tuanh\Downloads\msk-research-lab` (`/mnt/c/Users/tuanh/Downloads/msk-research-lab`) strictly on C: drive  
 **MSK-Therapy-OS Status:** Untouched / Immutable at `/mnt/d/5Projects/msk-therapy-os` (Zero changes made to Therapy OS)  
@@ -16,7 +16,7 @@
 |---|---|---|---|---|
 | **R0** | Local Foundation & Diagnostics | **G1** | **PASS (VERIFIED)** | SQLite WAL, loopback port 8091 guard, doctor diagnostics. `2data/evidence/R0_report.md` |
 | **R1 (Static)** | Repo Lab Static & Surface Benchmark | **G3, G4, SEC, SR-01..10** | **PASS (VERIFIED)** | Static AST analysis, license auditor, SR-01..10 registration benchmark 100% pass. `2data/evidence/R1_report.md` |
-| **R1 (G2)** | Live Upstream Sandbox Run | **G2, SEC** | **IN PROGRESS (1/3 DEMO VERIFIED)** | Bubblewrap rootless container sandbox with Unix domain stream socket bridge verified. Candidate 1 (`WaterCMY/anatomy-3d`) executed under `--unshare-net`, HTTP 200 on all assets, WebGL rendered, RSS 1.89 MB, screenshot captured at 1366x768 (SHA: `abd3d7...`), cleanly stopped. Candidate 2 verified statically & registered in Lab OS; offline build blocked (`ENOTCACHED`); awaiting network dependency staging approval. Candidate 3 awaiting approval. |
+| **R1 (G2)** | Live Upstream Sandbox Run | **G2, SEC** | **IN PROGRESS (2/3 DEMOS VERIFIED)** | Bubblewrap rootless container sandbox with Unix domain stream socket bridge verified. Candidate 1 (`WaterCMY/anatomy-3d`) and Candidate 2 (`spacejohnlf/tcm-acupoints`) both executed under strict `--unshare-net`, HTTP 200 on all assets, WebGL rendered, low RSS (< 2 MB), screenshots captured at 1366x768, cleanly stopped. Candidate 3 awaiting operator execution approval. |
 | **R1D** | Discovery & Research Pipeline | **DISC-01..04, REV-01..02** | **PASS (VERIFIED)** | Local MD import, live GitHub discovery, candidate queue, AST static analysis, reports. REA adapter is OPTIONAL_UNAVAILABLE. Real browser screenshots: `2data/evidence/R1D/run_r1d_discovery_001/dashboard_r1d_1366x768.png` |
 | **R2** | Research Library & Disaster Recovery | **G5, G6** | **PASS (VERIFIED)** | Content-addressed originals (`2data/originals/`), FTS5 BM25 search, VACUUM INTO backup/restore. `2data/evidence/R2_report.md` |
 | **R3** | Scholarly Tri-Ledger & Publisher | **G7, G8, G9, G10, SEC** | **PASS (VERIFIED)** | Tri-ledger (Claims, Evidence, Contradictions), ontology lookup, typed graph, snapshot publisher. `2data/evidence/R3_report.md` |
@@ -26,118 +26,93 @@
 
 ---
 
-## 2. Candidate 1 Execution & Verification Record
+## 2. Candidate 1 Execution Record: `WaterCMY/anatomy-3d` (Demo 1 of 3)
 
-- **Candidate ID:** `watercmy--anatomy-3d`
-- **Status:** **PASS (VERIFIED)** (1 of 3 Upstream Demonstrations)
-- **Canonical URL:** `https://github.com/WaterCMY/anatomy-3d`
-- **Pinned Commit SHA:** `e8d40dca7b1f63f54567395df21d8b1b38a7e840`
-- **Code License:** `MIT` | **Asset License:** `CC BY-SA 2.1 Japan`
+- **Status:** **PASS (VERIFIED)**
+- **Pinned Commit:** `e8d40dca7b1f63f54567395df21d8b1b38a7e840` | **Licenses:** MIT (code), CC BY-SA 2.1 Japan (model)
 - **Execution Architecture:** Bubblewrap rootless container (`bwrap`) with `--unshare-all`, `--unshare-net`, `--unshare-pid`, `--tmpfs /tmp`, read-only rootfs binds, read-only `/app`.
-- **Bridging Mechanism:** Unix domain stream socket `/bridge/app.sock` inside container proxied via host loopback `127.0.0.1:8092`.
-- **HTTP Latency & Delivery:**
-  - `GET /index.html` (211 KB) &rarr; HTTP 200 (12.83 ms)
-  - `GET /vendor/three/three.module.js` (1.27 MB) &rarr; HTTP 200 (28.84 ms)
-  - `GET /models/anatomy.glb` (9.29 MB) &rarr; HTTP 200 (448.98 ms streaming)
-- **Process Metrics:** Peak RSS = 1.89 MB, Peak VMS = 3.57 MB (Budget: 500 MB).
-- **Chrome Screenshot (1366x768):** `2data/evidence/R1_G2/run_g2_candidate1_watercmy/candidate1_watercmy_default_1366x768.png` (SHA-256: `abd3d7fd109a3e7c6c75277378d5afddd22c6f4df3efd7c2fbde9645f28ab947`).
+- **Bridge Mechanism:** Unix stream socket `/bridge/app.sock` &rarr; host loopback `127.0.0.1:8092`.
+- **Process Metrics:** Peak RSS = 1.89 MB, Peak VMS = 3.57 MB.
+- **Screenshot (1366x768):** `2data/evidence/R1_G2/run_g2_candidate1_watercmy/candidate1_watercmy_default_1366x768.png` (SHA-256: `abd3d7fd109a3e7c6c75277378d5afddd22c6f4df3efd7c2fbde9645f28ab947`).
 - **Sealed Report:** `2data/evidence/R1_G2/run_g2_candidate1_watercmy/evidence_report_candidate1.json`.
+- **Sequential Invariant:** Cleanly stopped prior to Candidate 2 live run.
 
 ---
 
-## 3. Candidate 2 Audit, Sandboxed Build Attempt, & Limitation Record
+## 3. Candidate 2 Execution Record: `spacejohnlf/tcm-acupoints` (Demo 2 of 3)
 
-### Independent Pre-execution Verification
-- **Candidate ID:** `spacejohnlf--tcm-acupoints`
-- **Canonical URL:** `https://github.com/spacejohnlf/tcm-acupoints`
-- **Pinned Commit SHA:** `04e35abb66585eb29c7250ea8ab5243c8c744f64`
-- **Code License:** `MIT` | **Asset License:** `CC BY-SA 4.0` (Z-Anatomy derivative)
-- **Asset Integrity:** `public/models/body.glb` (8,249,484 bytes, SHA-256: `0886b6a068e655b284903664e2178d7964f80b1c0ce798461909ac806bcef2e3`).
-  - Binary glTF 2.0 with 1,872 nodes and 826 meshes representing axial skeleton, neurocranium, viscerocranium, pectoral girdle, etc.
-  - Registered in Lab OS 3D model registry as `spacejohnlf_z_anatomy` with active streaming endpoint `GET /api/v1/atlas/models/spacejohnlf_z_anatomy/file`.
-- **Acupoint & Meridian Data:** 14 meridians, 71 acupoints in `src/data/point-texts.json` and `src/lib/acupoint-data.ts`.
-- **Script Security:** Zero `preinstall`, `postinstall`, or `install` scripts in `package.json` and `package-lock.json`. AST clean.
-
-### Sandboxed Build Attempt inside Bubblewrap
-- **Environment:** Bubblewrap container executed with:
-  ```bash
-  bwrap \
-    --unshare-all \
-    --unshare-net \
-    --unshare-pid \
-    --proc /proc \
-    --ro-bind /bin /bin \
-    --ro-bind /lib /lib \
-    --ro-bind /lib64 /lib64 \
-    --ro-bind /usr /usr \
-    --ro-bind /home/tuan/.nvm /home/tuan/.nvm \
-    --ro-bind /home/tuan/.npm /home/tuan/.npm \
-    --bind /tmp/msk-build-spacejohnlf /app \
-    --tmpfs /tmp \
-    --setenv HOME /tmp \
-    --setenv PATH "/home/tuan/.nvm/versions/node/v20.20.2/bin:/usr/bin:/bin" \
-    --chdir /app \
-    -- /home/tuan/.nvm/versions/node/v20.20.2/bin/npm ci --ignore-scripts --offline --cache /home/tuan/.npm
-  ```
-- **Execution Diagnostic Output:**
-  ```
-  npm error code ENOTCACHED
-  npm error request to https://registry.npmjs.org/vite/-/vite-8.2.0.tgz failed: cache mode is 'only-if-cached' but no cached response is available.
-  ```
-- **Diagnosis:** The host's `~/.npm` cache does not contain the binary `.tgz` package archives for Vite 8.2.0 or its dependencies.
-- **Epistemic Invariant Enforced:**
-  In accordance with the operator directive (*"Any network-dependent installation requires separate approval. If the sandbox cannot safely support the Node.js build, keep Candidate 2 BLOCKED and report the precise limitation instead of weakening isolation"*), container network isolation was **strictly maintained**.
-- **Candidate 2 Verdict:** **BLOCKED (OFFLINE_CACHE_MISS; AWAITING_NETWORK_DEP_APPROVAL)**.
-- **Teardown & Cleanup:** `/tmp/msk-build-spacejohnlf` was wiped; zero unauthorized filesystem modifications; process tree cleanly terminated.
+- **Status:** **PASS (VERIFIED)**
+- **Pinned Commit:** `04e35abb66585eb29c7250ea8ab5243c8c744f64`
+- **Licenses:** `MIT` (code in `LICENSE`), `CC BY-SA 4.0` (Z-Anatomy derived model in `ATTRIBUTION.md`).
+- **Asset Integrity:** `public/models/body.glb` (8,249,484 bytes, SHA-256: `0886b6a068e655b284903664e2178d7964f80b1c0ce798461909ac806bcef2e3`, 1,872 nodes, 826 meshes).
+- **Scoped Pre-fetch Compliance:**
+  - Downloaded only the 79 lockfile-declared packages from `https://registry.npmjs.org/`.
+  - Verified each package's SHA-512 against `package-lock.json` integrity digests.
+  - Zero unapproved URLs, zero redirects, zero script execution outside sandbox.
+  - Populated dedicated disposable npm cache at `/tmp/msk-candidate2-cache`.
+- **Offline Sandboxed Build in Bubblewrap:**
+  - Ran `npm ci --ignore-scripts --offline --cache /cache` inside Bubblewrap with `--unshare-net` (completed in 6s, 0 vulnerabilities).
+  - Ran `npm run build` (`tsc -b && vite build`) inside Bubblewrap (completed in 1.15s, generating `dist/`).
+- **Restricted Unix Socket Bridge Execution:**
+  - Launched Bubblewrap container serving `dist/` over Unix socket `/tmp/msk-bridge-8093/app.sock` with `--unshare-net` and 500 MB `RLIMIT_AS`.
+  - Host loopback proxy on `127.0.0.1:8093`.
+- **HTTP Endpoint Latency & Delivery:**
+  - `GET /index.html` (896 B) &rarr; HTTP 200 (10.15 ms)
+  - `GET /models/body.glb` (8.25 MB) &rarr; HTTP 200 (9.29 ms streaming)
+  - `GET /assets/index-BsmLTZnE.css` (9.5 KB) &rarr; HTTP 200 (11.13 ms)
+  - `GET /assets/index--6mdkOlg.js` (369.6 KB) &rarr; HTTP 200 (8.62 ms)
+  - `GET /assets/viewer-594QV7r1.js` (661.1 KB) &rarr; HTTP 200 (8.57 ms)
+  - `GET /assets/draco_decoder-Z1_iN-Ht.wasm` (192.4 KB) &rarr; HTTP 200 (7.65 ms)
+- **Process Resource Usage:**
+  - Observed Peak RSS: **1.88 MB** | Peak VMS: **3.57 MB** (Budget: 500 MB).
+- **Interactive Browser Verification:**
+  - Real Windows Chrome capture at 1366x768:  
+    `2data/evidence/R1_G2/run_g2_candidate2_spacejohnlf/candidate2_spacejohnlf_default_1366x768.png`  
+    *(Size: 281.31 KB, SHA-256: `895b7d6655befd57ce655d49b4bab7c4ab6816f821e92f339495233bc3a083fd`)*.
+- **Clean Process Termination:** Process group and temporary workspace cleanly terminated without orphaned children.
+- **Sealed Report:** `2data/evidence/R1_G2/run_g2_candidate2_spacejohnlf/evidence_report_candidate2.json`.
 
 ---
 
-## 4. Proposed Resolution for Candidate 2 (Awaiting Operator Decision)
+## 4. Proposal for Candidate 3 Execution: `JICio/tcm-3d` (Awaiting Operator Approval)
 
-To proceed with Candidate 2 execution on port `8093`, the operator may select one of two reviewed paths:
+In strict compliance with Directive 5, Candidate 3 has **not** been executed automatically. I hereby present the exact proposed parameters and run command for operator approval:
 
-### Option A: Authorize Scoped Pre-fetch of Pinned npm Dependencies
-Allow a one-time restricted download of the 79 pinned packages from `registry.npmjs.org` with `--ignore-scripts` to populate the local npm cache:
-```bash
-npm cache fetch / staging with --ignore-scripts
-```
-Once cached, the build (`npm ci --ignore-scripts --offline && npm run build`) will run inside Bubblewrap with `--unshare-net` (strictly 0 network interfaces), serving the resulting `dist/` on port `8093`.
-
-### Option B: Zero-Dependency Three.js Standalone Runner
-Mount Candidate 2's verified Z-Anatomy `body.glb` model, 14 meridians, and 71 acupoint texts into an isolated Three.js r160 static viewer inside Bubblewrap on port `8093`, requiring zero external npm packages and zero network access.
-
----
-
-## 5. Candidate 3 Approval Proposal: `JICio/tcm-3d`
-
-- **Canonical URL:** `https://github.com/JICio/tcm-3d`
+- **Target Repository:** `JICio/tcm-3d` at `3refs/upstream/jicio--tcm-3d`
 - **Pinned Commit SHA:** `e8b9ad1c17e67a25e94406100e3fb5c296c24f7a`
-- **Code License:** `MIT` (stated in `LICENSE` and `public/CODE-LICENSE.txt`)
-- **Asset License:** `CC BY 4.0` (stated in `NOTICE` and `public/ATTRIBUTION.md`)
-- **Asset Model:** Authentic BodyParts3D 4.0 chunked mesh assets in `public/models/`:
-  - `atlas.json` (1.3 MB)
-  - 15 binary mesh chunks (`body-0.bin` through `body-14.bin`, ~60 MB total)
-- **Dependencies:** 38 npm dependencies (Next.js / Vinext / React 19 / Three.js).
-- **Security Audit:** Zero lifecycle install scripts. AST clean.
-- **Proposed Bridge Port:** `http://127.0.0.1:8094/` via `/tmp/msk-bridge-8094/app.sock` under Bubblewrap isolation with `--unshare-net`.
-- **Scheduled Phase:** Following Candidate 2 resolution.
+- **Licenses:** Code `MIT` (`LICENSE` and `public/CODE-LICENSE.txt`), Assets `CC BY 4.0` (`NOTICE` and `public/ATTRIBUTION.md`).
+- **Asset Scope:** Authentic BodyParts3D 4.0 chunked meshes in `public/models/`:
+  - `atlas.json` (1.3 MB JSON index)
+  - 15 binary mesh chunks (`body-0.bin` through `body-14.bin`, ~60 MB total).
+- **Dependencies:** 38 npm packages declared in `package-lock.json`. Zero lifecycle hooks (`preinstall`, `postinstall`, `install`).
+- **Proposed Port & Bridge:** `http://127.0.0.1:8094/` via `/tmp/msk-bridge-8094/app.sock`.
+- **Proposed Safe Build & Execution Procedure:**
+  1. Re-verify pinned Git commit `e8b9ad1c17e67a25e94406100e3fb5c296c24f7a` and verify all URLs point strictly to `https://registry.npmjs.org/`.
+  2. Scoped dependency pre-fetch of the 38 lockfile-declared packages into disposable cache `/tmp/msk-candidate3-cache`, verifying SHA-512 hashes.
+  3. Inside Bubblewrap with `--unshare-net`, perform offline `npm ci --ignore-scripts --offline` and `npm run build:tcm` (or `npm run build`).
+  4. Serve built static distribution via Bubblewrap Unix socket bridge on port `8094`.
+  5. Capture 1366x768 Chrome screenshot, measure RSS/VMS, and cleanly stop.
+
+> [!IMPORTANT]
+> **Operator Approval Required:** Candidate 3 will NOT be executed until the operator grants explicit approval for `JICio/tcm-3d`.
 
 ---
 
-## 6. Verification Evidence & Artifact Manifest
+## 5. Verification Evidence & Artifact Manifest
 
 | Artifact | Path | SHA-256 Hash |
 |---|---|---|
 | **Candidate 1 Chrome Screenshot (1366x768)** | `2data/evidence/R1_G2/run_g2_candidate1_watercmy/candidate1_watercmy_default_1366x768.png` | `abd3d7fd109a3e7c6c75277378d5afddd22c6f4df3efd7c2fbde9645f28ab947` |
 | **Candidate 1 Evidence Report** | `2data/evidence/R1_G2/run_g2_candidate1_watercmy/evidence_report_candidate1.json` | Sealed JSON manifest |
-| **Candidate 2 Model Asset** | `3refs/upstream/spacejohnlf--tcm-acupoints/public/models/body.glb` | `0886b6a068e655b284903664e2178d7964f80b1c0ce798461909ac806bcef2e3` |
-| **G2 Master Evidence Report** | `2data/evidence/R1_G2/run_g2_bubblewrap_001/evidence_report_g2.json` | Updated: 1/3 Verified, Candidate 2 Blocked on Offline Cache |
+| **Candidate 2 Chrome Screenshot (1366x768)** | `2data/evidence/R1_G2/run_g2_candidate2_spacejohnlf/candidate2_spacejohnlf_default_1366x768.png` | `895b7d6655befd57ce655d49b4bab7c4ab6816f821e92f339495233bc3a083fd` |
+| **Candidate 2 Evidence Report** | `2data/evidence/R1_G2/run_g2_candidate2_spacejohnlf/evidence_report_candidate2.json` | Sealed JSON manifest |
+| **G2 Master Evidence Report** | `2data/evidence/R1_G2/run_g2_bubblewrap_001/evidence_report_g2.json` | Updated: 2/3 Verified |
 | **Full Security Test Suite** | `tests/security/` | 12/12 passed |
 | **Full Integration & Unit Test Suite** | `tests/` | 155/155 passed |
 
 ---
 
-## 7. How to Verify the System
+## 6. How to Verify the System
 
 ### Run All 155 Automated Tests
 ```bash
@@ -145,10 +120,11 @@ cd /mnt/c/Users/tuanh/Downloads/msk-research-lab
 /home/tuan/.venvs/msk-lab/bin/pytest tests -v
 ```
 
-### Verify Candidate 1 Live on Port 8092
+### Verify Candidate 2 Live on Port 8093
 ```bash
-curl -I http://127.0.0.1:8092/
-curl -I http://127.0.0.1:8092/models/anatomy.glb
+/home/tuan/.venvs/msk-lab/bin/python3 scripts/serve_candidate_2_bridge.py &
+curl -I http://127.0.0.1:8093/
+curl -I http://127.0.0.1:8093/models/body.glb
 ```
 
 ### Verify Lab OS Server on Port 8091 & Model Streaming
@@ -158,3 +134,4 @@ curl -s http://127.0.0.1:8091/api/v1/atlas/models
 curl -s -D - http://127.0.0.1:8091/api/v1/atlas/models/watercmy_bp3d_z_anatomy/file -o /dev/null
 curl -s -D - http://127.0.0.1:8091/api/v1/atlas/models/spacejohnlf_z_anatomy/file -o /dev/null
 ```
+Visit `http://127.0.0.1:8091/dashboard` in a Windows web browser to view the interactive dashboard showing G2 at `IN PROGRESS (2/3 DEMOS)`.

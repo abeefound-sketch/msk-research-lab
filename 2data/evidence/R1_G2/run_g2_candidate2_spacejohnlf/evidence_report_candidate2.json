@@ -1,0 +1,88 @@
+{
+  "candidate_id": "spacejohnlf--tcm-acupoints",
+  "demonstration_index": "2 of 3",
+  "timestamp": "2026-10-24T06:03:20.497966+00:00",
+  "repository": {
+    "canonical_url": "https://github.com/spacejohnlf/tcm-acupoints",
+    "pinned_commit_sha": "04e35abb66585eb29c7250ea8ab5243c8c744f64",
+    "code_license": "MIT",
+    "asset_license": "CC BY-SA 4.0",
+    "asset_model": "public/models/body.glb (8.25 MB Z-Anatomy mannequin, 1872 nodes, 826 meshes)"
+  },
+  "sandbox_isolation": {
+    "engine": "bubblewrap",
+    "namespaces": [
+      "user",
+      "pid",
+      "net",
+      "ipc",
+      "uts"
+    ],
+    "network_denial": "--unshare-net (zero external network capability)",
+    "process_namespace": "--unshare-pid (isolated /proc)",
+    "filesystem_isolation": {
+      "windows_drives_blocked": true,
+      "ssh_keys_blocked": true,
+      "app_mount_read_only": true,
+      "private_tmpfs": true
+    },
+    "bridging_mechanism": "Unix Domain Stream Socket (/bridge/app.sock) -> 127.0.0.1:8093 Loopback Forwarder",
+    "resource_limits": {
+      "virtual_address_ceiling_mb": 500,
+      "enforcement": "POSIX resource.setrlimit(RLIMIT_AS)",
+      "observed_peak_rss_mb": 1.88,
+      "observed_peak_vms_mb": 3.57
+    }
+  },
+  "endpoint_validation": {
+    "index.html": {
+      "status": 200,
+      "length_bytes": 896,
+      "content_type": "text/html",
+      "latency_ms": 10.15
+    },
+    "body_model_glb": {
+      "status": 200,
+      "length_bytes": 8249484,
+      "content_type": "model/gltf-binary",
+      "latency_ms": 9.29
+    },
+    "main_css": {
+      "status": 200,
+      "length_bytes": 9500,
+      "content_type": "text/css",
+      "latency_ms": 11.13
+    },
+    "main_app_js": {
+      "status": 200,
+      "length_bytes": 369661,
+      "content_type": "application/javascript",
+      "latency_ms": 8.62
+    },
+    "three_viewer_js": {
+      "status": 200,
+      "length_bytes": 661100,
+      "content_type": "application/javascript",
+      "latency_ms": 8.57
+    },
+    "draco_wasm": {
+      "status": 200,
+      "length_bytes": 192420,
+      "content_type": "application/wasm",
+      "latency_ms": 7.65
+    }
+  },
+  "browser_verification": {
+    "browser": "Google Chrome (Windows)",
+    "target_resolution": "1366x768",
+    "headless_mode": "new",
+    "screenshot_path": "/mnt/c/Users/tuanh/Downloads/msk-research-lab/2data/evidence/R1_G2/run_g2_candidate2_spacejohnlf/candidate2_spacejohnlf_default_1366x768.png",
+    "screenshot_sha256": "895b7d6655befd57ce655d49b4bab7c4ab6816f821e92f339495233bc3a083fd",
+    "screenshot_size_kb": 281.31,
+    "webgl_canvas_rendered": true
+  },
+  "gate_status": {
+    "candidate_2_verdict": "PASS (VERIFIED)",
+    "overall_g2_status": "IN_PROGRESS (2/3 UPSTREAM DEMOS VERIFIED; AWAITING CANDIDATE 3 APPROVAL)"
+  }
+}

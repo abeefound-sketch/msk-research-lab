@@ -23,6 +23,7 @@ class UnixHTTPHandler(SimpleHTTPRequestHandler):
         # Register custom MIME types for 3D web assets
         mimetypes.add_type("model/gltf-binary", ".glb")
         mimetypes.add_type("model/gltf+json", ".gltf")
+        mimetypes.add_type("application/wasm", ".wasm")
         mimetypes.add_type("application/javascript", ".js")
         mimetypes.add_type("application/javascript", ".mjs")
         super().__init__(*args, directory=directory, **kwargs)
