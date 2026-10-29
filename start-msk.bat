@@ -10,14 +10,15 @@ echo.
 set WORKDIR=%~dp0
 cd /d "%WORKDIR%"
 
-:: Locate Python Runtime (prefer Windows native venv with OpenCV/MediaPipe/Camera access)
-set PYTHON_EXE=
-if exist "C:\Users\tuanh\MSK-Pose-Vision-Bridge\.venv\Scripts\python.exe" (
-    set "PYTHON_EXE=C:\Users\tuanh\MSK-Pose-Vision-Bridge\.venv\Scripts\python.exe"
-) else if exist "%WORKDIR%\.venv\Scripts\python.exe" (
-    set "PYTHON_EXE=%WORKDIR%\.venv\Scripts\python.exe"
-) else (
-    set "PYTHON_EXE=python"
+:: Locate Python Runtime (portable precedence: env override -> active venv -> local .venv -> system python)
+if not defined PYTHON_EXE (
+    if defined VIRTUAL_ENV if exist "%VIRTUAL_ENV%\Scripts\python.exe" (
+        set "PYTHON_EXE=%VIRTUAL_ENV%\Scripts\python.exe"
+    ) else if exist "%WORKDIR%\.venv\Scripts\python.exe" (
+        set "PYTHON_EXE=%WORKDIR%\.venv\Scripts\python.exe"
+    ) else (
+        set "PYTHON_EXE=python"
+    )
 )
 
 echo [1/3] Python Runtime: %PYTHON_EXE%

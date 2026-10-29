@@ -107,9 +107,11 @@ def test_workstation_page_and_overview(client):
     res_ov = client.get("/api/v1/workstation/overview")
     assert res_ov.status_code == 200
     ov = res_ov.json()
-    assert ov["status"] == "OPERATIONAL"
+    assert ov["status"] in ("OPERATIONAL", "DEGRADED_OFFLINE_READY")
     assert "patients" in ov
     assert "camera_hardware" in ov
+    assert "components" in ov
+    assert ov["components"]["clinical_realworld_gate"]["status"] == "BLOCKED"
 
 
 def test_full_patient_therapy_lifecycle(client):

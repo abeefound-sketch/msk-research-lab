@@ -48,8 +48,41 @@ def get_workstation_overview():
 
     camera_probe = probe_hardware_camera()
 
+    tracker_available = False
+    try:
+        import mediapipe  # noqa
+        tracker_available = True
+    except ImportError:
+        tracker_available = False
+
+    components = {
+        "database": {"status": "READY", "schema_version": 9, "wal_mode": True},
+        "camera": {
+            "status": "READY" if camera_probe.get("available") else "UNAVAILABLE",
+            "details": camera_probe.get("status", "CAMERA_OFFLINE")
+        },
+        "pose_tracker": {
+            "status": "READY" if tracker_available else "UNAVAILABLE",
+            "backend": "mediapipe" if tracker_available else "DEMO_FIXTURES_ONLY"
+        },
+        "atlas_assets": {
+            "status": "READY" if total_models > 0 else "UNAVAILABLE",
+            "models_registered": total_models
+        },
+        "library_index": {
+            "status": "READY" if total_documents > 0 else "DEGRADED",
+            "documents_count": total_documents
+        },
+        "clinical_realworld_gate": {
+            "status": "BLOCKED",
+            "reason": "Educational and synthetic workstation only. No automated diagnosis or clinical deployment."
+        }
+    }
+
+    overall_status = "OPERATIONAL" if (camera_probe.get("available") and tracker_available) else "DEGRADED_OFFLINE_READY"
+
     return {
-        "status": "OPERATIONAL",
+        "status": overall_status,
         "system_version": "MSK Therapy Workstation 1.0 (Personal Offline)",
         "patients": {
             "total": total_patients,
@@ -67,7 +100,8 @@ def get_workstation_overview():
             "3d_models": total_models
         },
         "camera_hardware": camera_probe,
-        "clinical_safety_status": "ENFORCED (No automated diagnosis; G9 clinical gate locked)"
+        "components": components,
+        "clinical_safety_status": "ENFORCED (No automated diagnosis; Clinical Real-World Gate = BLOCKED)"
     }
 
 
