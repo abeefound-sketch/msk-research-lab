@@ -1,0 +1,118 @@
+{
+  "timestamp": "2026-10-29T15:45:00+07:00",
+  "version": "v3.2-recovery",
+  "branch": "fix/workstation-real-functional-acceptance",
+  "environment": {
+    "os": "Linux 6.18.54-microsoft-standard-WSL2 (x86_64)",
+    "host_os": "Windows 11 Pro 64-bit",
+    "python_version": "3.10.12",
+    "sqlite_version": "3.37.2 (WAL mode, FTS5 enabled)",
+    "schema_version": 9,
+    "hardware": {
+      "cpu": "Intel(R) Core(TM) i7-5600U CPU @ 2.60GHz (2C/4T)",
+      "ram_total_mb": 7860,
+      "ram_idle_rss_mb": 46.62,
+      "ram_budget_target_mb": 100.0,
+      "gpu": "Intel HD Graphics 5500 (Mesa DRI / Software WebGL rasterizer fallback in WSL2)"
+    }
+  },
+  "summary": {
+    "total_tests": 187,
+    "passed": 187,
+    "failed": 0,
+    "skipped": 0,
+    "warnings": 1,
+    "duration_seconds": 193.83,
+    "exit_code": 0,
+    "overall_verdict": "GO — PERSONAL OFFLINE / SYNTHETIC ONLY"
+  },
+  "test_suites": [
+    {
+      "suite_name": "tests/integration/test_safety_p0_gates.py",
+      "category": "P0 Safety Invariants",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "tests": [
+        {"name": "test_red_flag_patient_cannot_record_therapy_session", "status": "PASS"},
+        {"name": "test_camera_unavailable_fails_closed_in_live_mode", "status": "PASS"},
+        {"name": "test_missing_landmarks_rejected_without_false_optimal", "status": "PASS"},
+        {"name": "test_degenerate_geometry_fails_closed", "status": "PASS"},
+        {"name": "test_demo_fixture_explicitly_tagged_synthetic", "status": "PASS"},
+        {"name": "test_grounded_soap_does_not_invent_clinical_facts", "status": "PASS"}
+      ]
+    },
+    {
+      "suite_name": "tests/integration/test_workstation_api.py",
+      "category": "P2/P3 Workstation API Contracts",
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "tests": [
+        {"name": "test_workstation_page_renders_html", "status": "PASS"},
+        {"name": "test_workstation_overview_endpoint", "status": "PASS"},
+        {"name": "test_full_patient_therapy_lifecycle", "status": "PASS"},
+        {"name": "test_motion_probe_endpoint", "status": "PASS"},
+        {"name": "test_ai_tutor_endpoints", "status": "PASS"},
+        {"name": "test_progress_export_csv", "status": "PASS"}
+      ]
+    },
+    {
+      "suite_name": "tests/integration/test_workstation_dom_and_ui.py",
+      "category": "P2 UI Interaction & DOM Security",
+      "total": 7,
+      "passed": 7,
+      "failed": 0,
+      "tests": [
+        {"name": "test_html_contains_all_seven_views", "status": "PASS"},
+        {"name": "test_all_action_matrix_selectors_exist_in_dom", "status": "PASS"},
+        {"name": "test_xss_escaping_present_in_dynamic_renderers", "status": "PASS"},
+        {"name": "test_threejs_importmap_and_gltf_loader_wired", "status": "PASS"},
+        {"name": "test_no_placeholder_alert_calls_remain_in_ui", "status": "PASS"},
+        {"name": "test_patient_edit_modal_dom_contract", "status": "PASS"},
+        {"name": "test_soap_preview_and_red_flag_alert_elements_exist", "status": "PASS"}
+      ]
+    },
+    {
+      "suite_name": "tests/integration/test_recovery_e2e_journeys.py",
+      "category": "E2E Acceptance Journeys E2E-01..12",
+      "total": 11,
+      "passed": 11,
+      "failed": 0,
+      "tests": [
+        {"name": "test_e2e_01_dashboard_reads_real_db_counts", "status": "PASS"},
+        {"name": "test_e2e_02_patient_lifecycle_search_select_edit_reload", "status": "PASS"},
+        {"name": "test_e2e_03_red_flag_blocks_therapy_session_server_side", "status": "PASS"},
+        {"name": "test_e2e_04_therapy_session_preview_edit_save_reopen", "status": "PASS"},
+        {"name": "test_e2e_05_progress_chart_and_csv_export_persistence", "status": "PASS"},
+        {"name": "test_e2e_06_camera_unavailable_fails_closed", "status": "PASS"},
+        {"name": "test_e2e_07_demo_fixture_mode_segregated_synthetic", "status": "PASS"},
+        {"name": "test_e2e_08_kinematics_landmark_validation_and_degenerate_vectors", "status": "PASS"},
+        {"name": "test_e2e_09_atlas_scene_config_and_model_route", "status": "PASS"},
+        {"name": "test_e2e_10_evidence_library_search_and_empty_state", "status": "PASS"},
+        {"name": "test_e2e_11_xss_mitigation_and_csv_formula_injection_defense", "status": "PASS"}
+      ]
+    },
+    {
+      "suite_name": "tests/security/test_sandbox_bubblewrap.py & test_sandbox_bridge.py",
+      "category": "Security Isolation & Sandbox",
+      "total": 10,
+      "passed": 10,
+      "failed": 0
+    },
+    {
+      "suite_name": "tests/integration/ (atlas, bridge, discovery, health, knowledge, library, repos, studio)",
+      "category": "Legacy & Core Lab Integration",
+      "total": 28,
+      "passed": 28,
+      "failed": 0
+    },
+    {
+      "suite_name": "tests/unit/ (35 unit test suites)",
+      "category": "Unit Test Coverage",
+      "total": 119,
+      "passed": 119,
+      "failed": 0
+    }
+  ]
+}

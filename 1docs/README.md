@@ -47,7 +47,15 @@ Thứ tự ưu tiên khi có xung đột dữ liệu:
 
 ### Các tài liệu SOT trong `1docs/`:
 
-- **Active Engineering Spec (SOT hiện hành):**  
+- **Active Recovery Spec & Acceptance Roadmap (SOT hiện hành v3.2):**  
+  [`MSK_RESEARCH_LAB_OS_RECOVERY_ROADMAP_v3_2.md`](MSK_RESEARCH_LAB_OS_RECOVERY_ROADMAP_v3_2.md) — Master Recovery Roadmap v3.2 (P0–P5 & E2E-01..12).  
+- **Baseline & Recovery Audit Artifacts:**  
+  - [`RECOVERY_BASELINE_2026-10-29.md`](RECOVERY_BASELINE_2026-10-29.md) — Forensic baseline audit.  
+  - [`artifacts/recovery/UI_ACTION_MATRIX.md`](../artifacts/recovery/UI_ACTION_MATRIX.md) — 49 controls verified WORKING.  
+  - [`artifacts/recovery/TEST_RESULTS.json`](../artifacts/recovery/TEST_RESULTS.json) — 187/187 tests PASS.  
+  - [`artifacts/recovery/RELEASE_GATE_MATRIX.md`](../artifacts/recovery/RELEASE_GATE_MATRIX.md) — P0–P5 Gate Matrix.  
+  - [`artifacts/recovery/BROWSER_E2E_REPORT.md`](../artifacts/recovery/BROWSER_E2E_REPORT.md) — E2E Journeys report.  
+- **Active Engineering Spec (SOT v2.1):**  
   [`MSK_Research_Lab_OS_v2.1_Engineering_SPEC.md`](specs/MSK_Research_Lab_OS_v2.1_Engineering_SPEC.md) — Hợp đồng kiến trúc và tiêu chí nghiệm thu v2.1 (G1–G10).
 - **Module Spec tham chiếu:**  
   [`MSK_Research_Lab_OS_Engineering_Spec.md`](specs/MSK_Research_Lab_OS_Engineering_Spec.md) — Đặc tả module hợp nhất bản đồ kinh lạc và giải phẫu (Unified Acupuncture & Meridian Atlas).

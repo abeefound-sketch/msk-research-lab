@@ -74,6 +74,14 @@ def get_patient_progress_summary(patient_id: str) -> Dict[str, Any]:
     }
 
 
+def sanitize_csv_cell(value: Any) -> Any:
+    """Neutralize formula injection by prefixing dangerous leading characters."""
+    if isinstance(value, str):
+        if value and value[0] in ("=", "+", "-", "@", "\t", "\r"):
+            return f"'{value}"
+    return value
+
+
 def export_patient_progress_csv(patient_id: str) -> str:
     """Generate structured CSV export of all therapy sessions and measurements."""
     summary = get_patient_progress_summary(patient_id)
@@ -82,9 +90,9 @@ def export_patient_progress_csv(patient_id: str) -> str:
 
     # Header section
     writer.writerow(["MSK THERAPY WORKSTATION - CLINICAL PROGRESS REPORT"])
-    writer.writerow(["Patient ID", summary["patient_id"]])
-    writer.writerow(["Full Name", summary["full_name"]])
-    writer.writerow(["Primary Complaint", summary["primary_complaint"]])
+    writer.writerow(["Patient ID", sanitize_csv_cell(summary["patient_id"])])
+    writer.writerow(["Full Name", sanitize_csv_cell(summary["full_name"])])
+    writer.writerow(["Primary Complaint", sanitize_csv_cell(summary["primary_complaint"])])
     writer.writerow(["Total Sessions", summary["total_sessions"]])
     writer.writerow(["Total Pain Reduction (VAS)", summary["total_pain_reduction"]])
     writer.writerow([])
@@ -93,7 +101,13 @@ def export_patient_progress_csv(patient_id: str) -> str:
     writer.writerow(["SESSION TIMELINE"])
     writer.writerow(["Session #", "Date", "Pre-Pain (0-10)", "Post-Pain (0-10)", "Pain Delta"])
     for pt in summary["pain_timeline"]:
-        writer.writerow([pt["session_number"], pt["date"], pt["pre_pain"], pt["post_pain"], pt["delta"]])
+        writer.writerow([
+            pt["session_number"],
+            sanitize_csv_cell(pt["date"]),
+            pt["pre_pain"],
+            pt["post_pain"],
+            pt["delta"]
+        ])
     writer.writerow([])
 
     # ROM table
@@ -102,7 +116,13 @@ def export_patient_progress_csv(patient_id: str) -> str:
     for joint_key, records in summary["rom_trajectories"].items():
         for r in records:
             writer.writerow([
-                joint_key, r["date"], r["measured_rom"], r["reference_rom"], r["deficit"], r["uncertainty_u95"], r["quality_status"]
+                sanitize_csv_cell(joint_key),
+                sanitize_csv_cell(r["date"]),
+                r["measured_rom"],
+                r["reference_rom"],
+                r["deficit"],
+                r["uncertainty_u95"],
+                sanitize_csv_cell(r["quality_status"])
             ])
 
     return output.getvalue()

@@ -8,12 +8,46 @@ import datetime
 from typing import Dict, List, Optional, Any
 from msk_research_lab.core.db import get_db
 
+import os
+import secrets
+from pathlib import Path
+
 DEFAULT_PEPPER = b"msk_workstation_local_secret_pepper_v1"
 
 
-def get_pseudonym_hash(patient_id: str, pepper: bytes = DEFAULT_PEPPER) -> str:
+def get_or_create_pepper() -> bytes:
+    """Retrieve secret HMAC pepper from environment or secure local key file."""
+    env_pepper = os.environ.get("MSK_WORKSTATION_PEPPER")
+    if env_pepper:
+        return env_pepper.encode("utf-8")
+    
+    pepper_file = Path("2data/db/.workstation_pepper")
+    if pepper_file.exists():
+        try:
+            content = pepper_file.read_bytes()
+            if len(content) >= 16:
+                return content
+        except Exception:
+            pass
+    
+    # Fallback to deterministic default or write new key
+    try:
+        pepper_file.parent.mkdir(parents=True, exist_ok=True)
+        new_pepper = secrets.token_bytes(32)
+        pepper_file.write_bytes(new_pepper)
+        try:
+            os.chmod(pepper_file, 0o600)
+        except Exception:
+            pass
+        return new_pepper
+    except Exception:
+        return DEFAULT_PEPPER
+
+
+def get_pseudonym_hash(patient_id: str, pepper: Optional[bytes] = None) -> str:
     """Generate a keyed HMAC-SHA256 pseudonym hash to prevent dictionary attacks."""
-    return hmac.new(pepper, patient_id.encode("utf-8"), hashlib.sha256).hexdigest()
+    p = pepper if pepper is not None else get_or_create_pepper()
+    return hmac.new(p, patient_id.encode("utf-8"), hashlib.sha256).hexdigest()
 
 
 class PatientManagerError(Exception):

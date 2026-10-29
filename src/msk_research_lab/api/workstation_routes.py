@@ -10,7 +10,8 @@ from msk_research_lab.workstation.patient_manager import (
     create_patient, get_patient, list_patients, update_patient, delete_patient, PatientManagerError
 )
 from msk_research_lab.workstation.therapy_manager import (
-    record_therapy_session, get_therapy_session, list_patient_sessions, TherapySessionError
+    record_therapy_session, get_therapy_session, list_patient_sessions, generate_soap_note,
+    TherapySessionError
 )
 from msk_research_lab.workstation.progress_tracker import (
     get_patient_progress_summary, export_patient_progress_csv
@@ -193,6 +194,38 @@ async def api_record_therapy_session(patient_id: str, request: Request):
         )
         return session
     except (PatientManagerError, TherapySessionError) as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@workstation_router.post("/api/v1/workstation/patients/{patient_id}/sessions/preview-soap")
+async def api_preview_soap(patient_id: str, request: Request):
+    payload = await request.json()
+    try:
+        patient = get_patient(patient_id)
+        motion_ids = payload.get("motion_assessment_ids", [])
+        motion_details = []
+        if motion_ids:
+            with get_db() as conn:
+                placeholders = ",".join(["?"] * len(motion_ids))
+                m_rows = conn.execute(
+                    f"SELECT * FROM motion_assessments WHERE id IN ({placeholders});", tuple(motion_ids)
+                ).fetchall()
+                for r in m_rows:
+                    motion_details.append(dict(r))
+
+        soap = generate_soap_note(
+            patient=patient,
+            pre_pain=float(payload.get("pre_pain_score", 0.0)),
+            post_pain=float(payload.get("post_pain_score", 0.0)),
+            pre_symptoms=payload.get("pre_symptoms_notes", ""),
+            post_symptoms=payload.get("post_symptoms_notes", ""),
+            modalities=payload.get("applied_modalities", []),
+            motion_assessments=motion_details,
+            dds_record=payload.get("dds_device_records"),
+            tolerance_notes=payload.get("tolerance_notes")
+        )
+        return {"status": "SUCCESS", "soap": soap}
+    except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
 
