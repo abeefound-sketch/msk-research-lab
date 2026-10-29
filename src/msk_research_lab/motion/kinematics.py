@@ -11,17 +11,30 @@ NORMAL_ROM_REFERENCES = {
 }
 
 
+def _get_point_xy(pt: Any) -> Tuple[float, float]:
+    """Extract (x, y) coordinates from tuple, list, or MediaPipe dictionary."""
+    if isinstance(pt, dict):
+        return (float(pt.get("x", 0.0)), float(pt.get("y", 0.0)))
+    if isinstance(pt, (list, tuple)) and len(pt) >= 2:
+        return (float(pt[0]), float(pt[1]))
+    return (0.0, 0.0)
+
+
 def compute_2d_angle(
-    a: Tuple[float, float],
-    b: Tuple[float, float],
-    c: Tuple[float, float]
+    a: Any,
+    b: Any,
+    c: Any
 ) -> float:
     """
     Calculate 2D planar angle at vertex b between vectors (a -> b) and (c -> b).
     Uses clamp [-1.0, 1.0] to avoid acos numerical domain errors.
     """
-    v1 = (a[0] - b[0], a[1] - b[1])
-    v2 = (c[0] - b[0], c[1] - b[1])
+    pa = _get_point_xy(a)
+    pb = _get_point_xy(b)
+    pc = _get_point_xy(c)
+
+    v1 = (pa[0] - pb[0], pa[1] - pb[1])
+    v2 = (pc[0] - pb[0], pc[1] - pb[1])
 
     dot = v1[0] * v2[0] + v1[1] * v2[1]
     mag1 = math.hypot(v1[0], v1[1])
@@ -69,8 +82,8 @@ def evaluate_motion_quality(
     shoulder_key = f"{side.lower()}_shoulder"
     elbow_key = f"{side.lower()}_elbow"
     if shoulder_key in landmarks and elbow_key in landmarks:
-        sh_y = landmarks[shoulder_key][1]
-        el_y = landmarks[elbow_key][1]
+        sh_y = _get_point_xy(landmarks[shoulder_key])[1]
+        el_y = _get_point_xy(landmarks[elbow_key])[1]
         if el_y < sh_y:  # Elbow elevated above shoulder
             confounders.append("HUMERAL_ELEVATION_CONFOUNDER")
             warnings.append(
@@ -149,9 +162,9 @@ def compute_joint_rom(
             "clinical_disclaimer": "2D planar camera estimate only. NOT validated for surgical or orthopedic diagnostic decisions."
         }
 
-    pt_a = landmarks[req_keys[0]]
-    pt_b = landmarks[req_keys[1]]
-    pt_c = landmarks[req_keys[2]]
+    pt_a = _get_point_xy(landmarks[req_keys[0]])
+    pt_b = _get_point_xy(landmarks[req_keys[1]])
+    pt_c = _get_point_xy(landmarks[req_keys[2]])
 
     # 2. Degenerate vector check
     v1 = (pt_a[0] - pt_b[0], pt_a[1] - pt_b[1])

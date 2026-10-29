@@ -54,10 +54,17 @@ def generate_soap_note(
 
     mod_strs = []
     for mod in modalities:
-        cat = mod.get("category", "MANUAL_THERAPY")
-        ev = MODALITY_EVIDENCE_MAP.get(cat, "TRADITIONAL_EMPIRICAL_DOCUMENTED")
-        dur = f" ({mod.get('duration_minutes')} min)" if mod.get("duration_minutes") else ""
-        mod_strs.append(f"{mod.get('name', 'Technique')} [{cat}, Evidence: {ev}]{dur}")
+        if isinstance(mod, str):
+            name = mod
+            cat = "MANUAL_THERAPY"
+            ev = MODALITY_EVIDENCE_MAP.get(name, MODALITY_EVIDENCE_MAP.get(cat, "TRADITIONAL_EMPIRICAL_DOCUMENTED"))
+            mod_strs.append(f"{name} [{cat}, Evidence: {ev}]")
+        elif isinstance(mod, dict):
+            name = mod.get("name", "Technique")
+            cat = mod.get("category", "MANUAL_THERAPY")
+            ev = MODALITY_EVIDENCE_MAP.get(cat, "TRADITIONAL_EMPIRICAL_DOCUMENTED")
+            dur = f" ({mod.get('duration_minutes')} min)" if mod.get("duration_minutes") else ""
+            mod_strs.append(f"{name} [{cat}, Evidence: {ev}]{dur}")
     modalities_obj = "; ".join(mod_strs) if mod_strs else "No manual modalities applied."
 
     dds_obj = ""

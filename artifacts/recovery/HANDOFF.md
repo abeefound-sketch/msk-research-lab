@@ -123,3 +123,19 @@ All audit documents and test evidence are persisted under `artifacts/recovery/`:
 10. `artifacts/recovery/baseline.json` — Forensic baseline environment snapshot.
 11. `1docs/RECOVERY_BASELINE_2026-10-29.md` — Initial audit report of baseline defects F-01 through F-12.
 12. `1docs/MSK_RESEARCH_LAB_OS_RECOVERY_ROADMAP_v3_2.md` — SOT Master Recovery Roadmap v3.2.
+13. `artifacts/recovery/P6_INDEPENDENT_ACCEPTANCE_REPORT.md` — Independent Black-Box Acceptance Report (P6).
+14. `artifacts/recovery/p6_blackbox_results.json` — 49/49 live automated control verification results.
+15. `artifacts/recovery/p6_workstation_screenshot.png` — Headless Chrome 1366x768 live UI capture.
+16. `artifacts/recovery/p6_chrome_rendered_dom.html` — Headless Chrome full DOM dump.
+
+---
+
+## 8. P6 Black-Box Verification & Remediated Defects
+
+During P6 independent verification, four functional defects were identified and resolved:
+- **DEF-01 (HIGH):** Batch scripting syntax bug in `start-msk.bat` preventing Windows launch. Fixed with portable label-based dispatch and environment detection.
+- **DEF-02 (HIGH):** Live webcam pose estimator was disconnected and raised `AttributeError` on MediaPipe 1.0+ Tasks API. Fixed with dual-support `_extract_live_pose()` using local `pose_landmarker_lite.task`.
+- **DEF-03 (MEDIUM):** Coordinate format mismatch in `kinematics.py` (`KeyError: 0` on MediaPipe dict landmarks). Fixed with `_get_point_xy()` adapter.
+- **DEF-04 (MEDIUM):** String modality representation crashed `generate_soap_note()` with `AttributeError`. Fixed to support both string identifiers and structured modality dicts.
+
+All 49 controls verified `WORKING` (100%) on live server with zero regressions across all 187 repository tests. Final verdict: **`GO — PERSONAL OFFLINE / SYNTHETIC ONLY`**.

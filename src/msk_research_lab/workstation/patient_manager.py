@@ -65,7 +65,7 @@ def evaluate_red_flags(red_flags: Dict[str, Any]) -> Dict[str, Any]:
         red_flags.get("saddle_anesthesia", False),
         red_flags.get("unremitting_night_pain", False)
     ]
-    requires_referral = any(critical_flags)
+    requires_referral = any(critical_flags) or bool(red_flags.get("requires_referral"))
     
     notes = red_flags.get("referral_notes", "")
     if requires_referral and not notes:
