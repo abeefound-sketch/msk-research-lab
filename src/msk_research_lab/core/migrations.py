@@ -747,6 +747,83 @@ MIGRATIONS: List[Tuple[int, str, str]] = [
         CREATE INDEX IF NOT EXISTS idx_static_art_cand ON static_analysis_artifacts(candidate_id);
         CREATE INDEX IF NOT EXISTS idx_res_reports_cand ON research_reports(candidate_id);
         """
+    ),
+    (
+        8,
+        "0008_r7_patients_and_therapy_sessions",
+        """
+        -- R7 Productization: Patients Registry
+        CREATE TABLE IF NOT EXISTS patients (
+            id TEXT PRIMARY KEY,
+            pseudonym_hash TEXT UNIQUE NOT NULL,
+            full_name TEXT NOT NULL,
+            age INTEGER,
+            gender TEXT,
+            height_cm REAL,
+            weight_kg REAL,
+            occupation TEXT,
+            activity_level TEXT DEFAULT 'MODERATE',
+            medical_history TEXT DEFAULT '',
+            primary_complaint TEXT NOT NULL,
+            pain_locations_json TEXT NOT NULL DEFAULT '[]',
+            current_pain_score REAL NOT NULL DEFAULT 0.0,
+            radiating_symptoms_json TEXT NOT NULL DEFAULT '{"has_numbness": false, "has_weakness": false, "has_radiculopathy": false, "notes": ""}',
+            functional_limitations TEXT DEFAULT '',
+            red_flags_json TEXT NOT NULL DEFAULT '{"fever": false, "unexplained_weight_loss": false, "bowel_bladder_dysfunction": false, "motor_deficit": false, "requires_referral": false, "referral_notes": ""}',
+            status TEXT NOT NULL DEFAULT 'ACTIVE',
+            created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+            updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+        );
+
+        -- R7 Productization: Motion Assessments
+        CREATE TABLE IF NOT EXISTS motion_assessments (
+            id TEXT PRIMARY KEY,
+            patient_id TEXT NOT NULL,
+            session_id TEXT,
+            joint_tested TEXT NOT NULL,
+            side TEXT NOT NULL DEFAULT 'RIGHT',
+            measured_rom_deg REAL NOT NULL,
+            reference_rom_deg REAL,
+            rom_deficit_deg REAL,
+            uncertainty_u95_deg REAL NOT NULL DEFAULT 1.5,
+            tracking_confidence REAL NOT NULL DEFAULT 1.0,
+            quality_status TEXT NOT NULL DEFAULT 'OPTIMAL',
+            confounding_factors_json TEXT NOT NULL DEFAULT '[]',
+            landmarks_json TEXT NOT NULL DEFAULT '{}',
+            assessed_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+            FOREIGN KEY(patient_id) REFERENCES patients(id) ON DELETE CASCADE
+        );
+
+        -- R7 Productization: Therapy Sessions
+        CREATE TABLE IF NOT EXISTS therapy_sessions (
+            id TEXT PRIMARY KEY,
+            patient_id TEXT NOT NULL,
+            session_number INTEGER NOT NULL DEFAULT 1,
+            session_date TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+            pre_symptoms_notes TEXT DEFAULT '',
+            pre_pain_score REAL NOT NULL DEFAULT 0.0,
+            motion_assessment_ids_json TEXT NOT NULL DEFAULT '[]',
+            related_anatomy_json TEXT NOT NULL DEFAULT '[]',
+            applied_modalities_json TEXT NOT NULL DEFAULT '[]',
+            dds_device_records_json TEXT NOT NULL DEFAULT '{"device_used": false, "disclaimer": "Readout recorded manually for clinical documentation; workbench does NOT control hardware or prescribe stimulation"}',
+            post_pain_score REAL NOT NULL DEFAULT 0.0,
+            post_symptoms_notes TEXT DEFAULT '',
+            soap_subjective TEXT DEFAULT '',
+            soap_objective TEXT DEFAULT '',
+            soap_assessment TEXT DEFAULT '',
+            soap_plan TEXT DEFAULT '',
+            operator_id TEXT NOT NULL DEFAULT 'OPERATOR',
+            created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+            FOREIGN KEY(patient_id) REFERENCES patients(id) ON DELETE CASCADE
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_patients_status ON patients(status);
+        CREATE INDEX IF NOT EXISTS idx_patients_pseudonym ON patients(pseudonym_hash);
+        CREATE INDEX IF NOT EXISTS idx_motion_patient ON motion_assessments(patient_id);
+        CREATE INDEX IF NOT EXISTS idx_motion_session ON motion_assessments(session_id);
+        CREATE INDEX IF NOT EXISTS idx_sessions_patient ON therapy_sessions(patient_id);
+        CREATE INDEX IF NOT EXISTS idx_sessions_date ON therapy_sessions(session_date);
+        """
     )
 ]
 

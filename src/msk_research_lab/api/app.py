@@ -82,6 +82,7 @@ from msk_research_lab.discovery.research_queue import (
 from msk_research_lab.discovery.static_analyzer import analyze_repository_static
 from msk_research_lab.discovery.report_generator import compare_candidates, generate_research_report
 from msk_research_lab.discovery.rea_adapter import probe_rea_adapter
+from msk_research_lab.api.workstation_routes import workstation_router
 
 
 
@@ -109,12 +110,15 @@ static_dir = Path(__file__).resolve().parent / "static"
 if static_dir.exists():
     app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
 
+# Mount MSK Therapy Personal Workstation Router
+app.include_router(workstation_router)
+
 # Explicitly no wildcard CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://127.0.0.1:8091", "http://localhost:8091"],
+    allow_origins=["http://127.0.0.1:8000", "http://localhost:8000", "http://127.0.0.1:8091", "http://localhost:8091"],
     allow_credentials=True,
-    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
 
@@ -1787,7 +1791,8 @@ def get_dashboard(request: Request):
                 <h1>MSK Research Lab OS <span class="badge badge-green">R0 Verified</span> <span class="badge badge-green">R1D Verified</span> <span class="badge badge-amber">R4 Procedural Demo</span></h1>
                 <p>Independent Research Workbench &bull; Target: Windows 10 / Ubuntu WSL2 (1366&times;768)</p>
             </div>
-            <div id="controls">
+            <div id="controls" style="display:flex; gap:10px; align-items:center;">
+                <a href="/workstation" style="background:#38bdf8; color:#04101e; text-decoration:none; padding:6px 14px; border-radius:4px; font-weight:700; font-size:12px;">Launch Personal Workstation &rarr;</a>
                 <span class="badge badge-green">LOCAL 127.0.0.1:8091</span>
             </div>
         </header>

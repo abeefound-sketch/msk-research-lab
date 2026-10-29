@@ -178,6 +178,63 @@ def cmd_serve(args):
     return 0
 
 
+def cmd_workstation(args):
+    """Start MSK Therapy Personal Workstation on 127.0.0.1:8000 and auto-open browser."""
+    import uvicorn
+    import webbrowser
+    import threading
+    from msk_research_lab.motion.camera_service import probe_hardware_camera
+
+    host = args.host or "127.0.0.1"
+    port = args.port or 8000
+
+    print("================================================================")
+    print("      MSK THERAPY PERSONAL WORKSTATION (TASK 05P)               ")
+    print("================================================================")
+    print("Preflight Diagnostics:")
+    print("  [1/3] Database Migrations: Applying pending schema migrations...")
+    applied = run_migrations()
+    print(f"        -> Database ready ({len(applied)} migrations applied).")
+
+    print("  [2/3] Hardware Camera Probe: Checking webcam access...")
+    cam = probe_hardware_camera()
+    if cam.get("available"):
+        print(f"        -> Camera OK: Device Index 0 ({cam.get('resolution')}) via {cam.get('backend')}")
+    else:
+        print(f"        -> Camera Status: Offline / Fail-closed fallback active ({cam.get('backend')})")
+
+    print(f"  [3/3] Network Binding: Checking port {port}...")
+    if is_port_in_use(port, host):
+        print(f"ERROR: Port {port} on {host} is already in use by another process.")
+        return 1
+    print(f"        -> Port {port} available.")
+
+    url = f"http://{host}:{port}/workstation"
+    print("----------------------------------------------------------------")
+    print(f"  Workstation UI: {url}")
+    print(f"  Target Hardware: Intel i7-5600U, 8GB RAM, Windows/WSL")
+    print(f"  Press Ctrl+C to stop cleanly.")
+    print("================================================================")
+
+    if not args.no_browser:
+        def open_browser():
+            time.sleep(1.2)
+            try:
+                webbrowser.open(url)
+            except Exception:
+                pass
+        threading.Thread(target=open_browser, daemon=True).start()
+
+    uvicorn.run(
+        "msk_research_lab.api.app:app",
+        host=host,
+        port=port,
+        reload=args.reload,
+        log_level="info"
+    )
+    return 0
+
+
 def cmd_migrate(args):
     """Run transactional migrations."""
     applied = run_migrations()
@@ -325,6 +382,14 @@ def main():
     p_serve.add_argument("--port", type=int, default=None, help="Port (default: 8091)")
     p_serve.add_argument("--reload", action="store_true", help="Enable hot reload")
     p_serve.set_defaults(func=cmd_serve)
+
+    # workstation
+    p_workstation = subparsers.add_parser("workstation", help="Launch unified MSK Therapy Personal Workstation")
+    p_workstation.add_argument("--host", default="127.0.0.1", help="Host interface (default: 127.0.0.1)")
+    p_workstation.add_argument("--port", type=int, default=8000, help="Port (default: 8000)")
+    p_workstation.add_argument("--no-browser", action="store_true", help="Do not automatically launch web browser")
+    p_workstation.add_argument("--reload", action="store_true", help="Enable hot reload")
+    p_workstation.set_defaults(func=cmd_workstation)
 
     # migrate
     p_migrate = subparsers.add_parser("migrate", help="Run database migrations")
