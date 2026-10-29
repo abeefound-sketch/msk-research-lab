@@ -16,7 +16,8 @@ from msk_research_lab.workstation.progress_tracker import (
     get_patient_progress_summary, export_patient_progress_csv
 )
 from msk_research_lab.motion.camera_service import (
-    probe_hardware_camera, execute_motion_assessment, list_patient_motion_assessments
+    probe_hardware_camera, execute_motion_assessment, list_patient_motion_assessments,
+    MotionAssessmentError
 )
 from msk_research_lab.ai_tutor.tutor import (
     explain_anatomical_structure, link_movement_to_muscles, explain_measurement_uncertainty,
@@ -190,6 +191,7 @@ async def api_assess_motion(request: Request):
     session_id = payload.get("session_id")
     custom_landmarks = payload.get("custom_landmarks")
     fixture_name = payload.get("fixture_name")
+    mode = payload.get("mode", "LIVE")
 
     try:
         return execute_motion_assessment(
@@ -198,8 +200,12 @@ async def api_assess_motion(request: Request):
             side=side,
             session_id=session_id,
             custom_landmarks=custom_landmarks,
-            fixture_name=fixture_name
+            fixture_name=fixture_name,
+            mode=mode
         )
+    except MotionAssessmentError as e:
+        status = 422 if e.error_code in ("NO_POSE", "INSUFFICIENT_LANDMARKS", "DEGENERATE_GEOMETRY") else 400
+        raise HTTPException(status_code=status, detail={"message": str(e), "error_code": e.error_code})
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Motion assessment failed: {str(e)}")
 

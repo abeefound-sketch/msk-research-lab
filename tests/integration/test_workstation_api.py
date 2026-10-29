@@ -129,11 +129,12 @@ def test_full_patient_therapy_lifecycle(client):
     pat = res_p.json()
     pid = pat["id"]
 
-    # 2. Run Motion Assessment
+    # 2. Run Motion Assessment in DEMO mode for offline test environment
     m_data = {
         "patient_id": pid,
         "joint_tested": "SHOULDER_ABDUCTION",
-        "side": "RIGHT"
+        "side": "RIGHT",
+        "mode": "DEMO"
     }
     res_m = client.post("/api/v1/workstation/motion/assess", json=m_data)
     assert res_m.status_code == 200

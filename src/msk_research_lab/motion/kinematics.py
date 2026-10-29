@@ -101,50 +101,98 @@ def evaluate_motion_quality(
     }
 
 
+REQUIRED_LANDMARKS = {
+    "ELBOW_FLEXION": ("shoulder", "elbow", "wrist"),
+    "SHOULDER_ABDUCTION": ("hip", "shoulder", "elbow"),
+    "SHOULDER_ELEVATION": ("hip", "shoulder", "elbow"),
+    "KNEE_FLEXION": ("hip", "knee", "ankle")
+}
+
+
 def compute_joint_rom(
     landmarks: Dict[str, Tuple[float, float]],
     joint_tested: str,
     side: str = "RIGHT",
-    visibility_scores: Optional[Dict[str, float]] = None
+    visibility_scores: Optional[Dict[str, float]] = None,
+    apparent_span_ratio: Optional[float] = None
 ) -> Dict[str, Any]:
     """
     Compute joint ROM angle, reference comparison, deficit, and uncertainty budget.
+    Fails closed when required anatomical landmarks are missing or degenerate.
     """
     s = side.lower()
-    measured_angle = 0.0
-
-    if joint_tested == "ELBOW_FLEXION":
-        sh = landmarks.get(f"{s}_shoulder", (0.0, 0.0))
-        el = landmarks.get(f"{s}_elbow", (0.0, 0.0))
-        wr = landmarks.get(f"{s}_wrist", (0.0, 0.0))
-        measured_angle = compute_2d_angle(sh, el, wr)
-    elif joint_tested in ("SHOULDER_ABDUCTION", "SHOULDER_ELEVATION"):
-        hip = landmarks.get(f"{s}_hip", (0.0, 0.0))
-        sh = landmarks.get(f"{s}_shoulder", (0.0, 0.0))
-        el = landmarks.get(f"{s}_elbow", (0.0, 0.0))
-        measured_angle = compute_2d_angle(hip, sh, el)
-    elif joint_tested == "KNEE_FLEXION":
-        hip = landmarks.get(f"{s}_hip", (0.0, 0.0))
-        knee = landmarks.get(f"{s}_knee", (0.0, 0.0))
-        ank = landmarks.get(f"{s}_ankle", (0.0, 0.0))
-        measured_angle = compute_2d_angle(hip, knee, ank)
-    else:
-        # Generic angle fallback
-        sh = landmarks.get(f"{s}_shoulder", (0.0, 0.0))
-        el = landmarks.get(f"{s}_elbow", (0.0, 0.0))
-        wr = landmarks.get(f"{s}_wrist", (0.0, 0.0))
-        measured_angle = compute_2d_angle(sh, el, wr)
-
     ref_rom = NORMAL_ROM_REFERENCES.get(joint_tested, 140.0)
+
+    # 1. Landmark completeness validation
+    req_parts = REQUIRED_LANDMARKS.get(joint_tested, ("shoulder", "elbow", "wrist"))
+    req_keys = [f"{s}_{part}" for part in req_parts]
+    missing = [k for k in req_keys if k not in landmarks or landmarks[k] is None]
+
+    if missing:
+        return {
+            "joint_tested": joint_tested,
+            "side": side,
+            "measured_rom_deg": None,
+            "reference_rom_deg": ref_rom,
+            "rom_deficit_deg": None,
+            "uncertainty_u95_deg": None,
+            "tracking_confidence": 0.0,
+            "quality_status": "INSUFFICIENT_DATA",
+            "warnings": [f"MISSING_LANDMARK: Required key '{k}' missing from pose tracking." for k in missing],
+            "confounding_factors": ["INCOMPLETE_LANDMARK_SET"],
+            "uncertainty_budget": {
+                "combined_standard_uncertainty_deg": None,
+                "coverage_factor_k": 1.96,
+                "expanded_uncertainty_u95_deg": None,
+                "distributional_assumption": "UNCERTAINTY_NOT_VALIDATED"
+            },
+            "clinical_disclaimer": "2D planar camera estimate only. NOT validated for surgical or orthopedic diagnostic decisions."
+        }
+
+    pt_a = landmarks[req_keys[0]]
+    pt_b = landmarks[req_keys[1]]
+    pt_c = landmarks[req_keys[2]]
+
+    # 2. Degenerate vector check
+    v1 = (pt_a[0] - pt_b[0], pt_a[1] - pt_b[1])
+    v2 = (pt_c[0] - pt_b[0], pt_c[1] - pt_b[1])
+    mag1 = math.hypot(v1[0], v1[1])
+    mag2 = math.hypot(v2[0], v2[1])
+
+    if mag1 < 1e-4 or mag2 < 1e-4:
+        return {
+            "joint_tested": joint_tested,
+            "side": side,
+            "measured_rom_deg": None,
+            "reference_rom_deg": ref_rom,
+            "rom_deficit_deg": None,
+            "uncertainty_u95_deg": None,
+            "tracking_confidence": 0.0,
+            "quality_status": "DEGENERATE_GEOMETRY",
+            "warnings": ["DEGENERATE_VECTORS: Landmark coordinates have zero displacement between adjacent joint points."],
+            "confounding_factors": ["DEGENERATE_GEOMETRY"],
+            "uncertainty_budget": {
+                "combined_standard_uncertainty_deg": None,
+                "coverage_factor_k": 1.96,
+                "expanded_uncertainty_u95_deg": None,
+                "distributional_assumption": "UNCERTAINTY_NOT_VALIDATED"
+            },
+            "clinical_disclaimer": "2D planar camera estimate only. NOT validated for surgical or orthopedic diagnostic decisions."
+        }
+
+    measured_angle = compute_2d_angle(pt_a, pt_b, pt_c)
     deficit = max(0.0, ref_rom - measured_angle)
 
     quality = evaluate_motion_quality(
         landmarks=landmarks,
         joint_tested=joint_tested,
         side=side,
-        apparent_span_ratio=1.0,
+        apparent_span_ratio=apparent_span_ratio if apparent_span_ratio is not None else 1.0,
         visibility_scores=visibility_scores
     )
+
+    if apparent_span_ratio is None:
+        quality["confounding_factors"].append("UNCALIBRATED_YAW")
 
     return {
         "joint_tested": joint_tested,

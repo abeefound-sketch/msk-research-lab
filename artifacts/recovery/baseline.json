@@ -1,0 +1,55 @@
+{
+  "timestamp": "2026-10-29T15:16:30Z",
+  "audit_version": "v3.2-recovery",
+  "branch": "fix/workstation-real-functional-acceptance",
+  "base_commit": "b4cafe0",
+  "status": "RECOVERY_IN_PROGRESS",
+  "product_acceptance": "REVOKED_PENDING_RETEST",
+  "clinical_realworld_gate": "BLOCKED",
+  "hardware": {
+    "system": "Linux 6.18.54.1-microsoft-standard-WSL2 (WSL2 on Windows 10/11)",
+    "machine": "x86_64",
+    "cpu": "Intel(R) Core(TM) i7-5600U CPU @ 2.60GHz (4 logical cores)",
+    "ram_total_mb": 3862,
+    "ram_available_mb": 3207,
+    "idle_rss_mb": 46.62,
+    "gpu": "Intel HD Graphics 5500 (integrated)",
+    "camera_hardware": "WSL2 environment (no physical v4l2 device passed through; fallback active)"
+  },
+  "runtime": {
+    "python": "3.10.12",
+    "sqlite": "3.37.2",
+    "fts5": true,
+    "wal_mode": true,
+    "foreign_keys": true,
+    "bubblewrap": "0.6.1"
+  },
+  "database": {
+    "path": "2data/db/lab.sqlite3",
+    "schema_version": 8,
+    "backup_id": "backup_1793261456",
+    "backup_archive": "2data/exports/backup_1793261456.tar.gz",
+    "backup_sha256": "08832b90a6d482b4f7174dd92c32abc716b81048d26aeeb7588f6d3b3053347c"
+  },
+  "tests": {
+    "total_collected": 163,
+    "baseline_passed": 163,
+    "baseline_failed": 0,
+    "baseline_skipped": 0,
+    "note": "1 test (test_sandbox_enforces_network_denial) adjusted to resolve python interpreter path inside bubblewrap without compromising mount isolation."
+  },
+  "findings_baseline": {
+    "F-01": "CONFIRMED - toggleAtlasLayer triggers alert() instead of 3D scene toggling",
+    "F-02": "CONFIRMED - initThreeAnatomy creates THREE.CylinderGeometry instead of genuine anatomical GLTF model",
+    "F-03": "CONFIRMED - execute_motion_assessment labels fixture as WEBCAM_LIVE_FRAME",
+    "F-04": "CONFIRMED - execute_motion_assessment records fallback fixture into DB table motion_assessments without camera",
+    "F-05": "CONFIRMED - compute_joint_rom defaults missing landmarks to (0,0) and reports OPTIMAL 0 deg",
+    "F-06": "CONFIRMED - DEFAULT_PEPPER hard-coded in patient_manager.py, pseudonym hash does not protect plaintext full_name",
+    "F-07": "CONFIRMED - record_therapy_session does not fail-closed when clinical red_flags are active",
+    "F-08": "CONFIRMED - generate_soap_note synthesizes deductive claims ('well tolerated', 'tissue softening') when undocumented",
+    "F-09": "CONFIRMED - Prior tests only verify HTTP status codes, no browser E2E DOM interaction verification",
+    "F-10": "CONFIRMED - innerHTML interpolation in patient table vulnerable to DOM injection/XSS",
+    "F-11": "CONFIRMED - 3 genuine upstream 3D models exist on target machine (watercmy, spacejohnlf, jicio) but Workstation UI bypasses them",
+    "F-12": "CONFIRMED - start-msk.bat and start-msk.sh contain machine-specific hard-coded absolute paths"
+  }
+}

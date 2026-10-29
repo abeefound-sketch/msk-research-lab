@@ -30,34 +30,35 @@ def generate_soap_note(
     post_symptoms: str,
     modalities: List[Dict[str, Any]],
     motion_assessments: List[Dict[str, Any]],
-    dds_record: Optional[Dict[str, Any]] = None
+    dds_record: Optional[Dict[str, Any]] = None,
+    tolerance_notes: Optional[str] = None
 ) -> Dict[str, str]:
     """Generate structured SOAP clinical note draft based on objective session data."""
     # S - Subjective
     subj = (
-        f"Chief Complaint: {patient.get('primary_complaint', 'N/A')}. "
+        f"Chief Complaint: {patient.get('primary_complaint', 'Not documented')}. "
         f"Pre-session pain score: {pre_pain}/10 (VAS). "
-        f"Symptoms reported: {pre_symptoms or 'Standard regional muscular tension.'}. "
-        f"Functional limitations noted: {patient.get('functional_limitations', 'None reported')}."
+        f"Symptoms reported: {pre_symptoms.strip() if pre_symptoms and pre_symptoms.strip() else 'Not documented'}. "
+        f"Functional limitations noted: {patient.get('functional_limitations') or 'None reported'}."
     )
 
     # O - Objective
     motion_strs = []
     for m in motion_assessments:
         deficit_str = f", deficit {m.get('rom_deficit_deg')}°" if m.get('rom_deficit_deg') is not None else ""
-        conf = f" (Confidence: {m.get('tracking_confidence', 1.0):.2f}, Status: {m.get('quality_status', 'OPTIMAL')})"
+        conf = f" (Confidence: {m.get('tracking_confidence', 0.0):.2f}, Status: {m.get('quality_status', 'UNVERIFIED')})"
         motion_strs.append(
-            f"{m.get('joint_tested', 'Joint')} ({m.get('side', 'R')}): {m.get('measured_rom_deg')}° ±{m.get('uncertainty_u95_deg', 1.5)}°{deficit_str}{conf}"
+            f"{m.get('joint_tested', 'Joint')} ({m.get('side', 'R')}): {m.get('measured_rom_deg')}° ±{m.get('uncertainty_u95_deg', 0.0)}°{deficit_str}{conf}"
         )
-    motion_obj = "; ".join(motion_strs) if motion_strs else "No active camera kinematic motion measurements captured during session."
+    motion_obj = "; ".join(motion_strs) if motion_strs else "No kinematic motion measurements recorded during session."
 
     mod_strs = []
     for mod in modalities:
         cat = mod.get("category", "MANUAL_THERAPY")
         ev = MODALITY_EVIDENCE_MAP.get(cat, "TRADITIONAL_EMPIRICAL_DOCUMENTED")
-        dur = f" ({mod.get('duration_minutes', 15)} min)" if mod.get("duration_minutes") else ""
+        dur = f" ({mod.get('duration_minutes')} min)" if mod.get("duration_minutes") else ""
         mod_strs.append(f"{mod.get('name', 'Technique')} [{cat}, Evidence: {ev}]{dur}")
-    modalities_obj = "; ".join(mod_strs) if mod_strs else "Manual physical therapy modalities applied."
+    modalities_obj = "; ".join(mod_strs) if mod_strs else "No manual modalities applied."
 
     dds_obj = ""
     if dds_record and dds_record.get("device_used"):
@@ -65,7 +66,7 @@ def generate_soap_note(
             f" Physical DDS bioelectric device readout documented: "
             f"Frequency: {dds_record.get('recorded_frequency_hz', 'N/A')} Hz, "
             f"Intensity: {dds_record.get('recorded_intensity_ma', 'N/A')} mA, "
-            f"Patient reported sensation: '{dds_record.get('patient_sensation', 'Comfortable tingling')}'. "
+            f"Patient reported sensation: '{dds_record.get('patient_sensation', 'Not documented')}'. "
             f"(Note: Parameters recorded for documentation only; software does not command device)."
         )
 
@@ -73,19 +74,19 @@ def generate_soap_note(
 
     # A - Assessment
     delta_pain = pre_pain - post_pain
-    tolerance = "well tolerated without adverse reaction" if not (dds_record and dds_record.get("adverse_reaction")) else "discontinued due to patient discomfort"
+    post_obs = post_symptoms.strip() if post_symptoms and post_symptoms.strip() else "Not documented"
+    tolerance_str = tolerance_notes.strip() if tolerance_notes and tolerance_notes.strip() else ("Discontinued due to patient discomfort" if (dds_record and dds_record.get("adverse_reaction")) else "Not documented (requires practitioner observation)")
     asmt = (
-        f"Patient underwent planned conservative therapy, which was {tolerance}. "
-        f"Immediate post-treatment pain score decreased by {delta_pain:.1f} points ({pre_pain} -> {post_pain}/10). "
-        f"Post-treatment observation: {post_symptoms or 'Noticeable regional tissue softening and relaxed posture.'}."
+        f"Pain score change: {pre_pain} -> {post_pain}/10 (delta: {delta_pain:+.1f}). "
+        f"Treatment tolerance: {tolerance_str}. "
+        f"Post-treatment observation: {post_obs}."
     )
 
     # P - Plan
     plan = (
-        "1. Recommend active gentle pain-free mobility within measured ROM. "
-        "2. Adequate oral hydration and avoid prolonged sustained static postures. "
-        "3. Review progress next scheduled session. "
-        "4. Red flag education: contact medical provider immediately if radiating numbness or sharp acute pain develops."
+        "1. Active gentle pain-free mobility within tolerable range as verified by practitioner.\n"
+        "2. Review functional response and pain score at next scheduled session.\n"
+        "3. Red flag education: contact medical provider immediately if radiating numbness, motor weakness, or sharp acute pain develops."
     )
 
     return {
@@ -112,6 +113,21 @@ def record_therapy_session(
 ) -> Dict[str, Any]:
     """Record a comprehensive therapy session with objective telemetry and SOAP notes."""
     patient = get_patient(patient_id)
+
+    # Red flag fail-closed hard stop:
+    # If patient has active clinical red flags requiring referral, routine manual or electro-therapy interventions are strictly blocked.
+    red_flags = patient.get("red_flags", {})
+    if red_flags.get("requires_referral"):
+        is_referral_only = (
+            soap_notes and "REFERRAL" in soap_notes.get("assessment", "").upper()
+            and not applied_modalities
+            and not motion_assessment_ids
+            and not (dds_device_records and dds_device_records.get("device_used"))
+        )
+        if not is_referral_only:
+            raise TherapySessionError(
+                "CLINICAL_RED_FLAG_BLOCKED: Patient has active clinical red flags requiring specialist medical referral. Routine therapy interventions and kinematic assessments are strictly blocked."
+            )
     sid = session_id or f"SES-{uuid.uuid4().hex[:8].upper()}"
     now = datetime.datetime.utcnow().isoformat() + "Z"
 

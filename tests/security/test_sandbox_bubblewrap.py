@@ -83,8 +83,11 @@ def test_sandbox_enforces_network_denial(bwrap_path, tmp_path):
         "s.settimeout(0.5);"
         "s.connect(('127.0.0.1', 8091))"
     )
+    # Inside bubblewrap, /mnt is strictly isolated and excluded.
+    # If sys.executable resides in /mnt (e.g. WSL venv), use system python mounted under /usr.
+    py_exec = "/usr/bin/python3" if sys.executable.startswith("/mnt") and os.path.exists("/usr/bin/python3") else sys.executable
     cmd = wrap_with_bubblewrap(
-        [sys.executable, "-c", py_code],
+        [py_exec, "-c", py_code],
         repo_dir=tmp_path,
         bwrap_path=bwrap_path
     )

@@ -824,6 +824,16 @@ MIGRATIONS: List[Tuple[int, str, str]] = [
         CREATE INDEX IF NOT EXISTS idx_sessions_patient ON therapy_sessions(patient_id);
         CREATE INDEX IF NOT EXISTS idx_sessions_date ON therapy_sessions(session_date);
         """
+    ),
+    (
+        9,
+        "r9_safety_epistemics_and_provenance",
+        """
+        ALTER TABLE motion_assessments ADD COLUMN data_source TEXT NOT NULL DEFAULT 'UNSPECIFIED';
+        ALTER TABLE motion_assessments ADD COLUMN is_synthetic INTEGER NOT NULL DEFAULT 1;
+        ALTER TABLE patients ADD COLUMN is_synthetic INTEGER NOT NULL DEFAULT 1;
+        ALTER TABLE therapy_sessions ADD COLUMN is_synthetic INTEGER NOT NULL DEFAULT 1;
+        """
     )
 ]
 
