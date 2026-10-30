@@ -139,3 +139,44 @@ During P6 independent verification, four functional defects were identified and 
 - **DEF-04 (MEDIUM):** String modality representation crashed `generate_soap_note()` with `AttributeError`. Fixed to support both string identifiers and structured modality dicts.
 
 All 49 controls verified `WORKING` (100%) on live server with zero regressions across all 187 repository tests. Final verdict: **`GO — PERSONAL OFFLINE / SYNTHETIC ONLY`**.
+
+---
+
+## 9. P7 Operational Readiness Acceptance & Defect Remediation
+
+**Date:** 2026-10-30  
+**Phase:** P7 Operational Readiness  
+**Acceptance Verdict:** **`GO — PERSONAL OFFLINE / SYNTHETIC ONLY`**  
+**Repository Test Results:** **191 passed, 0 failed, 1 warning in 282.35s** (100% PASS)  
+**Interactive Controls:** **49/49 VERIFIED (100%)** on running workstation instance  
+**Clinical Real-World Gate:** **`BLOCKED (PERMANENT INVARIANT)`**  
+
+### Newly Remediated P7 Defects (DEF-05 through DEF-08)
+- **DEF-05 (MEDIUM): 3D Atlas Mock Geometry Fallback Eliminated.**
+  - *Root Cause:* In `workstation_ui.py`, when GLTFLoader failed or was unavailable, `renderCalibratedReferenceTorso()` rendered a mock `THREE.CylinderGeometry(0.5, 0.4, 1.4, 16)` and fake spine line, masquerading primitive geometry as anatomy.
+  - *Remediation:* Removed mock cylinder rendering. Added `showAtlasAssetError()` to display an explicit fail-closed safety alert (`3D ANATOMICAL ASSET ERROR`). Verified in `test_p7_operational_readiness.py`.
+- **DEF-06 (MEDIUM): FTS5 Query Syntax Sanitization & Elimination of Fabricated Citations.**
+  - *Root Cause:* In `tutor.py`, queries containing FTS5 punctuation caused SQLite exceptions, which returned a dummy citation row `{"doc_id": "ERR", "title": "Search Query Note", ...}` rendered as real literature in the UI.
+  - *Remediation:* Sanitized query tokens using alphanumeric regex extraction and phrase prefixing. On database exceptions, returns honest empty list `[]` instead of fabricating placeholder citation rows.
+- **DEF-07 (HIGH): Metrology Resource Leak, Visibility Propagation & 4-Way Provenance.**
+  - *Root Cause:* Camera capture handle was omitted from `finally:` blocks in `camera_service.py`. MediaPipe landmark visibility was discarded. Missing landmarks caused `sqlite3.IntegrityError: NOT NULL constraint failed: motion_assessments.measured_rom_deg`. Explicit provenance categories were absent.
+  - *Remediation:* Wrapped camera handles in `try ... finally: cap.release()`. Propagated landmark visibility scores to `compute_joint_rom()`. Added fail-closed `InsufficientLandmarksError` / `DegenerateGeometryError` on unmeasurable frames. Emitted explicit 4-way provenance categories (`LIVE_MEASURED`, `SYNTHETIC_TEST`, `NOT_MEASURABLE`, `INVALID_INPUT`).
+- **DEF-08 (LOW): Windows Batch Launcher Argument Forwarding in WSL Fallback.**
+  - *Root Cause:* In `start-msk.bat`, when falling back to WSL, command-line arguments `%*` (e.g. `--port`, `--help`) were dropped, and Windows path `%WORKDIR%` was used without `wslpath`.
+  - *Remediation:* Updated WSL fallback: `wsl -e bash -c "cd \"$(wslpath '%WORKDIR%')\" && bash start-msk.sh %*"`.
+
+### Consolidated P7 Evidence Artifacts
+All operational verification evidence is documented in `artifacts/p7/`:
+- `artifacts/p7/P7_BASELINE_AND_EVIDENCE_REVIEW.md`
+- `artifacts/p7/P7_REAL_WORKFLOW_MATRIX.md`
+- `artifacts/p7/P7_DEFECT_REGISTER.md`
+- `artifacts/p7/P7_MOTION_METROLOGY_AUDIT.md`
+- `artifacts/p7/P7_ATLAS_ASSET_AUDIT.md`
+- `artifacts/p7/P7_SECURITY_PRIVACY_AUDIT.md`
+- `artifacts/p7/P7_OFFLINE_INSTALLATION_REPORT.md`
+- `artifacts/p7/P7_TEST_RESULTS.json`
+- `artifacts/p7/P7_INDEPENDENT_ACCEPTANCE_REPORT.md`
+- `artifacts/p7/P7_TO_P8_HANDOFF.md`
+- `artifacts/p7/p7_blackbox_runner.py` & `p7_blackbox_results.json`
+- `artifacts/p7/p7_workstation_screenshot.png` & `p7_chrome_rendered_dom.html`
+- `artifacts/p7/p7_pytest_full.txt`

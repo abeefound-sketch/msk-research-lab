@@ -53,7 +53,7 @@ where wsl >nul 2>&1
 if %ERRORLEVEL% NEQ 0 goto :no_runtime
 
 echo [INFO] Launching via WSL2 environment where dependencies are installed...
-wsl -e bash -c "cd '%WORKDIR%' && bash start-msk.sh"
+wsl -e bash -c "cd \"$(wslpath '%WORKDIR%')\" && bash start-msk.sh %*"
 exit /b %ERRORLEVEL%
 
 :no_runtime

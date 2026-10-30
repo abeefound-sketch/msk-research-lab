@@ -251,7 +251,10 @@ async def api_assess_motion(request: Request):
     payload = await request.json()
     patient_id = payload.get("patient_id")
     if not patient_id:
-        raise HTTPException(status_code=400, detail="patient_id is required.")
+        raise HTTPException(
+            status_code=400,
+            detail={"message": "patient_id is required.", "error_code": "INVALID_INPUT", "provenance_category": "INVALID_INPUT"}
+        )
     
     joint = payload.get("joint_tested", "ELBOW_FLEXION")
     side = payload.get("side", "RIGHT")
@@ -272,9 +275,10 @@ async def api_assess_motion(request: Request):
         )
     except MotionAssessmentError as e:
         status = 422 if e.error_code in ("NO_POSE", "INSUFFICIENT_LANDMARKS", "DEGENERATE_GEOMETRY") else 400
-        raise HTTPException(status_code=status, detail={"message": str(e), "error_code": e.error_code})
+        prov_cat = "NOT_MEASURABLE" if e.error_code in ("NO_POSE", "INSUFFICIENT_LANDMARKS", "DEGENERATE_GEOMETRY", "CAMERA_UNAVAILABLE") else "INVALID_INPUT"
+        raise HTTPException(status_code=status, detail={"message": str(e), "error_code": e.error_code, "provenance_category": prov_cat})
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Motion assessment failed: {str(e)}")
+        raise HTTPException(status_code=500, detail={"message": f"Motion assessment failed: {str(e)}", "error_code": "INTERNAL_ERROR", "provenance_category": "NOT_MEASURABLE"})
 
 
 @workstation_router.get("/api/v1/workstation/patients/{patient_id}/motion")

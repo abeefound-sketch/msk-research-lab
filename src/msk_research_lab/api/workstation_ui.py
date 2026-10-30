@@ -1648,39 +1648,29 @@ def render_workstation_ui() -> str:
                         // Add authenticated Acupoint & Meridian Markers
                         addMeridianPointsToScene(sceneMeta.points || []);
                     }, undefined, (err) => {
-                        console.warn("GLTFLoader error, falling back to calibrated reference wireframe:", err);
-                        renderCalibratedReferenceTorso();
+                        console.error("GLTFLoader error:", err);
+                        showAtlasAssetError(`Failed to load authentic 3D mesh for '${escapeHtml(modelId)}'. Mock primitive substitution is prohibited by biomedical safety invariants.`);
                     });
                 } else {
-                    renderCalibratedReferenceTorso();
+                    showAtlasAssetError(`GLTFLoader unavailable or model file URL missing for '${escapeHtml(modelId)}'.`);
                 }
             } catch (e) {
-                console.warn("Could not load authentic GLTF file, rendering calibrated reference wireframe:", e);
-                renderCalibratedReferenceTorso();
+                console.error("Could not load authentic GLTF file:", e);
+                showAtlasAssetError(e.message || "Model metadata unavailable. Mock geometry substitution is prohibited.");
             }
         }
 
-        function renderCalibratedReferenceTorso() {
+        function showAtlasAssetError(msg) {
             const loading = document.getElementById('atlas-loading');
-            if (loading) loading.style.display = 'none';
-
-            // Authentic reference geometry representing BodyParts3D C7-T12 Torso
-            const torsoGeo = new THREE.CylinderGeometry(0.5, 0.4, 1.4, 16);
-            const torsoMat = new THREE.MeshStandardMaterial({
-                color: 0x1e293b,
-                roughness: 0.7,
-                transparent: true,
-                opacity: 0.85
-            });
-            const torsoMesh = new THREE.Mesh(torsoGeo, torsoMat);
-            musclesGroup.add(torsoMesh);
-
-            // Meridian Spine Line
-            const spineMat = new THREE.LineBasicMaterial({ color: 0x34d399, linewidth: 2 });
-            const spinePoints = [new THREE.Vector3(0, 0.7, 0), new THREE.Vector3(0, -0.7, 0)];
-            const spineGeo = new THREE.BufferGeometry().setFromPoints(spinePoints);
-            const spineLine = new THREE.Line(spineGeo, spineMat);
-            meridiansGroup.add(spineLine);
+            if (loading) {
+                loading.style.display = 'block';
+                loading.innerHTML = `
+                    <div style="background:rgba(239, 68, 68, 0.15); border:1px solid var(--accent-rose); border-radius:6px; padding:12px; max-width:380px; margin:0 auto;">
+                        <span style="color:var(--accent-rose); font-weight:700; font-size:12px;">3D ANATOMICAL ASSET ERROR</span>
+                        <div style="font-size:11px; color:#cbd5e1; margin-top:4px;">${msg}</div>
+                    </div>
+                `;
+            }
         }
 
         function addMeridianPointsToScene(points) {

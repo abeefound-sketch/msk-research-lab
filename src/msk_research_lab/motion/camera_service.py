@@ -75,13 +75,13 @@ class DegenerateGeometryError(MotionAssessmentError):
 
 
 def probe_hardware_camera() -> Dict[str, Any]:
-    """Probe system for physical webcam availability."""
+    """Probe system for physical webcam availability with fail-closed resource release."""
+    cap = None
     try:
         import cv2
         cap = cv2.VideoCapture(0)
         if cap.isOpened():
             ret, frame = cap.read()
-            cap.release()
             if ret and frame is not None:
                 h, w = frame.shape[:2]
                 return {
@@ -91,7 +91,6 @@ def probe_hardware_camera() -> Dict[str, Any]:
                     "backend": "OPENCV_ACTIVE",
                     "status": "READY"
                 }
-        cap.release()
     except Exception as e:
         return {
             "available": False,
@@ -100,6 +99,12 @@ def probe_hardware_camera() -> Dict[str, Any]:
             "backend": "UNAVAILABLE",
             "status": "CAMERA_OFFLINE_FAIL_CLOSED"
         }
+    finally:
+        if cap is not None:
+            try:
+                cap.release()
+            except Exception:
+                pass
 
     return {
         "available": False,
@@ -149,6 +154,8 @@ def _extract_live_pose(frame) -> Dict[str, Dict[str, float]]:
                 res = landmarker.detect(mp_img)
                 if not res or not res.pose_landmarks:
                     raise InsufficientLandmarksError("NO_POSE: Human subject was not detected in camera frame.")
+                if len(res.pose_landmarks) > 1:
+                    raise InsufficientLandmarksError("AMBIGUOUS_POSE: Multiple subjects detected in camera frame. Assessment requires isolated single subject.")
                 raw = res.pose_landmarks[0]
                 return {
                     "left_shoulder": {"x": raw[11].x, "y": raw[11].y, "z": raw[11].z, "visibility": getattr(raw[11], "visibility", 1.0)},
@@ -225,14 +232,26 @@ def execute_motion_assessment(
             landmarks = STANDARD_POSTURE_FIXTURES.get(fname, STANDARD_POSTURE_FIXTURES["TADASANA_NEUTRAL"])
             source = f"FIXTURE_{fname}"
 
+        vis_scores = {k: v.get("visibility", 1.0) if isinstance(v, dict) else 1.0 for k, v in landmarks.items()}
         eval_result = compute_joint_rom(
             landmarks=landmarks,
             joint_tested=joint_tested,
-            side=side
+            side=side,
+            visibility_scores=vis_scores
         )
+
+        if eval_result.get("measured_rom_deg") is None:
+            if eval_result.get("quality_status") == "DEGENERATE_GEOMETRY":
+                raise DegenerateGeometryError(
+                    "DEGENERATE_GEOMETRY: Landmark coordinates produce zero-length or degenerate joint vectors."
+                )
+            raise InsufficientLandmarksError(
+                f"INSUFFICIENT_LANDMARKS: Missing required anatomical landmarks for {joint_tested}."
+            )
 
         mid = f"MOT-DEMO-{uuid.uuid4().hex[:8].upper()}"
         now = datetime.datetime.utcnow().isoformat() + "Z"
+        prov_cat = "SYNTHETIC_TEST"
 
         # Persist with explicit synthetic provenance so session linkage can resolve it
         with get_db() as conn:
@@ -258,6 +277,7 @@ def execute_motion_assessment(
         eval_result["data_source"] = source
         eval_result["is_synthetic"] = True
         eval_result["mode"] = "DEMO"
+        eval_result["provenance_category"] = prov_cat
         eval_result["assessed_at"] = now
         return eval_result
 
@@ -268,30 +288,48 @@ def execute_motion_assessment(
             "CAMERA_UNAVAILABLE: Physical webcam is offline or inaccessible in this environment. Use DEMO mode to view standard posture fixtures."
         )
 
-    # Attempt capture from camera
+    # Attempt capture from camera with guaranteed handle release
+    cap = None
     try:
         import cv2
         cap = cv2.VideoCapture(0)
         ret, frame = cap.read()
-        cap.release()
         if not ret or frame is None:
             raise CameraUnavailableError("CAMERA_CAPTURE_FAILED: Failed to capture live frame from video device.")
     except Exception as e:
         if isinstance(e, CameraUnavailableError):
             raise
         raise CameraUnavailableError(f"CAMERA_IO_ERROR: {str(e)}")
+    finally:
+        if cap is not None:
+            try:
+                cap.release()
+            except Exception:
+                pass
 
     # Extract 33-point pose landmarks from live video frame
     landmarks = _extract_live_pose(frame)
+    vis_scores = {k: v.get("visibility", 1.0) if isinstance(v, dict) else 1.0 for k, v in landmarks.items()}
 
     eval_result = compute_joint_rom(
         landmarks=landmarks,
         joint_tested=joint_tested,
-        side=side
+        side=side,
+        visibility_scores=vis_scores
     )
+
+    if eval_result.get("measured_rom_deg") is None:
+        if eval_result.get("quality_status") == "DEGENERATE_GEOMETRY":
+            raise DegenerateGeometryError(
+                "DEGENERATE_GEOMETRY: Landmark coordinates produce zero-length or degenerate joint vectors."
+            )
+        raise InsufficientLandmarksError(
+            f"INSUFFICIENT_LANDMARKS: Missing required anatomical landmarks for {joint_tested}."
+        )
 
     mid = f"MOT-LIVE-{uuid.uuid4().hex[:8].upper()}"
     now = datetime.datetime.utcnow().isoformat() + "Z"
+    prov_cat = "LIVE_MEASURED"
 
     with get_db() as conn:
         conn.execute("""
@@ -316,6 +354,7 @@ def execute_motion_assessment(
     eval_result["data_source"] = "HARDWARE_CAMERA"
     eval_result["is_synthetic"] = False
     eval_result["mode"] = "LIVE"
+    eval_result["provenance_category"] = prov_cat
     eval_result["assessed_at"] = now
     return eval_result
 

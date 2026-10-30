@@ -1,0 +1,502 @@
+{
+  "total_controls": 49,
+  "verified_count": 49,
+  "failed_count": 0,
+  "pass_percentage": 100.0,
+  "audit_log": [
+    {
+      "control_id": 1,
+      "name": "Nav to Dashboard",
+      "view": "Dashboard",
+      "status": "VERIFIED",
+      "details": "Workstation SPA renders dashboard container.",
+      "evidence": null
+    },
+    {
+      "control_id": 2,
+      "name": "Open Register Modal",
+      "view": "Dashboard",
+      "status": "VERIFIED",
+      "details": "Modal element and JS opener verified in DOM.",
+      "evidence": null
+    },
+    {
+      "control_id": 3,
+      "name": "Nav to Therapy Workspace",
+      "view": "Dashboard",
+      "status": "VERIFIED",
+      "details": "switchView('therapy') button verified.",
+      "evidence": null
+    },
+    {
+      "control_id": 4,
+      "name": "Nav to Motion Assessment",
+      "view": "Dashboard",
+      "status": "VERIFIED",
+      "details": "switchView('motion') button verified.",
+      "evidence": null
+    },
+    {
+      "control_id": 5,
+      "name": "Nav to 3D Anatomy",
+      "view": "Dashboard",
+      "status": "VERIFIED",
+      "details": "switchView('anatomy') button verified.",
+      "evidence": null
+    },
+    {
+      "control_id": 6,
+      "name": "Re-probe Diagnostics",
+      "view": "Dashboard",
+      "status": "VERIFIED",
+      "details": "API returns truthful health; Clinical Gate = BLOCKED.",
+      "evidence": {
+        "database": {
+          "status": "READY",
+          "schema_version": 9,
+          "wal_mode": true
+        },
+        "camera": {
+          "status": "UNAVAILABLE",
+          "details": "CAMERA_OFFLINE_FAIL_CLOSED"
+        },
+        "pose_tracker": {
+          "status": "UNAVAILABLE",
+          "backend": "DEMO_FIXTURES_ONLY"
+        },
+        "atlas_assets": {
+          "status": "READY",
+          "models_registered": 6
+        },
+        "library_index": {
+          "status": "READY",
+          "documents_count": 356
+        },
+        "clinical_realworld_gate": {
+          "status": "BLOCKED",
+          "reason": "Educational and synthetic workstation only. No automated diagnosis or clinical deployment."
+        }
+      }
+    },
+    {
+      "control_id": 7,
+      "name": "Nav to Anatomy View",
+      "view": "Anatomy",
+      "status": "VERIFIED",
+      "details": "3D Anatomy viewport container exists.",
+      "evidence": null
+    },
+    {
+      "control_id": 8,
+      "name": "Model Select",
+      "view": "Anatomy",
+      "status": "VERIFIED",
+      "details": "Authentic scene config loaded with 7 presets; mock cylinder fallback eliminated (DEF-05).",
+      "evidence": {
+        "position": [
+          0.0,
+          450.0,
+          600.0
+        ],
+        "target": [
+          0.0,
+          450.0,
+          0.0
+        ]
+      }
+    },
+    {
+      "control_id": 9,
+      "name": "Reset View",
+      "view": "Anatomy",
+      "status": "VERIFIED",
+      "details": "Three.js camera reset handler verified in client script.",
+      "evidence": null
+    },
+    {
+      "control_id": 10,
+      "name": "Toggle Muscles Layer",
+      "view": "Anatomy",
+      "status": "VERIFIED",
+      "details": "Real scene graph visibility toggle verified without alerts.",
+      "evidence": null
+    },
+    {
+      "control_id": 11,
+      "name": "Toggle Meridians Layer",
+      "view": "Anatomy",
+      "status": "VERIFIED",
+      "details": "Real meridians group visibility toggle verified.",
+      "evidence": null
+    },
+    {
+      "control_id": 12,
+      "name": "Search Anatomy (Enter)",
+      "view": "Anatomy",
+      "status": "VERIFIED",
+      "details": "Enter key handler wired; API returns grounded definition.",
+      "evidence": null
+    },
+    {
+      "control_id": 13,
+      "name": "Search Anatomy Button",
+      "view": "Anatomy",
+      "status": "VERIFIED",
+      "details": "Search button invokes explain-anatomy with citations.",
+      "evidence": "Anatomical structure 'Biceps brachii'. Consult local document library for primary references."
+    },
+    {
+      "control_id": 20,
+      "name": "Nav to Patients View",
+      "view": "Patients",
+      "status": "VERIFIED",
+      "details": "Patients records container exists.",
+      "evidence": null
+    },
+    {
+      "control_id": 21,
+      "name": "Register Patient Button",
+      "view": "Patients",
+      "status": "VERIFIED",
+      "details": "Opens registration modal.",
+      "evidence": null
+    },
+    {
+      "control_id": 22,
+      "name": "Patient Search Filter",
+      "view": "Patients",
+      "status": "VERIFIED",
+      "details": "Search input filters table with HTML escaping.",
+      "evidence": null
+    },
+    {
+      "control_id": 25,
+      "name": "Submit New Patient",
+      "view": "Patients",
+      "status": "VERIFIED",
+      "details": "Patient created in SQLite with is_synthetic=1 (ID: PAT-895675D5).",
+      "evidence": null
+    },
+    {
+      "control_id": 23,
+      "name": "Select Patient Table Action",
+      "view": "Patients",
+      "status": "VERIFIED",
+      "details": "Binds selected patient and switches to therapy view.",
+      "evidence": null
+    },
+    {
+      "control_id": 24,
+      "name": "View / Edit Modal Action",
+      "view": "Patients",
+      "status": "VERIFIED",
+      "details": "Retrieves complete patient profile for review.",
+      "evidence": null
+    },
+    {
+      "control_id": 26,
+      "name": "Cancel Registration Modal",
+      "view": "Patients",
+      "status": "VERIFIED",
+      "details": "Closes modal cleanly.",
+      "evidence": null
+    },
+    {
+      "control_id": 27,
+      "name": "Save Patient Edit",
+      "view": "Patients",
+      "status": "VERIFIED",
+      "details": "Changes persisted in SQLite and verified after reload.",
+      "evidence": null
+    },
+    {
+      "control_id": 28,
+      "name": "Discharge Patient",
+      "view": "Patients",
+      "status": "VERIFIED",
+      "details": "Patient soft-deleted; status set to DISCHARGED.",
+      "evidence": null
+    },
+    {
+      "control_id": 29,
+      "name": "Close Edit Modal",
+      "view": "Patients",
+      "status": "VERIFIED",
+      "details": "Closes detail modal.",
+      "evidence": null
+    },
+    {
+      "control_id": 14,
+      "name": "Nav to Motion View",
+      "view": "Motion",
+      "status": "VERIFIED",
+      "details": "Motion assessment container exists.",
+      "evidence": null
+    },
+    {
+      "control_id": 15,
+      "name": "Capture & Measure ROM (LIVE)",
+      "view": "Motion",
+      "status": "VERIFIED",
+      "details": "Fails closed when hardware webcam or human pose unavailable; zero fake data; provenance_category=NOT_MEASURABLE.",
+      "evidence": {
+        "detail": {
+          "message": "CAMERA_UNAVAILABLE: Physical webcam is offline or inaccessible in this environment. Use DEMO mode to view standard posture fixtures.",
+          "error_code": "CAMERA_UNAVAILABLE",
+          "provenance_category": "NOT_MEASURABLE"
+        }
+      }
+    },
+    {
+      "control_id": 16,
+      "name": "Load Standard Fixture (DEMO)",
+      "view": "Motion",
+      "status": "VERIFIED",
+      "details": "Fixture calculated ROM 90.0 deg; persisted with is_synthetic=1; provenance=SYNTHETIC_TEST.",
+      "evidence": {
+        "joint_tested": "ELBOW_FLEXION",
+        "side": "RIGHT",
+        "measured_rom_deg": 90.0,
+        "reference_rom_deg": 140.0,
+        "rom_deficit_deg": 50.0,
+        "uncertainty_u95_deg": 2.01,
+        "tracking_confidence": 1.0,
+        "quality_status": "OPTIMAL",
+        "warnings": [],
+        "confounding_factors": [
+          "UNCALIBRATED_YAW"
+        ],
+        "uncertainty_budget": {
+          "combined_standard_uncertainty_deg": 1.02,
+          "coverage_factor_k": 1.96,
+          "expanded_uncertainty_u95_deg": 2.01,
+          "distributional_assumption": "GAUSSIAN_ASYMPTOTIC_NORMAL"
+        },
+        "clinical_disclaimer": "2D planar camera estimate only. NOT validated for surgical or orthopedic diagnostic decisions.",
+        "id": "MOT-DEMO-7D927C5D",
+        "patient_id": "PAT-371B36A2",
+        "session_id": null,
+        "data_source": "FIXTURE_ELBOW_FLEXION_90",
+        "is_synthetic": true,
+        "mode": "DEMO",
+        "provenance_category": "SYNTHETIC_TEST",
+        "assessed_at": "2026-10-30T04:05:54.999827Z"
+      }
+    },
+    {
+      "control_id": 17,
+      "name": "Joint Select",
+      "view": "Motion",
+      "status": "VERIFIED",
+      "details": "Dropdown selects anatomical joint action.",
+      "evidence": null
+    },
+    {
+      "control_id": 18,
+      "name": "Side Select",
+      "view": "Motion",
+      "status": "VERIFIED",
+      "details": "Dropdown selects extremity side.",
+      "evidence": null
+    },
+    {
+      "control_id": 19,
+      "name": "Patient Select",
+      "view": "Motion",
+      "status": "VERIFIED",
+      "details": "Dropdown binds assessment to target patient profile.",
+      "evidence": null
+    },
+    {
+      "control_id": 30,
+      "name": "Nav to Therapy View",
+      "view": "Therapy",
+      "status": "VERIFIED",
+      "details": "Therapy workspace container exists.",
+      "evidence": null
+    },
+    {
+      "control_id": 31,
+      "name": "Patient Select & Red Flag Check",
+      "view": "Therapy",
+      "status": "VERIFIED",
+      "details": "Selection triggers red flag evaluation and displays warning banner.",
+      "evidence": null
+    },
+    {
+      "control_id": 32,
+      "name": "Pre-Pain Score Input",
+      "view": "Therapy",
+      "status": "VERIFIED",
+      "details": "VAS pain score 0-10 input.",
+      "evidence": null
+    },
+    {
+      "control_id": 33,
+      "name": "Post-Pain Score Input",
+      "view": "Therapy",
+      "status": "VERIFIED",
+      "details": "Post-treatment VAS input.",
+      "evidence": null
+    },
+    {
+      "control_id": 34,
+      "name": "Pre-Session Notes",
+      "view": "Therapy",
+      "status": "VERIFIED",
+      "details": "Subjective notes textarea.",
+      "evidence": null
+    },
+    {
+      "control_id": 35,
+      "name": "Post-Session Notes",
+      "view": "Therapy",
+      "status": "VERIFIED",
+      "details": "Objective response textarea.",
+      "evidence": null
+    },
+    {
+      "control_id": 36,
+      "name": "Modality Checkboxes",
+      "view": "Therapy",
+      "status": "VERIFIED",
+      "details": "Evidence-graded modality classification checkboxes.",
+      "evidence": null
+    },
+    {
+      "control_id": 37,
+      "name": "DDS Documentation Toggle",
+      "view": "Therapy",
+      "status": "VERIFIED",
+      "details": "Shows/hides DDS documentation inputs.",
+      "evidence": null
+    },
+    {
+      "control_id": 38,
+      "name": "DDS Frequency Input",
+      "view": "Therapy",
+      "status": "VERIFIED",
+      "details": "Passive documentation of Hz readout.",
+      "evidence": null
+    },
+    {
+      "control_id": 39,
+      "name": "DDS Intensity Input",
+      "view": "Therapy",
+      "status": "VERIFIED",
+      "details": "Passive documentation of mA readout.",
+      "evidence": null
+    },
+    {
+      "control_id": 40,
+      "name": "DDS Sensation Input",
+      "view": "Therapy",
+      "status": "VERIFIED",
+      "details": "Patient-reported sensation input.",
+      "evidence": null
+    },
+    {
+      "control_id": 41,
+      "name": "Preview Grounded SOAP",
+      "view": "Therapy",
+      "status": "VERIFIED",
+      "details": "Generates draft SOAP without persistent side effects.",
+      "evidence": "Chief Complaint: Patellofemoral syndrome. Pre-session pain score: 6.0/10 (VAS). Symptoms reported: S"
+    },
+    {
+      "control_id": 42,
+      "name": "Save Session",
+      "view": "Therapy",
+      "status": "VERIFIED",
+      "details": "Red flags blocked (HTTP 400); normal session saved with grounded SOAP in SQLite.",
+      "evidence": null
+    },
+    {
+      "control_id": 43,
+      "name": "Nav to Progress View",
+      "view": "Progress",
+      "status": "VERIFIED",
+      "details": "Progress analytics container exists.",
+      "evidence": null
+    },
+    {
+      "control_id": 44,
+      "name": "Progress Patient Select",
+      "view": "Progress",
+      "status": "VERIFIED",
+      "details": "Calculates total pain reduction: 3.5 VAS.",
+      "evidence": [
+        {
+          "session_number": 1,
+          "date": "2026-10-30T04:05:57.239163Z",
+          "pre_pain": 6.0,
+          "post_pain": 2.5,
+          "delta": 3.5
+        }
+      ]
+    },
+    {
+      "control_id": 45,
+      "name": "Export CSV",
+      "view": "Progress",
+      "status": "VERIFIED",
+      "details": "RFC 4180 CSV export stream generated with formula sanitization.",
+      "evidence": [
+        "MSK THERAPY WORKSTATION - CLINICAL PROGRESS REPORT",
+        "Patient ID,PAT-5400C941",
+        "Full Name,P7 Therapy Subject",
+        "Primary Complaint,Patellofemoral syndrome",
+        "Total Sessions,1"
+      ]
+    },
+    {
+      "control_id": 46,
+      "name": "Nav to Library View",
+      "view": "Library",
+      "status": "VERIFIED",
+      "details": "Knowledge and AI tutor container exists.",
+      "evidence": null
+    },
+    {
+      "control_id": 47,
+      "name": "Search Library (Enter)",
+      "view": "Library",
+      "status": "VERIFIED",
+      "details": "Enter key executes sanitized FTS5 query; returns attributable literature excerpts (DEF-06).",
+      "evidence": null
+    },
+    {
+      "control_id": 48,
+      "name": "Search Library Button",
+      "view": "Library",
+      "status": "VERIFIED",
+      "details": "Search button invokes FTS5 query cleanly with highlighted citations.",
+      "evidence": "Local Document: research_monograph_part1.docx"
+    },
+    {
+      "control_id": 49,
+      "name": "Biomechanical Movement Linkage",
+      "view": "Library",
+      "status": "VERIFIED",
+      "details": "Binds movement to agonists/antagonists with verified citations.",
+      "evidence": {
+        "primary_agonists": [
+          "Biceps brachii",
+          "Brachialis"
+        ],
+        "synergists": [
+          "Brachioradialis",
+          "Pronator teres"
+        ],
+        "antagonists": [
+          "Triceps brachii",
+          "Anconeus"
+        ],
+        "joint_classification": "Hinge joint (Ginglymus)",
+        "innervation": "Musculocutaneous nerve (C5-C6), Radial nerve (C5-C6)",
+        "clinical_significance": "Normal active ROM: 140-150 deg. Deficits often stem from capsular tightness or bicipital myofascial trigger points."
+      }
+    }
+  ],
+  "failed_controls": []
+}

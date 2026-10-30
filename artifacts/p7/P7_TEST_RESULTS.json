@@ -1,0 +1,80 @@
+{
+  "audit_phase": "P7 Operational Readiness Acceptance",
+  "audit_date": "2026-10-30T11:12:00Z",
+  "git_branch": "fix/workstation-real-functional-acceptance",
+  "base_commit": "28240e6",
+  "total_repository_tests": 191,
+  "tests_passed": 191,
+  "tests_failed": 0,
+  "tests_skipped": 0,
+  "warnings": 1,
+  "test_duration_seconds": 282.35,
+  "pass_rate_percentage": 100.0,
+  "test_categories": {
+    "p7_operational_readiness": {
+      "file": "tests/integration/test_p7_operational_readiness.py",
+      "count": 4,
+      "passed": 4,
+      "failed": 0,
+      "coverage": ["DEF-05 (mock geometry elimination)", "DEF-06 (FTS5 query safety)", "DEF-07 (metrology provenance categories)", "DEF-08 (Windows launcher)"]
+    },
+    "workstation_acceptance_journeys": {
+      "file": "tests/integration/test_recovery_e2e_journeys.py",
+      "count": 11,
+      "passed": 11,
+      "failed": 0,
+      "coverage": ["E2E-01 through E2E-12 acceptance journeys"]
+    },
+    "safety_p0_invariants": {
+      "file": "tests/integration/test_safety_p0_gates.py",
+      "count": 6,
+      "passed": 6,
+      "failed": 0,
+      "coverage": ["Red-flag hard stop", "Fail-closed camera probe", "DEMO isolation", "Kinematic completeness", "SOAP note grounding"]
+    },
+    "workstation_dom_and_ui": {
+      "file": "tests/integration/test_workstation_dom_and_ui.py",
+      "count": 7,
+      "passed": 7,
+      "failed": 0,
+      "coverage": ["Seven workstation views", "Zero fake alerts", "Three.js importmaps", "Modals", "Red flag container", "XSS escapeHtml"]
+    },
+    "workstation_api_endpoints": {
+      "file": "tests/integration/test_workstation_api.py",
+      "count": 6,
+      "passed": 6,
+      "failed": 0,
+      "coverage": ["HMAC pseudonymization", "Confounder evaluation", "FTS5 AI Tutor", "Overview health probe", "Patient lifecycle", "Camera probe"]
+    },
+    "security_and_sandbox": {
+      "directory": "tests/security/",
+      "count": 10,
+      "passed": 10,
+      "failed": 0,
+      "coverage": ["Bubblewrap containment", "Filesystem isolation", "Network blocking", "Signal propagation"]
+    },
+    "core_lab_and_knowledge_integration": {
+      "directory": "tests/integration/",
+      "count": 28,
+      "passed": 28,
+      "failed": 0,
+      "coverage": ["Atlas 3D API", "Studio private projects", "Dien Chan 2D baseline", "Discovery pipeline", "Package bridge"]
+    },
+    "unit_tests": {
+      "directory": "tests/unit/",
+      "count": 119,
+      "passed": 119,
+      "failed": 0,
+      "coverage": ["Kinematics metrology", "Dien Chan 2D guards", "Surface anchors", "FTS5 store", "Backup/restore", "Ontology graph", "Static analysis"]
+    }
+  },
+  "interactive_controls_blackbox_audit": {
+    "total_controls_audited": 49,
+    "verified_controls": 49,
+    "failed_controls": 0,
+    "pass_rate_percentage": 100.0,
+    "results_manifest": "artifacts/p7/p7_blackbox_results.json"
+  },
+  "release_verdict": "GO — PERSONAL OFFLINE / SYNTHETIC ONLY",
+  "clinical_realworld_gate": "BLOCKED (PERMANENT INVARIANT)"
+}

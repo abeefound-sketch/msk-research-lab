@@ -228,9 +228,19 @@ def audit_session_completeness(patient: Dict[str, Any], session: Dict[str, Any])
 def search_evidence_library(query_text: str, limit: int = 5) -> List[Dict[str, Any]]:
     """
     Execute local RAG/FTS5 search across indexed clinical literature and textbooks.
+    Sanitizes query tokens to prevent FTS5 syntax exceptions and returns honest empty results.
     """
     if not query_text or not query_text.strip():
         return []
+
+    import re
+    # Extract alphanumeric query terms, preventing FTS5 syntax errors from stray punctuation
+    clean_terms = re.findall(r"\b[\w\-]+\b", query_text.strip())
+    if not clean_terms:
+        return []
+
+    # Join tokens into safe prefix matching query
+    sanitized_query = " ".join([f'"{term}"' for term in clean_terms])
 
     try:
         with get_db() as conn:
@@ -242,7 +252,7 @@ def search_evidence_library(query_text: str, limit: int = 5) -> List[Dict[str, A
                 LEFT JOIN document_locations dl ON fts.location_id = dl.id
                 WHERE fts_document_locations MATCH ?
                 LIMIT ?;
-            """, (query_text.strip(), limit)).fetchall()
+            """, (sanitized_query, limit)).fetchall()
 
         return [
             {
@@ -255,12 +265,6 @@ def search_evidence_library(query_text: str, limit: int = 5) -> List[Dict[str, A
             }
             for r in rows
         ]
-    except Exception as e:
-        return [{
-            "doc_id": "ERR",
-            "title": "Search Query Note",
-            "citation": "FTS5 Search Notice",
-            "section": "Notice",
-            "page_number": "N/A",
-            "snippet": f"No matches found for query '{query_text}'. Error: {str(e)}"
-        }]
+    except Exception:
+        # Fail closed: never fabricate dummy citations or synthetic matches on search exceptions
+        return []
