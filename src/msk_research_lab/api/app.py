@@ -125,7 +125,7 @@ app.add_middleware(
 
 @app.middleware("http")
 async def security_host_guard(request: Request, call_next):
-    """Enforce loopback host access only."""
+    """Enforce loopback host access only and validate Origin/Referer against CSRF."""
     host_header = request.headers.get("host", "")
     host_name = host_header.split(":")[0].lower()
     allowed_hosts = {"127.0.0.1", "localhost", "testserver"}
@@ -134,6 +134,31 @@ async def security_host_guard(request: Request, call_next):
             status_code=403,
             content={"detail": "Forbidden: MSK Research Lab OS only permits loopback access."}
         )
+
+    # CSRF & Cross-Site Origin Validation for state-changing HTTP requests
+    if request.method in {"POST", "PUT", "DELETE", "PATCH"}:
+        origin = request.headers.get("origin")
+        referer = request.headers.get("referer")
+
+        if origin:
+            from urllib.parse import urlparse
+            parsed_origin = urlparse(origin)
+            origin_host = (parsed_origin.hostname or "").lower()
+            if origin_host not in allowed_hosts:
+                return JSONResponse(
+                    status_code=403,
+                    content={"detail": "Forbidden: Cross-site request rejected by CSRF/Origin guard."}
+                )
+        elif referer:
+            from urllib.parse import urlparse
+            parsed_referer = urlparse(referer)
+            referer_host = (parsed_referer.hostname or "").lower()
+            if referer_host not in allowed_hosts:
+                return JSONResponse(
+                    status_code=403,
+                    content={"detail": "Forbidden: Cross-site referer rejected by CSRF guard."}
+                )
+
     return await call_next(request)
 
 

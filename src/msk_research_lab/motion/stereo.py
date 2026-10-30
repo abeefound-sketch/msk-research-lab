@@ -212,6 +212,61 @@ def compute_reprojection_error(
     return (err_l + err_r) / 2.0
 
 
+def compute_stereo_depth_uncertainty(
+    depth_z_mm: float,
+    baseline_mm: float,
+    focal_length_px: float,
+    disparity_std_px: float = 0.5,
+) -> float:
+    """Compute theoretical 1-sigma depth uncertainty for parallel stereo photogrammetry.
+    
+    Formula:
+    sigma_Z = (Z^2 / (f * b)) * sigma_d
+    
+    where:
+    - Z = object depth along optical axis (mm)
+    - b = baseline distance between camera centers (mm)
+    - f = focal length (pixels)
+    - sigma_d = disparity matching uncertainty (pixels, typically 0.25 to 0.75 px)
+    """
+    if baseline_mm <= 0.0 or focal_length_px <= 0.0:
+        raise StereoMetrologyError("Baseline and focal length must be strictly positive.")
+    if depth_z_mm <= 0.0:
+        raise StereoMetrologyError("Depth Z must be strictly positive.")
+
+    return (depth_z_mm * depth_z_mm / (focal_length_px * baseline_mm)) * disparity_std_px
+
+
+def stereo_depth_sensitivity_table(
+    baselines_mm: Optional[List[float]] = None,
+    depths_mm: Optional[List[float]] = None,
+    focal_length_px: float = 1000.0,
+    disparity_std_px: float = 0.5,
+) -> List[Dict[str, Any]]:
+    """Generate sensitivity analysis table illustrating quadratic depth uncertainty scaling."""
+    b_list = baselines_mm or [100.0, 200.0, 300.0, 400.0]
+    z_list = depths_mm or [500.0, 1000.0, 1500.0, 2000.0, 2500.0, 3000.0]
+
+    table: List[Dict[str, Any]] = []
+    for b in b_list:
+        for z in z_list:
+            unc = compute_stereo_depth_uncertainty(
+                depth_z_mm=z,
+                baseline_mm=b,
+                focal_length_px=focal_length_px,
+                disparity_std_px=disparity_std_px,
+            )
+            table.append({
+                "baseline_mm": b,
+                "depth_z_mm": z,
+                "focal_length_px": focal_length_px,
+                "disparity_std_px": disparity_std_px,
+                "depth_uncertainty_mm": round(unc, 2),
+                "relative_uncertainty_pct": round((unc / z) * 100.0, 2),
+            })
+    return table
+
+
 def triangulate_joint_angle_3d(
     pt_a_left: Tuple[float, float],
     pt_b_left: Tuple[float, float],
@@ -221,12 +276,14 @@ def triangulate_joint_angle_3d(
     pt_c_right: Tuple[float, float],
     rig: StereoCameraRig,
     max_reprojection_error_px: float = 2.5,
+    disparity_std_px: float = 0.5,
 ) -> Dict[str, Any]:
     """Triangulate 3 joint vertices in genuine Euclidean 3D space and compute true 3D angle.
     
     Guarantees:
     - Fails closed if reprojection error exceeds max_reprojection_error_px.
-    - True 3D angle is mathematically immune to out-of-plane yaw foreshortening.
+    - Rigid 3D vector angle is mathematically rotation-invariant.
+    - Explicitly computes empirical depth uncertainty (sigma_Z) and estimated angular uncertainty.
     """
     # 1. Triangulate each vertex
     A_3d = triangulate_point_dlt(pt_a_left, pt_a_right, rig)
@@ -259,6 +316,18 @@ def triangulate_joint_angle_3d(
     cos_val = max(-1.0, min(1.0, dot / (mag1 * mag2)))
     angle_3d_deg = math.degrees(math.acos(cos_val))
 
+    # 4. Metrological depth uncertainty propagation (sigma_Z = Z^2 / (f * b) * sigma_d)
+    f_px = rig.left_intrinsics.fx
+    b_mm = rig.baseline_mm
+    sigma_za = compute_stereo_depth_uncertainty(abs(A_3d[2]), b_mm, f_px, disparity_std_px)
+    sigma_zb = compute_stereo_depth_uncertainty(abs(B_3d[2]), b_mm, f_px, disparity_std_px)
+    sigma_zc = compute_stereo_depth_uncertainty(abs(C_3d[2]), b_mm, f_px, disparity_std_px)
+    sigma_z_max = max(sigma_za, sigma_zb, sigma_zc)
+
+    # Angular uncertainty approximation: delta_theta ~ (180/pi) * (sigma_z) * sqrt(1/L1^2 + 1/L2^2)
+    angular_unc_rad = sigma_z_max * math.sqrt((1.0 / (mag1 * mag1)) + (1.0 / (mag2 * mag2)))
+    angular_unc_deg = math.degrees(angular_unc_rad)
+
     return {
         "status": "VALID",
         "angle_3d_deg": round(angle_3d_deg, 2),
@@ -274,7 +343,20 @@ def triangulate_joint_angle_3d(
             "max": round(max_err, 3),
         },
         "rig_baseline_mm": rig.baseline_mm,
-        "is_immune_to_yaw": True,
+        "is_immune_to_yaw": True,  # Preserved for backward compatibility
+        "mathematical_rotation_invariance": True,
+        "metrological_depth_uncertainty_mm": round(sigma_z_max, 2),
+        "estimated_angular_uncertainty_deg": round(angular_unc_deg, 2),
+        "depth_uncertainty_by_vertex_mm": {
+            "vertex_a": round(sigma_za, 2),
+            "vertex_b": round(sigma_zb, 2),
+            "vertex_c": round(sigma_zc, 2),
+        },
+        "metrological_note": (
+            "Rigid 3D vector angle is mathematically rotation-invariant, "
+            "but empirical photogrammetric depth precision degrades quadratically "
+            "with distance (sigma_Z = Z^2 / (f * b) * sigma_d)."
+        ),
     }
 
 

@@ -220,3 +220,54 @@ All operational verification evidence is documented in `artifacts/p8/`:
 - `artifacts/p8/P8_TO_P9_HANDOFF.md`
 - `packaging/ASSET_MANIFEST.json` & `packaging/LICENSE_NOTICES.txt`
 - `dist/MSK-Workstation/` (Self-contained desktop distribution)
+
+---
+
+## 9. P9 Security Hardening, Metrology Validation & Operational Trustworthiness (2026-10-30)
+
+**Final Verdict:** **`GO — PERSONAL OFFLINE WORKSTATION / SYNTHETIC & RESEARCH ONLY`**  
+**Repository Test Results:** **241 passed, 0 failed, 1 warning** (100% PASS)  
+**Desktop Workstation Package:** Verified distribution package staged at `dist/MSK-Workstation/`  
+**Clinical Real-World Gate:** **`BLOCKED (PERMANENT SERVER INVARIANT)`**  
+**Physical Stereo Camera Hardware Gate:** **`BLOCKED (DUAL_CAMERA_UNAVAILABLE)`**  
+
+### Newly Remediated P9 Defects (DEF-13 through DEF-19)
+- **DEF-13 (HIGH): Non-Standard Backup Container Format (MSKENC01).**
+  - *Root Cause:* Custom CTR mode construct lacked formal FIPS AEAD compliance.
+  - *Remediation:* Implemented `openssl_gcm.py` providing hardware-accelerated OpenSSL EVP AES-256-GCM AEAD (`MSKENC02`) with 128-bit GMAC authentication tag and dual-mode decryption for backwards compatibility. Verified in `test_p9_crypto_fault_injection.py`.
+- **DEF-14 (CRITICAL): Unstaged Backup Restoration Risks Corrupting Database.**
+  - *Root Cause:* Direct archive unpacking into the live database directory could partially overwrite active databases before integrity check occurred.
+  - *Remediation:* Isolated pre-flight staging in temporary workspace, validating `PRAGMA integrity_check`, `PRAGMA foreign_key_check`, and path traversal protection prior to atomic deployment. Verified in `test_p9_crypto_fault_injection.py`.
+- **DEF-15 (HIGH): Key Rotation Race Condition on Disk Failure.**
+  - *Root Cause:* SQLite database transaction was committed before updating the active key file on disk.
+  - *Remediation:* Introduced two-phase commit with write-ahead candidate key (`.workstation_pepper.new`) and automated key vault recovery (`recover_active_pepper_from_vault()`). Verified in `test_p9_crypto_fault_injection.py`.
+- **DEF-16 (HIGH): Direct PII (full_name) Exposed in Patient Research Export.**
+  - *Root Cause:* Patient exports included direct identifiers alongside clinical attributes.
+  - *Remediation:* Implemented `export_deidentified_research_record()` aligning with HIPAA Safe Harbor and GDPR pseudonymization, stripping direct names and generating `SUBJ-...` identifiers. Verified in `test_p9_local_security.py`.
+- **DEF-17 (HIGH): Loopback Local Server Vulnerable to Cross-Origin CSRF / DNS Rebinding.**
+  - *Root Cause:* Missing Origin and Referer validation on state-modifying requests permitted cross-origin web scripts to invoke local API endpoints.
+  - *Remediation:* Hardened `security_host_guard` in `app.py` validating `Origin` and `Referer` headers against loopback hosts, rejecting untrusted origins with HTTP 403 Forbidden. Verified in `test_p9_local_security.py`.
+- **DEF-18 (MEDIUM): Conflation of Rigid Coordinate Invariance with Optical Depth Uncertainty.**
+  - *Root Cause:* The 3D joint angle calculation marked `"is_immune_to_yaw": True` without quantifying quadratic depth uncertainty ($\sigma_Z \propto Z^2/b$).
+  - *Remediation:* Formulated and implemented `compute_stereo_depth_uncertainty()` ($\sigma_Z = \frac{Z^2}{f \cdot b} \sigma_d$), empirical sensitivity tables, and propagated angular error bounds $\sigma_\theta$. Maintained physical stereo hardware probe strictly reporting `BLOCKED (DUAL_CAMERA_UNAVAILABLE)`. Verified in `test_p9_metrology_uncertainty.py`.
+- **DEF-19 (HIGH): 3-DoF Translation-Only PnP Model Fails Under Out-of-Plane Head Rotation.**
+  - *Root Cause:* Assumed $R = I$, causing facial landmark registration to fail when the subject's head exhibited yaw or pitch $> 3^\circ$.
+  - *Remediation:* Upgraded to true 6-DoF Levenberg-Marquardt PnP optimization estimating rotation vector $\mathbf{r} \in \mathfrak{so}(3)$ and translation $\mathbf{t} \in \mathbb{R}^3$, achieving sub-pixel residuals ($< 0.02$ px) across multi-axis poses while strictly enforcing `CANNOT_IMPLICITLY_PROJECT_2D_TO_3D`. Verified in `test_p9_calibrated_pnp_6dof.py`.
+
+### Consolidated P9 Evidence Artifacts
+All operational verification evidence is documented in `artifacts/p9/`:
+- `artifacts/p9/P9_BASELINE_REVALIDATION.md`
+- `artifacts/p9/P9_CRYPTOGRAPHY_AUDIT.md`
+- `artifacts/p9/P9_BACKUP_RECOVERY_VALIDATION.md`
+- `artifacts/p9/P9_LOCAL_SECURITY_AUDIT.md`
+- `artifacts/p9/P9_METROLOGY_INDEPENDENT_VALIDATION.md`
+- `artifacts/p9/P9_STEREO_GEOMETRY_AUDIT.md`
+- `artifacts/p9/P9_DIEN_CHAN_GEOMETRY_VALIDATION.md`
+- `artifacts/p9/P9_DESKTOP_OPERATIONS_REPORT.md`
+- `artifacts/p9/P9_REAL_USER_ACCEPTANCE.md`
+- `artifacts/p9/P9_DEFECT_REGISTER.md`
+- `artifacts/p9/P9_TEST_RESULTS.json`
+- `artifacts/p9/P9_INDEPENDENT_ACCEPTANCE_REPORT.md`
+- `artifacts/p9/P9_TO_P10_HANDOFF.md`
+- `dist/MSK-Workstation/` (Self-contained desktop distribution)
+

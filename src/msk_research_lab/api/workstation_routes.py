@@ -7,7 +7,8 @@ from fastapi.responses import HTMLResponse, JSONResponse, Response
 
 from msk_research_lab.core.db import get_db
 from msk_research_lab.workstation.patient_manager import (
-    create_patient, get_patient, list_patients, update_patient, delete_patient, PatientManagerError
+    create_patient, get_patient, list_patients, update_patient, delete_patient,
+    export_deidentified_research_record, PatientManagerError
 )
 from msk_research_lab.workstation.therapy_manager import (
     record_therapy_session, get_therapy_session, list_patient_sessions, generate_soap_note,
@@ -307,6 +308,15 @@ def api_export_patient_csv(patient_id: str):
             media_type="text/csv",
             headers={"Content-Disposition": f"attachment; filename=progress_{patient_id}.csv"}
         )
+    except PatientManagerError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+
+@workstation_router.get("/api/v1/workstation/patients/{patient_id}/export/deidentified")
+def api_export_patient_deidentified(patient_id: str, operator_id: str = "RESEARCHER"):
+    """Export HIPAA-aligned de-identified patient research record."""
+    try:
+        return export_deidentified_research_record(patient_id, operator_id=operator_id)
     except PatientManagerError as e:
         raise HTTPException(status_code=404, detail=str(e))
 

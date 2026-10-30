@@ -109,13 +109,91 @@ def project_canonical_landmark(
     return (px, py)
 
 
+def _rodrigues_to_rotation_matrix(r: List[float]) -> List[List[float]]:
+    """Convert 3D rotation vector r = [rx, ry, rz] to 3x3 rotation matrix using Rodrigues formula."""
+    rx, ry, rz = r[0], r[1], r[2]
+    theta = math.hypot(rx, ry, rz)
+    if theta < 1e-9:
+        return [
+            [1.0, -rz, ry],
+            [rz, 1.0, -rx],
+            [-ry, rx, 1.0],
+        ]
+    kx, ky, kz = rx / theta, ry / theta, rz / theta
+    cos_t = math.cos(theta)
+    sin_t = math.sin(theta)
+    one_minus_cos = 1.0 - cos_t
+
+    return [
+        [
+            cos_t + kx * kx * one_minus_cos,
+            kx * ky * one_minus_cos - kz * sin_t,
+            kx * kz * one_minus_cos + ky * sin_t,
+        ],
+        [
+            ky * kx * one_minus_cos + kz * sin_t,
+            cos_t + ky * ky * one_minus_cos,
+            ky * kz * one_minus_cos - kx * sin_t,
+        ],
+        [
+            kz * kx * one_minus_cos - ky * sin_t,
+            kz * ky * one_minus_cos + kx * sin_t,
+            cos_t + kz * kz * one_minus_cos,
+        ],
+    ]
+
+
+def _project_point_cam(
+    pt3: Tuple[float, float, float],
+    R: List[List[float]],
+    t: List[float],
+    K: CameraIntrinsics,
+) -> Tuple[float, float]:
+    """Project 3D point in object frame through rigid pose [R | t] and intrinsics K."""
+    Xi, Yi, Zi = pt3
+    xc = R[0][0] * Xi + R[0][1] * Yi + R[0][2] * Zi + t[0]
+    yc = R[1][0] * Xi + R[1][1] * Yi + R[1][2] * Zi + t[1]
+    zc = R[2][0] * Xi + R[2][1] * Yi + R[2][2] * Zi + t[2]
+    if zc <= 1.0:
+        zc = 1.0
+    u = K.fx * (xc / zc) + K.cx
+    v = K.fy * (yc / zc) + K.cy
+    return u, v
+
+
+def _solve_linear_system_6x6(A: List[List[float]], b: List[float]) -> List[float]:
+    """Solve 6x6 linear system A x = b with partial pivoting Gaussian elimination."""
+    n = 6
+    aug = [A[i][:] + [b[i]] for i in range(n)]
+
+    for col in range(n):
+        max_row = max(range(col, n), key=lambda r: abs(aug[r][col]))
+        aug[col], aug[max_row] = aug[max_row], aug[col]
+        pivot = aug[col][col]
+        if abs(pivot) < 1e-12:
+            aug[col][col] += 1e-6
+            pivot = aug[col][col]
+
+        for r in range(col + 1, n):
+            factor = aug[r][col] / pivot
+            for c in range(col, n + 1):
+                aug[r][c] -= factor * aug[col][c]
+
+    sol = [0.0] * n
+    for r in range(n - 1, -1, -1):
+        sol[r] = (aug[r][n] - sum(aug[r][c] * sol[c] for c in range(r + 1, n))) / aug[r][r]
+
+    return sol
+
+
 def estimate_rigid_pose_from_landmarks(
     correspondences: List[Tuple[Tuple[float, float, float], Tuple[float, float]]],
     intrinsics: CameraIntrinsics,
     max_allowed_residual_px: float = 3.0,
 ) -> OpticalCalibrationContext:
-    """Solve Perspective-n-Point (PnP) pose from 3D object to 2D image correspondences.
+    """Solve 6-DoF Perspective-n-Point (PnP) pose via Levenberg-Marquardt optimization.
     
+    Estimates 3-DoF rotation vector r = [rx, ry, rz] and 3-DoF translation vector t = [tx, ty, tz].
     Verifies that mean and maximum reprojection residuals stay below tolerance.
     Fails closed if correspondence count < 4 or collinear.
     """
@@ -124,16 +202,7 @@ def estimate_rigid_pose_from_landmarks(
             f"Under-constrained registration: requires at least 4 non-coplanar landmarks, got {len(correspondences)}."
         )
 
-    # Compute centroid of 3D points
-    cx_3d = sum(pt3[0] for pt3, _ in correspondences) / len(correspondences)
-    cy_3d = sum(pt3[1] for pt3, _ in correspondences) / len(correspondences)
-    cz_3d = sum(pt3[2] for pt3, _ in correspondences) / len(correspondences)
-
-    # Linear least squares estimation of translation vector t = [tx, ty, tz]
-    # For each correspondence:
-    # 1 * tx - xn * tz = xn * Zi - Xi
-    # 1 * ty - yn * tz = yn * Zi - Yi
-    # Form 3x3 normal equations M * t = b
+    # Initial linear least squares estimation of translation vector t = [tx, ty, tz]
     M = [[0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0]]
     b = [0.0, 0.0, 0.0]
 
@@ -143,10 +212,8 @@ def estimate_rigid_pose_from_landmarks(
         xn = (ui - intrinsics.cx) / intrinsics.fx
         yn = (vi - intrinsics.cy) / intrinsics.fy
 
-        # Row 1: [1, 0, -xn] = xn * Zi - Xi
         r1 = (1.0, 0.0, -xn)
         rhs1 = xn * Zi - Xi
-        # Row 2: [0, 1, -yn] = yn * Zi - Yi
         r2 = (0.0, 1.0, -yn)
         rhs2 = yn * Zi - Yi
 
@@ -156,48 +223,104 @@ def estimate_rigid_pose_from_landmarks(
                 for j in range(3):
                     M[i][j] += row[i] * row[j]
 
-    # Invert 3x3 symmetric matrix M via Cramer's rule
     det = (
         M[0][0] * (M[1][1] * M[2][2] - M[1][2] * M[2][1])
         - M[0][1] * (M[1][0] * M[2][2] - M[1][2] * M[2][0])
         + M[0][2] * (M[1][0] * M[2][1] - M[1][1] * M[2][0])
     )
     if abs(det) < 1e-9:
-        raise CalibratedRegistrationError("Degenerate landmark geometry: singular calibration matrix.")
+        t_init = [0.0, 0.0, 500.0]
+    else:
+        invM = [
+            [
+                (M[1][1] * M[2][2] - M[1][2] * M[2][1]) / det,
+                (M[0][2] * M[2][1] - M[0][1] * M[2][2]) / det,
+                (M[0][1] * M[1][2] - M[0][2] * M[1][1]) / det,
+            ],
+            [
+                (M[1][2] * M[2][0] - M[1][0] * M[2][2]) / det,
+                (M[0][0] * M[2][2] - M[0][2] * M[2][0]) / det,
+                (M[0][2] * M[1][0] - M[0][0] * M[1][2]) / det,
+            ],
+            [
+                (M[1][0] * M[2][1] - M[1][1] * M[2][0]) / det,
+                (M[0][1] * M[2][0] - M[0][0] * M[2][1]) / det,
+                (M[0][0] * M[1][1] - M[0][1] * M[1][0]) / det,
+            ],
+        ]
+        t_init = [sum(invM[i][j] * b[j] for j in range(3)) for i in range(3)]
 
-    invM = [
-        [
-            (M[1][1] * M[2][2] - M[1][2] * M[2][1]) / det,
-            (M[0][2] * M[2][1] - M[0][1] * M[2][2]) / det,
-            (M[0][1] * M[1][2] - M[0][2] * M[1][1]) / det,
-        ],
-        [
-            (M[1][2] * M[2][0] - M[1][0] * M[2][2]) / det,
-            (M[0][0] * M[2][2] - M[0][2] * M[2][0]) / det,
-            (M[0][2] * M[1][0] - M[0][0] * M[1][2]) / det,
-        ],
-        [
-            (M[1][0] * M[2][1] - M[1][1] * M[2][0]) / det,
-            (M[0][1] * M[2][0] - M[0][0] * M[2][1]) / det,
-            (M[0][0] * M[1][1] - M[0][1] * M[1][0]) / det,
-        ],
-    ]
+    # Initial 6-DoF parameter vector: p = [rx, ry, rz, tx, ty, tz]
+    p = [0.0, 0.0, 0.0, t_init[0], t_init[1], t_init[2]]
+    lambda_val = 1e-2
+    num_residuals = len(correspondences) * 2
 
-    t_est = [sum(invM[i][j] * b[j] for j in range(3)) for i in range(3)]
-    R_nominal = [
-        [1.0, 0.0, 0.0],
-        [0.0, 1.0, 0.0],
-        [0.0, 0.0, 1.0],
-    ]
+    # Levenberg-Marquardt Non-Linear Optimization
+    for _ in range(40):
+        R_curr = _rodrigues_to_rotation_matrix(p[:3])
+        t_curr = p[3:]
 
-    # Calculate residuals
+        # Compute current residuals: r_vec of length 2N
+        r_vec = []
+        for pt3, pt2 in correspondences:
+            u_p, v_p = _project_point_cam(pt3, R_curr, t_curr, intrinsics)
+            r_vec.append(u_p - pt2[0])
+            r_vec.append(v_p - pt2[1])
+
+        current_cost = sum(r * r for r in r_vec)
+
+        # Compute Jacobian J (2N x 6) via numerical differentiation
+        eps = 1e-6
+        J = [[0.0] * 6 for _ in range(num_residuals)]
+
+        for k in range(6):
+            p_plus = p[:]
+            p_plus[k] += eps
+            R_plus = _rodrigues_to_rotation_matrix(p_plus[:3])
+            t_plus = p_plus[3:]
+
+            idx = 0
+            for pt3, pt2 in correspondences:
+                u_p, v_p = _project_point_cam(pt3, R_plus, t_plus, intrinsics)
+                J[idx][k] = ((u_p - pt2[0]) - r_vec[idx]) / eps
+                J[idx + 1][k] = ((v_p - pt2[1]) - r_vec[idx + 1]) / eps
+                idx += 2
+
+        # Form normal equations: A = J^T * J + lambda * diag(J^T * J), g = -J^T * r_vec
+        JTJ = [[sum(J[i][a] * J[i][b] for i in range(num_residuals)) for b in range(6)] for a in range(6)]
+        g = [-sum(J[i][a] * r_vec[i] for i in range(num_residuals)) for a in range(6)]
+
+        A_damped = [row[:] for row in JTJ]
+        for a in range(6):
+            A_damped[a][a] += lambda_val * max(1.0, abs(JTJ[a][a]))
+
+        delta = _solve_linear_system_6x6(A_damped, g)
+
+        # Candidate parameters
+        p_cand = [p[a] + delta[a] for a in range(6)]
+        R_cand = _rodrigues_to_rotation_matrix(p_cand[:3])
+        t_cand = p_cand[3:]
+
+        cand_cost = 0.0
+        for pt3, pt2 in correspondences:
+            u_p, v_p = _project_point_cam(pt3, R_cand, t_cand, intrinsics)
+            cand_cost += (u_p - pt2[0]) ** 2 + (v_p - pt2[1]) ** 2
+
+        if cand_cost < current_cost:
+            p = p_cand
+            lambda_val = max(1e-7, lambda_val / 5.0)
+            step_norm = math.sqrt(sum(d * d for d in delta))
+            if step_norm < 1e-5:
+                break
+        else:
+            lambda_val = min(1e7, lambda_val * 5.0)
+
+    # Compute final residuals
+    R_final = _rodrigues_to_rotation_matrix(p[:3])
+    t_final = p[3:]
     residuals = []
     for pt3, pt2 in correspondences:
-        x_c = pt3[0] + t_est[0]
-        y_c = pt3[1] + t_est[1]
-        z_c = pt3[2] + t_est[2]
-        pred_x = intrinsics.fx * (x_c / z_c) + intrinsics.cx
-        pred_y = intrinsics.fy * (y_c / z_c) + intrinsics.cy
+        pred_x, pred_y = _project_point_cam(pt3, R_final, t_final, intrinsics)
         res = math.hypot(pred_x - pt2[0], pred_y - pt2[1])
         residuals.append(res)
 
@@ -212,8 +335,8 @@ def estimate_rigid_pose_from_landmarks(
 
     return OpticalCalibrationContext(
         intrinsics=intrinsics,
-        R=R_nominal,
-        t=t_est,
+        R=R_final,
+        t=t_final,
         mean_reprojection_residual_px=round(mean_res, 3),
         max_reprojection_residual_px=round(max_res, 3),
         is_calibrated=True,

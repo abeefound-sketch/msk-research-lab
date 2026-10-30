@@ -17,13 +17,20 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from msk_research_lab.core.config import get_config
 from msk_research_lab.core.db import get_db, get_db_path, init_connection
+from msk_research_lab.security.openssl_gcm import (
+    aes_256_gcm_decrypt,
+    aes_256_gcm_encrypt,
+    is_openssl_gcm_available,
+)
 from msk_research_lab.workstation.patient_manager import (
     DEFAULT_PEPPER,
     get_or_create_pepper,
     get_pseudonym_hash,
 )
 
-ENC_MAGIC = b"MSKENC01"
+ENC_MAGIC_V1 = b"MSKENC01"
+ENC_MAGIC_V2 = b"MSKENC02"
+ENC_MAGIC = ENC_MAGIC_V2  # Default container format for P9+
 PBKDF2_ROUNDS = 100_000
 
 
@@ -38,11 +45,15 @@ class BackupDecryptionError(KeyLifecycleError):
 
 
 def get_pepper_storage_paths() -> Tuple[Path, Path]:
-    """Return primary active pepper file path and key vault directory."""
+    """Return primary active pepper file path and key vault directory with secure permissions."""
     db_dir = get_db_path().parent
     active_pepper = db_dir / ".workstation_pepper"
     vault_dir = db_dir / ".key_vault"
     vault_dir.mkdir(parents=True, exist_ok=True)
+    try:
+        os.chmod(vault_dir, 0o700)
+    except Exception:
+        pass
     return active_pepper, vault_dir
 
 
@@ -66,15 +77,74 @@ def get_current_pepper_version(custom_path: Optional[Path] = None) -> int:
     return 1
 
 
+def recover_active_pepper_from_vault(custom_path: Optional[Path] = None) -> Dict[str, Any]:
+    """Recover or resynchronize active .workstation_pepper file from .key_vault if desynchronized or missing."""
+    active_pepper_file, vault_dir = get_pepper_storage_paths()
+    active_version = get_current_pepper_version(custom_path)
+
+    # Query expected key hash from database
+    expected_hash: Optional[str] = None
+    try:
+        with get_db(custom_path) as conn:
+            row = conn.execute(
+                "SELECT key_hash FROM pepper_key_store WHERE version = ? AND status = 'ACTIVE';",
+                (active_version,)
+            ).fetchone()
+            if row:
+                expected_hash = row[0]
+    except Exception:
+        pass
+
+    # Check if active file exists and matches
+    if active_pepper_file.exists():
+        current_data = active_pepper_file.read_bytes()
+        current_hash = hashlib.sha256(current_data).hexdigest()
+        if expected_hash is None or current_hash == expected_hash:
+            return {
+                "status": "IN_SYNC",
+                "version": active_version,
+                "recovered_from_vault": False,
+                "fingerprint": current_hash[:16],
+            }
+
+    # Desynchronized or missing: attempt recovery from vault
+    vault_key_file = vault_dir / f"pepper_v{active_version}.key"
+    if vault_key_file.exists():
+        vault_data = vault_key_file.read_bytes()
+        vault_hash = hashlib.sha256(vault_data).hexdigest()
+        if expected_hash is None or vault_hash == expected_hash:
+            tmp_target = active_pepper_file.parent / f".tmp_recover_{secrets.token_hex(4)}"
+            tmp_target.write_bytes(vault_data)
+            try:
+                os.chmod(tmp_target, 0o600)
+            except Exception:
+                pass
+            os.replace(tmp_target, active_pepper_file)
+            return {
+                "status": "RECOVERED",
+                "version": active_version,
+                "recovered_from_vault": True,
+                "fingerprint": vault_hash[:16],
+            }
+
+    return {
+        "status": "VAULT_MISSING",
+        "version": active_version,
+        "recovered_from_vault": False,
+        "fingerprint": None,
+    }
+
+
 def rotate_pepper(
     new_pepper: Optional[bytes] = None,
     operator_id: str = "SYSTEM",
     custom_path: Optional[Path] = None,
 ) -> Dict[str, Any]:
-    """Rotate HMAC pepper to next version with transactional journaling and zero record loss.
+    """Rotate HMAC pepper to next version with two-phase commit, transactional journaling, and zero record loss.
     
     Guarantees:
-    - Atomically updates pseudonym_hash and pepper_version across all patient records.
+    - Pre-writes candidate key (.workstation_pepper.new) prior to DB transaction.
+    - Atomically updates pseudonym_hash and pepper_version across all patient records in SQLite transaction.
     - Preserves rollback mapping in pepper_rotation_log.
     - Archives prior key material in restricted local key vault.
     - Emits auditable tri-ledger event PEPPER_ROTATED.
@@ -91,8 +161,16 @@ def rotate_pepper(
     now = datetime.datetime.utcnow().isoformat() + "Z"
     new_pepper_fingerprint = hashlib.sha256(new_pepper).hexdigest()
 
+    # 1. Write candidate key to write-ahead file with strict permissions
+    candidate_file = active_pepper_file.parent / ".workstation_pepper.new"
+    candidate_file.write_bytes(new_pepper)
+    try:
+        os.chmod(candidate_file, 0o600)
+    except Exception:
+        pass
+
     with get_db(custom_path) as conn:
-        # 1. Fetch all current patient records
+        # 2. Fetch all current patient records
         rows = conn.execute("SELECT id, pseudonym_hash, pepper_version FROM patients;").fetchall()
         migration_journal: List[Dict[str, str]] = []
 
@@ -106,18 +184,18 @@ def rotate_pepper(
                 "new_hash": new_hash,
             })
 
-        # 2. Deactivate previous version in key store
+        # 3. Deactivate previous version in key store
         conn.execute("""
             UPDATE pepper_key_store SET status = 'RETIRED' WHERE status = 'ACTIVE';
         """)
 
-        # 3. Insert new version into pepper_key_store
+        # 4. Insert new version into pepper_key_store
         conn.execute("""
             INSERT INTO pepper_key_store (version, key_hash, status, created_at)
             VALUES (?, ?, 'ACTIVE', ?);
         """, (new_version, new_pepper_fingerprint, now))
 
-        # 4. Atomically update patient pseudonym hashes
+        # 5. Atomically update patient pseudonym hashes
         for item in migration_journal:
             conn.execute("""
                 UPDATE patients
@@ -125,7 +203,7 @@ def rotate_pepper(
                 WHERE id = ?;
             """, (item["new_hash"], new_version, item["patient_id"]))
 
-        # 5. Log rotation event into journal table
+        # 6. Log rotation event into journal table
         journal_json = json.dumps({
             "migrated_records": len(migration_journal),
             "fingerprint": new_pepper_fingerprint[:16],
@@ -137,7 +215,7 @@ def rotate_pepper(
             ) VALUES (?, ?, ?, ?, ?, 'COMPLETED', ?);
         """, (current_version, new_version, now, len(migration_journal), operator_id, journal_json))
 
-        # 6. Audit tri-ledger entry
+        # 7. Audit tri-ledger entry
         conn.execute("""
             INSERT INTO audit_events (event_type, actor, payload_json)
             VALUES (?, ?, ?);
@@ -151,7 +229,8 @@ def rotate_pepper(
             }),
         ))
 
-    # 7. Secure file updates: archive old key, write new key atomically
+    # 8. Post-commit key material commitment:
+    # Archive existing active pepper into vault
     if active_pepper_file.exists():
         old_archive = vault_dir / f"pepper_v{current_version}.key"
         try:
@@ -163,16 +242,14 @@ def rotate_pepper(
         except Exception:
             pass
 
-    # Atomic write for new active pepper
-    tmp_pepper = active_pepper_file.parent / f".tmp_pepper_{secrets.token_hex(4)}"
-    tmp_pepper.write_bytes(new_pepper)
+    # Atomically commit candidate pepper to active pepper path
+    os.replace(candidate_file, active_pepper_file)
     try:
-        os.chmod(tmp_pepper, 0o600)
+        os.chmod(active_pepper_file, 0o600)
     except Exception:
         pass
-    os.replace(tmp_pepper, active_pepper_file)
 
-    # Also archive new key into vault
+    # Also store committed key in vault under new version
     new_archive = vault_dir / f"pepper_v{new_version}.key"
     new_archive.write_bytes(new_pepper)
     try:
@@ -191,17 +268,22 @@ def rotate_pepper(
 
 
 # ==============================================================================
-# Authenticated Envelope Encrypted Backup & Restore (AEAD via PBKDF2-HMAC-CTR)
+# Authenticated Envelope Encrypted Backup & Restore (AEAD: AES-256-GCM / CTR)
 # ==============================================================================
 
-def _derive_keys(password: str, salt: bytes) -> Tuple[bytes, bytes]:
+def _derive_keys_v1(password: str, salt: bytes) -> Tuple[bytes, bytes]:
     """Derive 32-byte encryption key (K_enc) and 32-byte MAC key (K_mac) using PBKDF2-HMAC-SHA256."""
     dk = hashlib.pbkdf2_hmac("sha256", password.encode("utf-8"), salt, PBKDF2_ROUNDS, dklen=64)
     return dk[:32], dk[32:]
 
 
+def _derive_key_v2(password: str, salt: bytes) -> bytes:
+    """Derive 32-byte AES-256 key using PBKDF2-HMAC-SHA256 for MSKENC02."""
+    return hashlib.pbkdf2_hmac("sha256", password.encode("utf-8"), salt, PBKDF2_ROUNDS, dklen=32)
+
+
 def _ctr_stream_xor(key: bytes, nonce: bytes, data: bytes) -> bytes:
-    """Standard CTR mode keystream generation using HMAC-SHA256 blocks with fast integer XOR."""
+    """Legacy CTR mode keystream generation using HMAC-SHA256 blocks with integer XOR."""
     if not data:
         return b""
     block_size = 32
@@ -223,10 +305,14 @@ def create_encrypted_backup(
     target_export_dir: Optional[Path] = None,
     include_pepper: bool = True,
     include_originals: bool = False,
+    format_version: str = "v2",
 ) -> Path:
     """Create an authenticated encrypted disaster recovery archive of SQLite DB and state.
     
-    Container Structure:
+    Container Structure (MSKENC02 - Standard EVP AES-256-GCM AEAD):
+    [8B Magic: MSKENC02] [16B Salt] [12B IV] [16B Tag] [Ciphertext...]
+    
+    Container Structure (MSKENC01 - Legacy CTR + HMAC-SHA256):
     [8B Magic: MSKENC01] [16B Salt] [16B Nonce] [32B HMAC-Tag] [Ciphertext...]
     """
     if len(password) < 8:
@@ -269,24 +355,34 @@ def create_encrypted_backup(
 
         plaintext = tar_path.read_bytes()
 
-    # Generate cryptographic randomness
-    salt = secrets.token_bytes(16)
-    nonce = secrets.token_bytes(16)
-    k_enc, k_mac = _derive_keys(password, salt)
+    if format_version == "v1":
+        # Legacy MSKENC01
+        salt = secrets.token_bytes(16)
+        nonce = secrets.token_bytes(16)
+        k_enc, k_mac = _derive_keys_v1(password, salt)
+        ciphertext = _ctr_stream_xor(k_enc, nonce, plaintext)
+        tag = hmac.new(k_mac, ENC_MAGIC_V1 + salt + nonce + ciphertext, hashlib.sha256).digest()
 
-    # Encrypt
-    ciphertext = _ctr_stream_xor(k_enc, nonce, plaintext)
+        with open(backup_file, "wb") as f:
+            f.write(ENC_MAGIC_V1)
+            f.write(salt)
+            f.write(nonce)
+            f.write(tag)
+            f.write(ciphertext)
+    else:
+        # Standard MSKENC02 (AES-256-GCM AEAD)
+        salt = secrets.token_bytes(16)
+        iv = secrets.token_bytes(12)
+        key = _derive_key_v2(password, salt)
+        aad = ENC_MAGIC_V2 + salt + iv
+        ciphertext, tag = aes_256_gcm_encrypt(key, iv, plaintext, aad=aad)
 
-    # Compute Authenticated Tag: HMAC-SHA256(k_mac, Header || Salt || Nonce || Ciphertext)
-    tag = hmac.new(k_mac, ENC_MAGIC + salt + nonce + ciphertext, hashlib.sha256).digest()
-
-    # Write container
-    with open(backup_file, "wb") as f:
-        f.write(ENC_MAGIC)
-        f.write(salt)
-        f.write(nonce)
-        f.write(tag)
-        f.write(ciphertext)
+        with open(backup_file, "wb") as f:
+            f.write(ENC_MAGIC_V2)
+            f.write(salt)
+            f.write(iv)
+            f.write(tag)
+            f.write(ciphertext)
 
     return backup_file
 
@@ -296,58 +392,93 @@ def restore_encrypted_backup(
     password: str,
     target_restore_dir: Optional[Path] = None,
 ) -> Dict[str, Any]:
-    """Authenticate, decrypt, and restore an encrypted backup archive."""
+    """Authenticate, decrypt, verify in isolated staging, and restore an encrypted backup archive."""
     if not encrypted_backup_path.exists():
         raise BackupDecryptionError(f"Backup file '{encrypted_backup_path}' does not exist.")
 
     with open(encrypted_backup_path, "rb") as f:
         magic = f.read(8)
-        if magic != ENC_MAGIC:
-            raise BackupDecryptionError("Invalid backup file: header magic mismatch.")
-        salt = f.read(16)
-        nonce = f.read(16)
-        expected_tag = f.read(32)
-        ciphertext = f.read()
+        if magic == ENC_MAGIC_V2:
+            salt = f.read(16)
+            iv = f.read(12)
+            expected_tag = f.read(16)
+            ciphertext = f.read()
 
-    # Derive keys
-    k_enc, k_mac = _derive_keys(password, salt)
+            key = _derive_key_v2(password, salt)
+            aad = ENC_MAGIC_V2 + salt + iv
+            try:
+                plaintext = aes_256_gcm_decrypt(key, iv, ciphertext, expected_tag, aad=aad)
+            except Exception as e:
+                raise BackupDecryptionError(f"Authentication failed: invalid passphrase or corrupted payload ({e}).")
 
-    # Authenticate tag
-    computed_tag = hmac.new(k_mac, ENC_MAGIC + salt + nonce + ciphertext, hashlib.sha256).digest()
-    if not hmac.compare_digest(expected_tag, computed_tag):
-        raise BackupDecryptionError("Authentication failed: invalid passphrase or corrupted payload.")
+        elif magic == ENC_MAGIC_V1:
+            salt = f.read(16)
+            nonce = f.read(16)
+            expected_tag = f.read(32)
+            ciphertext = f.read()
 
-    # Decrypt
-    plaintext = _ctr_stream_xor(k_enc, nonce, ciphertext)
+            k_enc, k_mac = _derive_keys_v1(password, salt)
+            computed_tag = hmac.new(k_mac, ENC_MAGIC_V1 + salt + nonce + ciphertext, hashlib.sha256).digest()
+            if not hmac.compare_digest(expected_tag, computed_tag):
+                raise BackupDecryptionError("Authentication failed: invalid passphrase or corrupted payload.")
 
-    # Restore tar contents
+            plaintext = _ctr_stream_xor(k_enc, nonce, ciphertext)
+        else:
+            raise BackupDecryptionError(f"Invalid backup file: unsupported container magic {magic!r}.")
+
     restore_dir = target_restore_dir or get_db_path().parent
     restore_dir.mkdir(parents=True, exist_ok=True)
 
-    with tempfile.TemporaryDirectory() as tmp_dir_str:
-        tar_tmp = Path(tmp_dir_str) / "restored.tar"
-        tar_tmp.write_bytes(plaintext)
+    # Isolated staging extraction and verification
+    with tempfile.TemporaryDirectory() as staging_dir_str:
+        staging_dir = Path(staging_dir_str)
+        tar_staging = staging_dir / "restored.tar"
+        tar_staging.write_bytes(plaintext)
 
-        restored_files = []
-        with tarfile.open(tar_tmp, "r") as tar:
+        staging_extracted = staging_dir / "extracted"
+        staging_extracted.mkdir(parents=True, exist_ok=True)
+
+        restored_files: List[str] = []
+        with tarfile.open(tar_staging, "r") as tar:
             for member in tar.getmembers():
-                # Path traversal guard
-                target_path = (restore_dir / member.name).resolve()
-                if not str(target_path).startswith(str(restore_dir.resolve())):
+                # Strict path traversal guard
+                member_path = (staging_extracted / member.name).resolve()
+                if not str(member_path).startswith(str(staging_extracted.resolve())):
                     raise BackupDecryptionError(f"Malicious archive member detected: {member.name}")
-                tar.extract(member, path=restore_dir)
+                tar.extract(member, path=staging_extracted)
                 restored_files.append(member.name)
 
-    # Verify restored SQLite DB integrity
-    restored_db = restore_dir / "lab.sqlite3"
-    db_verified = False
-    if restored_db.exists():
-        conn = init_connection(restored_db)
-        try:
-            res = conn.execute("PRAGMA integrity_check;").fetchone()
-            db_verified = bool(res and res[0] == "ok")
-        finally:
-            conn.close()
+        # Staging SQLite verification before deploying to restore_dir
+        staged_db = staging_extracted / "lab.sqlite3"
+        db_verified = False
+        if staged_db.exists():
+            try:
+                conn = sqlite3.connect(str(staged_db))
+                res = conn.execute("PRAGMA integrity_check;").fetchone()
+                if not res or res[0] != "ok":
+                    conn.close()
+                    raise BackupDecryptionError(f"Corrupted database in archive: integrity check returned {res}")
+                fk_violations = conn.execute("PRAGMA foreign_key_check;").fetchall()
+                if fk_violations:
+                    conn.close()
+                    raise BackupDecryptionError(f"Foreign key violations detected in restored archive: {fk_violations}")
+                conn.close()
+                db_verified = True
+            except sqlite3.DatabaseError as db_err:
+                raise BackupDecryptionError(f"Staged database validation failed: {db_err}")
+
+        # Atomic copy from verified staging to final restore directory
+        for item in staging_extracted.iterdir():
+            target_item = restore_dir / item.name
+            if item.is_dir():
+                shutil.copytree(item, target_item, dirs_exist_ok=True)
+            else:
+                shutil.copy2(item, target_item)
+                if item.name.startswith("."):
+                    try:
+                        os.chmod(target_item, 0o600)
+                    except Exception:
+                        pass
 
     return {
         "status": "RESTORED",

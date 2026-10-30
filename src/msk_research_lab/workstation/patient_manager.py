@@ -22,14 +22,16 @@ def get_or_create_pepper() -> bytes:
         return env_pepper.encode("utf-8")
     
     # Locate pepper alongside database directory
+    custom_db = False
     try:
         from msk_research_lab.core.db import get_db_path
         db_dir = get_db_path().parent
         pepper_file = db_dir / ".workstation_pepper"
+        custom_db = "2data/db" not in str(db_dir)
     except Exception:
         pepper_file = Path("2data/db/.workstation_pepper")
 
-    if not pepper_file.exists():
+    if not pepper_file.exists() and not custom_db:
         legacy_pepper = Path("2data/db/.workstation_pepper")
         if legacy_pepper.exists():
             pepper_file = legacy_pepper
@@ -265,3 +267,58 @@ def delete_patient(patient_id: str) -> bool:
     with get_db() as conn:
         conn.execute("UPDATE patients SET status = 'DISCHARGED', updated_at = (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) WHERE id = ?;", (patient_id,))
     return True
+
+
+def export_deidentified_research_record(
+    patient_id: str,
+    operator_id: str = "RESEARCHER",
+) -> Dict[str, Any]:
+    """Export de-identified research record stripping all direct PII (HIPAA Safe Harbor aligned).
+    
+    Guarantees:
+    - Direct identifiers ('full_name') are strictly excluded from output.
+    - Patient ID is replaced by keyed HMAC pseudonym hash prefix.
+    - Audit tri-ledger event 'RESEARCH_RECORD_EXPORTED' is logged.
+    """
+    patient = get_patient(patient_id)
+    now = datetime.datetime.utcnow().isoformat() + "Z"
+    pseudo = patient["pseudonym_hash"]
+
+    deidentified = {
+        "research_subject_id": f"SUBJ-{pseudo[:12].upper()}",
+        "pseudonym_hash": pseudo,
+        "pepper_version": patient.get("pepper_version", 1),
+        "age": patient["age"],
+        "gender": patient["gender"],
+        "height_cm": patient["height_cm"],
+        "weight_kg": patient["weight_kg"],
+        "occupation": patient["occupation"],
+        "activity_level": patient["activity_level"],
+        "medical_history_summary": patient["medical_history"],
+        "primary_complaint": patient["primary_complaint"],
+        "pain_locations": patient["pain_locations"],
+        "current_pain_score": patient["current_pain_score"],
+        "radiating_symptoms": patient["radiating_symptoms"],
+        "functional_limitations": patient["functional_limitations"],
+        "red_flags": patient["red_flags"],
+        "status": patient["status"],
+        "exported_at": now,
+        "operator_id": operator_id,
+        "pii_redacted": True,
+    }
+
+    with get_db() as conn:
+        conn.execute("""
+            INSERT INTO audit_events (event_type, actor, payload_json)
+            VALUES (?, ?, ?);
+        """, (
+            "RESEARCH_RECORD_EXPORTED", operator_id,
+            json.dumps({
+                "patient_id": patient_id,
+                "research_subject_id": deidentified["research_subject_id"],
+                "pseudonym_hash_prefix": pseudo[:8],
+            })
+        ))
+
+    return deidentified
+

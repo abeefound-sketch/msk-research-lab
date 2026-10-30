@@ -101,7 +101,7 @@ def test_encrypted_backup_and_restore(setup_db, tmp_path):
     assert backup_file.stat().st_size > 512
 
     # Verify header magic
-    assert backup_file.read_bytes()[:8] == b"MSKENC01"
+    assert backup_file.read_bytes()[:8] in (b"MSKENC01", b"MSKENC02")
 
     # Restore with correct password
     res = restore_encrypted_backup(backup_file, password=password, target_restore_dir=restore_dir)

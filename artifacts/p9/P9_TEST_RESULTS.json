@@ -1,0 +1,73 @@
+{
+  "milestone": "P9",
+  "title": "Security Hardening, Metrology Validation & Operational Trustworthiness",
+  "timestamp": "2026-10-30T13:50:20Z",
+  "branch": "fix/workstation-real-functional-acceptance",
+  "python_version": "3.10.12",
+  "pytest_version": "9.1.1",
+  "summary": {
+    "total_tests": 241,
+    "passed": 241,
+    "failed": 0,
+    "skipped": 0,
+    "warnings": 1,
+    "execution_time_seconds": 534.66,
+    "pass_rate_pct": 100.0
+  },
+  "workstreams": {
+    "P9-G0": {
+      "status": "PASSED",
+      "description": "Baseline verification across 214 pre-existing repository tests",
+      "tests_passed": 214
+    },
+    "P9-A": {
+      "status": "PASSED",
+      "description": "Standard OpenSSL EVP AES-256-GCM AEAD, staged restore, two-phase pepper rotation & vault recovery",
+      "test_suite": "tests/integration/test_p9_crypto_fault_injection.py",
+      "tests_passed": 8,
+      "defects_resolved": ["DEF-13", "DEF-14", "DEF-15"]
+    },
+    "P9-B": {
+      "status": "PASSED",
+      "description": "Windows Privacy, HIPAA Safe Harbor PHI strip, and loopback CSRF/Origin guard",
+      "test_suite": "tests/integration/test_p9_local_security.py",
+      "tests_passed": 8,
+      "defects_resolved": ["DEF-16", "DEF-17"]
+    },
+    "P9-C": {
+      "status": "PASSED",
+      "description": "Stereo metrology quadratic depth uncertainty scaling (sigma_Z) and angular error propagation",
+      "test_suite": "tests/unit/test_p9_metrology_uncertainty.py",
+      "tests_passed": 6,
+      "defects_resolved": ["DEF-18"]
+    },
+    "P9-D": {
+      "status": "PASSED",
+      "description": "Diện Chẩn 6-DoF Levenberg-Marquardt PnP pose estimation & epistemic guard enforcement",
+      "test_suite": "tests/unit/test_p9_calibrated_pnp_6dof.py",
+      "tests_passed": 5,
+      "defects_resolved": ["DEF-19"]
+    },
+    "P9-E": {
+      "status": "PASSED",
+      "description": "Native desktop distribution packaging, asset manifest verification & runtime performance",
+      "test_suite": "tests/integration/test_p8_desktop_packaging.py",
+      "distribution_directory": "dist/MSK-Workstation",
+      "verified_assets": 6,
+      "cold_startup_seconds": 1.85,
+      "rss_memory_mb": 78.4
+    },
+    "P9-F": {
+      "status": "PASSED",
+      "description": "Defect remediation (DEF-13 to DEF-19) and end-to-end full repository test suite reproduction",
+      "total_tests_verified": 241,
+      "active_defects_remaining": 0
+    }
+  },
+  "safety_invariants": {
+    "CLINICAL_REALWORLD_GATE": "BLOCKED",
+    "CANNOT_IMPLICITLY_PROJECT_2D_TO_3D": "ENFORCED_FAIL_CLOSED",
+    "PHYSICAL_STEREO_HARDWARE_GATE": "BLOCKED (DUAL_CAMERA_UNAVAILABLE)"
+  },
+  "acceptance_verdict": "GO — PERSONAL OFFLINE WORKSTATION / SYNTHETIC & RESEARCH ONLY"
+}
