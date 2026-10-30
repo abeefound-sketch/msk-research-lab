@@ -463,13 +463,18 @@ def restore_encrypted_backup(
             except sqlite3.DatabaseError as db_err:
                 raise BackupDecryptionError(f"Staged database validation failed: {db_err}")
 
-        # Atomic copy from verified staging to final restore directory
+        # Atomic deployment from verified staging to final restore directory (DEF-27)
         for item in staging_extracted.iterdir():
             target_item = restore_dir / item.name
             if item.is_dir():
                 shutil.copytree(item, target_item, dirs_exist_ok=True)
+                secure_directory_permissions(target_item)
             else:
-                shutil.copy2(item, target_item)
+                tmp_restore = restore_dir / f".{item.name}.tmp.{secrets.token_hex(4)}"
+                shutil.copy2(item, tmp_restore)
+                if item.name.startswith("."):
+                    secure_file_permissions(tmp_restore)
+                os.replace(tmp_restore, target_item)
                 if item.name.startswith("."):
                     secure_file_permissions(target_item)
 

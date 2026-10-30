@@ -324,3 +324,52 @@ All operational verification evidence is documented in `artifacts/p10/`:
 - `artifacts/p10/P10_INDEPENDENT_RELEASE_DECISION.md`
 - `artifacts/p10/P10_TO_P11_HANDOFF.md`
 - `dist/MSK-Workstation/` (Self-contained desktop distribution)
+
+---
+
+## 10. Milestone P11 Completion & Verification Checkpoint
+
+**Date:** 2026-10-30  
+**Git Branch:** `fix/workstation-real-functional-acceptance`  
+**Test Suite Verification:** **269 PASSED, 0 FAILED, 1 WARNING** (Expanded from 256 to 269 automated tests)  
+**Defects Remediated:** DEF-27 through DEF-32 (0 active open defects)  
+**Release Verdict:** **`GO — PERSONAL OFFLINE WORKSTATION / SYNTHETIC & RESEARCH ONLY`**  
+**Desktop Distribution Package:** Verified distribution package staged at `dist/MSK-Workstation/` (6/6 critical assets verified)  
+**Clinical Real-World Gate:** **`BLOCKED (PERMANENT SERVER INVARIANT)`**  
+**Physical Stereo Camera Hardware Gate:** **`BLOCKED (DUAL_CAMERA_UNAVAILABLE)`**  
+**Epistemic 2D-to-3D Invariant:** **FAIL-CLOSED (`CANNOT_IMPLICITLY_PROJECT_2D_TO_3D`)**  
+
+### Newly Remediated P11 Defects (DEF-27 through DEF-32)
+- **DEF-27 (HIGH): Non-Atomic Database File Overwrite During Backup Restoration.**
+  - *Root Cause:* Direct `shutil.copy2` over destination database files in `restore_encrypted_backup()` risked leaving truncated/corrupted databases if interrupted.
+  - *Remediation:* Implemented atomic staged deployment via temporary token files (`.{name}.tmp.{token}`) and `os.replace` within the destination directory. Verified in `test_p11_security_durability.py`.
+- **DEF-28 (HIGH): Brown-Conrady Lens Distortion Uncompensated in Ray-Surface Projection.**
+  - *Root Cause:* 2D pixel coordinates $(u, v)$ were directly normalized without inverting lens distortion, producing $> 3$ mm radial displacement on wide-angle camera views.
+  - *Remediation:* Integrated fixed-point `undistort_normalized_point()` in back-projection and `distort_normalized_point()` in forward projection in `calibrated_registration.py`. Verified in `test_p11_metrology_oracle.py`.
+- **DEF-29 (HIGH): Incomplete Textual Dates, Postal Codes, and MRN PHI Scrubbing in Free-Text Notes.**
+  - *Root Cause:* Text scrubber only redacted numeric dates; textual dates (`October 14, 2024`, `12 Jan 2023`), MRNs, IP addresses, and postal codes were not redacted, and exports lacked explicit regex limitation disclosures.
+  - *Remediation:* Expanded `scrub_phi_from_text()` with comprehensive regex patterns for textual dates, MRNs, IPs, and ZIP codes; added `regex_based_scrubbing_only: True` and `not_anonymized_guaranteed: True` to export metadata. Verified in `test_p11_security_durability.py`.
+- **DEF-30 (MEDIUM): Missing Standardized Provenance Classification Across Sensor & Synthetic Data.**
+  - *Root Cause:* No uniform four-state enumeration (`LIVE_MEASURED`, `SYNTHETIC_TEST`, `NOT_MEASURABLE`, `INVALID_INPUT`) across kinematic and reflexology modules.
+  - *Remediation:* Implemented `src/msk_research_lab/scientific/provenance.py` with `MeasurementProvenanceType` and helper `build_measurement_provenance()`, tagging kinematic and 3D registration outputs. Verified in `test_p11_security_durability.py`.
+- **DEF-31 (MEDIUM): Windows Security Descriptor Failure When `USERNAME` Environment Variable is Unset.**
+  - *Root Cause:* Permissions helper skipped `icacls` when `os.environ.get("USERNAME")` was empty, failing to secure keys in headless/service environments.
+  - *Remediation:* Implemented multi-tier identity fallback in `get_current_windows_identity()` checking environment variables, `getpass.getuser()`, `ctypes.windll.advapi32.GetUserNameW`, and default `*S-1-3-4` SID. Verified in `test_p11_security_durability.py`.
+- **DEF-32 (MEDIUM): 6-DoF Levenberg-Marquardt Ill-Conditioning and Coplanarity Non-Disclosure.**
+  - *Root Cause:* Near-coplanar landmark sets could suffer from depth ambiguity (Necker reversal) without computing spatial condition numbers or planarity metrics.
+  - *Remediation:* Added `compute_landmark_spatial_conditioning()` to compute 3D landmark spatial covariance eigenvalues $\lambda_1, \lambda_2, \lambda_3$, condition number $\kappa$, and planarity ratio $\rho$, exposing them on `OpticalCalibrationContext`. Verified in `test_p11_metrology_oracle.py`.
+
+### Consolidated P11 Evidence Artifacts
+All operational verification evidence is documented in `artifacts/p11/`:
+- `artifacts/p11/P11_BASELINE_AUDIT.md`
+- `artifacts/p11/P11_SECURITY_CHALLENGE.md`
+- `artifacts/p11/P11_METROLOGY_ORACLE_REPORT.md`
+- `artifacts/p11/P11_DESKTOP_E2E_REPORT.md`
+- `artifacts/p11/P11_STABILITY_REPORT.md`
+- `artifacts/p11/P11_DATA_PROVENANCE_AUDIT.md`
+- `artifacts/p11/P11_DEFECT_REGISTER.md`
+- `artifacts/p11/P11_TEST_RESULTS.json`
+- `artifacts/p11/P11_INDEPENDENT_ACCEPTANCE_REPORT.md`
+- `artifacts/p11/P11_TO_P12_HANDOFF.md`
+- `dist/MSK-Workstation/` (Self-contained desktop distribution)
+

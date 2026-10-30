@@ -278,6 +278,7 @@ def execute_motion_assessment(
         eval_result["is_synthetic"] = True
         eval_result["mode"] = "DEMO"
         eval_result["provenance_category"] = prov_cat
+        eval_result["provenance_type"] = prov_cat
         eval_result["assessed_at"] = now
         return eval_result
 
@@ -355,6 +356,7 @@ def execute_motion_assessment(
     eval_result["is_synthetic"] = False
     eval_result["mode"] = "LIVE"
     eval_result["provenance_category"] = prov_cat
+    eval_result["provenance_type"] = prov_cat
     eval_result["assessed_at"] = now
     return eval_result
 

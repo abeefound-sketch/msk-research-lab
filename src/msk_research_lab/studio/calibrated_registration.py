@@ -9,7 +9,12 @@ import math
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, Tuple
 
-from msk_research_lab.motion.calibration import CameraIntrinsics, create_standard_intrinsics
+from msk_research_lab.motion.calibration import (
+    CameraIntrinsics,
+    create_standard_intrinsics,
+    distort_normalized_point,
+    undistort_normalized_point,
+)
 from msk_research_lab.studio.dien_chan import DienChanError, attempt_project_2d_to_3d
 
 
@@ -47,6 +52,9 @@ class OpticalCalibrationContext:
     max_reprojection_residual_px: float = 1.65
     is_calibrated: bool = True
     calibration_target_detected: bool = True
+    spatial_condition_number: float = 1.0
+    planarity_ratio: float = 0.5
+    covariance_eigenvalues: Tuple[float, float, float] = (100.0, 100.0, 50.0)
 
 
 def create_nominal_calibration_context(
@@ -104,8 +112,15 @@ def project_canonical_landmark(
     if z_cam <= 10.0:
         raise CalibratedRegistrationError("Landmark lies behind camera or within near plane.")
 
-    px = K.fx * (x_cam / z_cam) + K.cx
-    py = K.fy * (y_cam / z_cam) + K.cy
+    xn = x_cam / z_cam
+    yn = y_cam / z_cam
+    if abs(K.k1) > 1e-6 or abs(K.k2) > 1e-6 or abs(K.p1) > 1e-6 or abs(K.p2) > 1e-6 or abs(K.k3) > 1e-6:
+        xd, yd = distort_normalized_point(xn, yn, K.k1, K.k2, K.p1, K.p2, K.k3)
+    else:
+        xd, yd = xn, yn
+
+    px = K.fx * xd + K.cx
+    py = K.fy * yd + K.cy
     return (px, py)
 
 
@@ -149,15 +164,21 @@ def _project_point_cam(
     t: List[float],
     K: CameraIntrinsics,
 ) -> Tuple[float, float]:
-    """Project 3D point in object frame through rigid pose [R | t] and intrinsics K."""
+    """Project 3D point in object frame through rigid pose [R | t] and intrinsics K (DEF-28)."""
     Xi, Yi, Zi = pt3
     xc = R[0][0] * Xi + R[0][1] * Yi + R[0][2] * Zi + t[0]
     yc = R[1][0] * Xi + R[1][1] * Yi + R[1][2] * Zi + t[1]
     zc = R[2][0] * Xi + R[2][1] * Yi + R[2][2] * Zi + t[2]
     if zc <= 1.0:
         zc = 1.0
-    u = K.fx * (xc / zc) + K.cx
-    v = K.fy * (yc / zc) + K.cy
+    xn = xc / zc
+    yn = yc / zc
+    if abs(K.k1) > 1e-6 or abs(K.k2) > 1e-6 or abs(K.p1) > 1e-6 or abs(K.p2) > 1e-6 or abs(K.k3) > 1e-6:
+        xd, yd = distort_normalized_point(xn, yn, K.k1, K.k2, K.p1, K.p2, K.k3)
+    else:
+        xd, yd = xn, yn
+    u = K.fx * xd + K.cx
+    v = K.fy * yd + K.cy
     return u, v
 
 
@@ -186,6 +207,79 @@ def _solve_linear_system_6x6(A: List[List[float]], b: List[float]) -> List[float
     return sol
 
 
+def compute_landmark_spatial_conditioning(
+    points_3d: List[Tuple[float, float, float]]
+) -> Tuple[float, float, Tuple[float, float, float]]:
+    """Compute 3D spatial covariance eigenvalues, condition number, and planarity ratio (DEF-32).
+    
+    Returns:
+        (spatial_condition_number, planarity_ratio, (lambda1, lambda2, lambda3))
+        where lambda1 >= lambda2 >= lambda3 >= 0.
+    """
+    n = len(points_3d)
+    if n < 3:
+        return (float("inf"), 0.0, (0.0, 0.0, 0.0))
+
+    cx = sum(p[0] for p in points_3d) / n
+    cy = sum(p[1] for p in points_3d) / n
+    cz = sum(p[2] for p in points_3d) / n
+
+    c00 = sum((p[0] - cx) ** 2 for p in points_3d) / n
+    c11 = sum((p[1] - cy) ** 2 for p in points_3d) / n
+    c22 = sum((p[2] - cz) ** 2 for p in points_3d) / n
+    c01 = sum((p[0] - cx) * (p[1] - cy) for p in points_3d) / n
+    c02 = sum((p[0] - cx) * (p[2] - cz) for p in points_3d) / n
+    c12 = sum((p[1] - cy) * (p[2] - cz) for p in points_3d) / n
+
+    A = [[c00, c01, c02], [c01, c11, c12], [c02, c12, c22]]
+    for _ in range(20):
+        p, q = 0, 1
+        max_val = abs(A[0][1])
+        if abs(A[0][2]) > max_val:
+            p, q = 0, 2
+            max_val = abs(A[0][2])
+        if abs(A[1][2]) > max_val:
+            p, q = 1, 2
+            max_val = abs(A[1][2])
+
+        if max_val < 1e-10:
+            break
+
+        app = A[p][p]
+        aqq = A[q][q]
+        apq = A[p][q]
+        phi = 0.5 * (aqq - app) / apq
+        t = 1.0 / (abs(phi) + math.sqrt(phi * phi + 1.0))
+        if phi < 0:
+            t = -t
+        c = 1.0 / math.sqrt(t * t + 1.0)
+        s = t * c
+        tau = s / (1.0 + c)
+
+        A[p][p] = app - t * apq
+        A[q][q] = aqq + t * apq
+        A[p][q] = 0.0
+        A[q][p] = 0.0
+
+        for r in range(3):
+            if r != p and r != q:
+                arp = A[r][p]
+                arq = A[r][q]
+                A[r][p] = arp - s * (arq + tau * arp)
+                A[p][r] = A[r][p]
+                A[r][q] = arq + s * (arp - tau * arq)
+                A[q][r] = A[r][q]
+
+    eigenvalues = sorted([max(0.0, A[0][0]), max(0.0, A[1][1]), max(0.0, A[2][2])], reverse=True)
+    l1, l2, l3 = eigenvalues[0], eigenvalues[1], eigenvalues[2]
+
+    eps = 1e-9
+    condition_num = l1 / max(l3, eps) if l1 > eps else float("inf")
+    planarity_ratio = l3 / l1 if l1 > eps else 0.0
+
+    return (round(condition_num, 4), round(planarity_ratio, 6), (round(l1, 4), round(l2, 4), round(l3, 4)))
+
+
 def estimate_rigid_pose_from_landmarks(
     correspondences: List[Tuple[Tuple[float, float, float], Tuple[float, float]]],
     intrinsics: CameraIntrinsics,
@@ -202,7 +296,7 @@ def estimate_rigid_pose_from_landmarks(
             f"Under-constrained registration: requires at least 4 non-coplanar landmarks, got {len(correspondences)}."
         )
 
-    # Check 3D landmark spatial distribution / collinearity (DEF-25)
+    # Check 3D landmark spatial distribution / collinearity (DEF-25, DEF-32)
     pts3d = [pt3 for pt3, _ in correspondences]
     n_pts = len(pts3d)
     centroid = [
@@ -231,6 +325,8 @@ def estimate_rigid_pose_from_landmarks(
             "Degenerate landmark geometry: input 3D landmarks are collinear or lack 2D/3D spatial variance."
         )
 
+    cond_num, planarity_ratio, evals = compute_landmark_spatial_conditioning(pts3d)
+
     # Initial linear least squares estimation of translation vector t = [tx, ty, tz]
     M = [[0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0]]
     b = [0.0, 0.0, 0.0]
@@ -238,8 +334,12 @@ def estimate_rigid_pose_from_landmarks(
     for pt3, pt2 in correspondences:
         Xi, Yi, Zi = pt3
         ui, vi = pt2
-        xn = (ui - intrinsics.cx) / intrinsics.fx
-        yn = (vi - intrinsics.cy) / intrinsics.fy
+        xd = (ui - intrinsics.cx) / intrinsics.fx
+        yd = (vi - intrinsics.cy) / intrinsics.fy
+        if abs(intrinsics.k1) > 1e-6 or abs(intrinsics.k2) > 1e-6 or abs(intrinsics.p1) > 1e-6 or abs(intrinsics.p2) > 1e-6 or abs(intrinsics.k3) > 1e-6:
+            xn, yn = undistort_normalized_point(xd, yd, intrinsics.k1, intrinsics.k2, intrinsics.p1, intrinsics.p2, intrinsics.k3)
+        else:
+            xn, yn = xd, yd
 
         r1 = (1.0, 0.0, -xn)
         rhs1 = xn * Zi - Xi
@@ -369,6 +469,9 @@ def estimate_rigid_pose_from_landmarks(
         mean_reprojection_residual_px=round(mean_res, 3),
         max_reprojection_residual_px=round(max_res, 3),
         is_calibrated=True,
+        spatial_condition_number=cond_num,
+        planarity_ratio=planarity_ratio,
+        covariance_eigenvalues=evals,
     )
 
 
@@ -401,11 +504,15 @@ def register_2d_reflexology_point_to_3d(
             "is outside research tolerance."
         )
 
-    # 1. Invert camera projection along ray
+    # 1. Invert camera projection along ray with Brown-Conrady undistortion (DEF-28)
     K = calibration_context.intrinsics
     u, v = pixel_xy
-    x_norm = (u - K.cx) / K.fx
-    y_norm = (v - K.cy) / K.fy
+    x_dist = (u - K.cx) / K.fx
+    y_dist = (v - K.cy) / K.fy
+    if abs(K.k1) > 1e-6 or abs(K.k2) > 1e-6 or abs(K.p1) > 1e-6 or abs(K.p2) > 1e-6 or abs(K.k3) > 1e-6:
+        x_norm, y_norm = undistort_normalized_point(x_dist, y_dist, K.k1, K.k2, K.p1, K.p2, K.k3)
+    else:
+        x_norm, y_norm = x_dist, y_dist
 
     # Ray in camera frame
     ray_cam = (x_norm, y_norm, 1.0)
@@ -444,6 +551,9 @@ def register_2d_reflexology_point_to_3d(
         "uncertainty_radius_mm": uncertainty_radius_mm,
         "optical_pattern": calibration_context.target_pattern,
         "mean_residual_px": calibration_context.mean_reprojection_residual_px,
+        "spatial_condition_number": calibration_context.spatial_condition_number,
+        "planarity_ratio": calibration_context.planarity_ratio,
+        "provenance_type": "SYNTHETIC_TEST",
         "epistemic_provenance": "RIGID_OPTICAL_CALIBRATION_RESEARCH_ONLY",
         "clinical_certification": "NOT_CLINICALLY_CERTIFIED",
     }

@@ -1,0 +1,51 @@
+{
+  "milestone": "P11",
+  "audit_date": "2026-10-30",
+  "git_branch": "fix/workstation-real-functional-acceptance",
+  "total_collected": 269,
+  "passed": 269,
+  "failed": 0,
+  "warnings": 1,
+  "warning_details": "StarletteDeprecationWarning: Using httpx with starlette.testclient is deprecated; install httpx2 instead.",
+  "status": "PASS",
+  "release_verdict": "GO — PERSONAL OFFLINE WORKSTATION / SYNTHETIC & RESEARCH ONLY",
+  "safety_gates": {
+    "CLINICAL_REALWORLD_GATE": "BLOCKED",
+    "PHYSICAL_STEREO_HARDWARE_GATE": "BLOCKED (DUAL_CAMERA_UNAVAILABLE)",
+    "CANNOT_IMPLICITLY_PROJECT_2D_TO_3D": "ENFORCED_FAIL_CLOSED",
+    "AIR_GAPPED_OFFLINE_LOOPBACK": "ENFORCED"
+  },
+  "defects_remediated": [
+    "DEF-27",
+    "DEF-28",
+    "DEF-29",
+    "DEF-30",
+    "DEF-31",
+    "DEF-32"
+  ],
+  "suites": {
+    "p11_metrology_oracle": {
+      "file": "tests/unit/test_p11_metrology_oracle.py",
+      "count": 6,
+      "passed": 6,
+      "failed": 0
+    },
+    "p11_security_durability": {
+      "file": "tests/integration/test_p11_security_durability.py",
+      "count": 5,
+      "passed": 5,
+      "failed": 0
+    },
+    "p11_long_running_stability": {
+      "file": "tests/integration/test_p11_long_running_stability.py",
+      "count": 2,
+      "passed": 2,
+      "failed": 0
+    },
+    "baseline_regression_suite": {
+      "count": 256,
+      "passed": 256,
+      "failed": 0
+    }
+  }
+}
