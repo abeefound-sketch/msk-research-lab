@@ -834,6 +834,33 @@ MIGRATIONS: List[Tuple[int, str, str]] = [
         ALTER TABLE patients ADD COLUMN is_synthetic INTEGER NOT NULL DEFAULT 1;
         ALTER TABLE therapy_sessions ADD COLUMN is_synthetic INTEGER NOT NULL DEFAULT 1;
         """
+    ),
+    (
+        10,
+        "r10_cryptographic_key_lifecycle_and_peppering",
+        """
+        ALTER TABLE patients ADD COLUMN pepper_version INTEGER NOT NULL DEFAULT 1;
+
+        CREATE TABLE IF NOT EXISTS pepper_key_store (
+            version INTEGER PRIMARY KEY,
+            key_hash TEXT NOT NULL,
+            status TEXT NOT NULL DEFAULT 'ACTIVE',
+            created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+        );
+
+        CREATE TABLE IF NOT EXISTS pepper_rotation_log (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            from_version INTEGER NOT NULL,
+            to_version INTEGER NOT NULL,
+            rotated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+            records_migrated INTEGER NOT NULL,
+            operator_id TEXT NOT NULL DEFAULT 'SYSTEM',
+            status TEXT NOT NULL DEFAULT 'COMPLETED',
+            journal_json TEXT NOT NULL DEFAULT '{}'
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_patients_pepper_ver ON patients(pepper_version);
+        """
     )
 ]
 

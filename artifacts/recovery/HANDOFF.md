@@ -180,3 +180,43 @@ All operational verification evidence is documented in `artifacts/p7/`:
 - `artifacts/p7/p7_blackbox_runner.py` & `p7_blackbox_results.json`
 - `artifacts/p7/p7_workstation_screenshot.png` & `p7_chrome_rendered_dom.html`
 - `artifacts/p7/p7_pytest_full.txt`
+
+---
+
+## 8. P8 Operational Hardening, Desktop Packaging & Defensible Metrology (2026-10-30)
+
+**Final Verdict:** **`GO — PERSONAL OFFLINE WORKSTATION / SYNTHETIC & CALIBRATED RESEARCH ONLY`**  
+**Repository Test Results:** **214 passed, 0 failed, 1 warning in 221.20s** (100% PASS)  
+**Desktop Workstation Package:** Verified distribution package staged at `dist/MSK-Workstation/`  
+**Clinical Real-World Gate:** **`BLOCKED (PERMANENT INVARIANT)`**  
+**Physical Stereo Camera Hardware Gate:** **`BLOCKED (DUAL_CAMERA_UNAVAILABLE)`**  
+
+### Newly Remediated P8 Defects (DEF-09 through DEF-12)
+- **DEF-09 (MEDIUM): Insecure Database Storage Path in Desktop Mode.**
+  - *Root Cause:* Hardcoded `2data/db/` prevented standard desktop users installed in system directories from persisting clinical data.
+  - *Remediation:* Implemented `MSK_STORAGE_MODE=desktop` routing databases to `%LOCALAPPDATA%\MSKResearchLab\db\lab.sqlite3` with auto-creation. Verified in `test_p8_desktop_packaging.py`.
+- **DEF-10 (HIGH): Unversioned HMAC Pepper with Key Rotation Data Loss.**
+  - *Root Cause:* Rotating secret HMAC pepper invalidated existing patient pseudonym hashes, causing permanent record loss.
+  - *Remediation:* Implemented database Migration 10 (`pepper_version`, `pepper_rotation_log`), and atomic zero-loss rotation engine in `key_lifecycle.py`. Verified in `test_p8_security_key_lifecycle.py`.
+- **DEF-11 (MEDIUM): Pure Python CTR Keystream Performance Bottleneck.**
+  - *Root Cause:* Byte-by-byte Python loop across 10MB tar archives took $>35$ seconds, hanging background backup generation.
+  - *Remediation:* Vectorized CTR keystream application using fast 64-bit integer XOR, dropping 10MB encryption to $<0.25$ seconds. Verified in `test_p8_security_key_lifecycle.py`.
+- **DEF-12 (HIGH): Non-Coplanar PnP Depth Ambiguity in Facial Landmark Registration.**
+  - *Root Cause:* 2D scale approximation failed to account for depth differences between Tragion ($Z=-38$ mm) and Subnasale ($Z=+20$ mm), causing registration residuals to exceed tolerance.
+  - *Remediation:* Formulated and solved exact $2N \times 3$ normal equations for rigid translation $(t_x, t_y, t_z)$ across non-coplanar features. Verified in `test_calibrated_registration.py`.
+
+### Consolidated P8 Evidence Artifacts
+All operational verification evidence is documented in `artifacts/p8/`:
+- `artifacts/p8/P8_BASELINE_AUDIT.md`
+- `artifacts/p8/P8_DESKTOP_PACKAGING_REPORT.md`
+- `artifacts/p8/P8_KEY_MANAGEMENT_AUDIT.md`
+- `artifacts/p8/P8_METROLOGY_VALIDATION.md`
+- `artifacts/p8/P8_STEREO_FEASIBILITY_REPORT.md`
+- `artifacts/p8/P8_DIEN_CHAN_REGISTRATION_REPORT.md`
+- `artifacts/p8/P8_REAL_USER_ACCEPTANCE.md`
+- `artifacts/p8/P8_DEFECT_REGISTER.md`
+- `artifacts/p8/P8_TEST_RESULTS.json`
+- `artifacts/p8/P8_INDEPENDENT_ACCEPTANCE_REPORT.md`
+- `artifacts/p8/P8_TO_P9_HANDOFF.md`
+- `packaging/ASSET_MANIFEST.json` & `packaging/LICENSE_NOTICES.txt`
+- `dist/MSK-Workstation/` (Self-contained desktop distribution)

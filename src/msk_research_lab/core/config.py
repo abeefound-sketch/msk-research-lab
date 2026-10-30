@@ -21,6 +21,18 @@ def _find_repo_root() -> Path:
     return anchor
 
 
+def get_desktop_user_data_dir() -> Path:
+    """Return standard user data directory for desktop application mode."""
+    if os.name == "nt" or "LOCALAPPDATA" in os.environ or "APPDATA" in os.environ:
+        base = os.environ.get("LOCALAPPDATA") or os.environ.get("APPDATA")
+        if base:
+            return (Path(base) / "MSKResearchLab").resolve()
+    xdg_data = os.environ.get("XDG_DATA_HOME")
+    if xdg_data:
+        return (Path(xdg_data) / "msk_research_lab").resolve()
+    return (Path.home() / ".local" / "share" / "msk_research_lab").resolve()
+
+
 class ServerConfig(BaseModel):
     host: str = Field(default="127.0.0.1", description="Server host, default loopback only")
     port: int = Field(default=8091, description="Server port, default 8091")
@@ -100,8 +112,18 @@ class AppConfig(BaseModel):
             server_dict["port"] = int(os.environ["MSK_LAB_PORT"])
 
         storage_dict = cfg_dict.get("storage", {})
+        storage_mode = os.environ.get("MSK_STORAGE_MODE", "").lower()
+        if storage_mode in ("desktop", "appdata", "user"):
+            desktop_dir = get_desktop_user_data_dir()
+            desktop_dir.mkdir(parents=True, exist_ok=True)
+            storage_dict["data_dir"] = desktop_dir
+            storage_dict["db_path"] = desktop_dir / "db" / "lab.sqlite3"
+            storage_dict["evidence_dir"] = desktop_dir / "evidence"
+
         if "MSK_LAB_DATA_DIR" in os.environ:
             storage_dict["data_dir"] = Path(os.environ["MSK_LAB_DATA_DIR"])
+        if "MSK_LAB_DB_PATH" in os.environ:
+            storage_dict["db_path"] = Path(os.environ["MSK_LAB_DB_PATH"])
 
         security_dict = cfg_dict.get("security", {})
         if "MSK_LAB_API_KEY" in os.environ:

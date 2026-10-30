@@ -21,7 +21,19 @@ def get_or_create_pepper() -> bytes:
     if env_pepper:
         return env_pepper.encode("utf-8")
     
-    pepper_file = Path("2data/db/.workstation_pepper")
+    # Locate pepper alongside database directory
+    try:
+        from msk_research_lab.core.db import get_db_path
+        db_dir = get_db_path().parent
+        pepper_file = db_dir / ".workstation_pepper"
+    except Exception:
+        pepper_file = Path("2data/db/.workstation_pepper")
+
+    if not pepper_file.exists():
+        legacy_pepper = Path("2data/db/.workstation_pepper")
+        if legacy_pepper.exists():
+            pepper_file = legacy_pepper
+
     if pepper_file.exists():
         try:
             content = pepper_file.read_bytes()
@@ -144,7 +156,7 @@ def get_patient(patient_id: str) -> Dict[str, Any]:
     """Retrieve complete patient profile by ID."""
     with get_db() as conn:
         row = conn.execute("""
-            SELECT id, pseudonym_hash, full_name, age, gender, height_cm, weight_kg,
+            SELECT id, pseudonym_hash, pepper_version, full_name, age, gender, height_cm, weight_kg,
                    occupation, activity_level, medical_history, primary_complaint,
                    pain_locations_json, current_pain_score, radiating_symptoms_json,
                    functional_limitations, red_flags_json, status, created_at, updated_at
@@ -157,6 +169,7 @@ def get_patient(patient_id: str) -> Dict[str, Any]:
     return {
         "id": row["id"],
         "pseudonym_hash": row["pseudonym_hash"],
+        "pepper_version": row["pepper_version"] if "pepper_version" in row.keys() else 1,
         "full_name": row["full_name"],
         "age": row["age"],
         "gender": row["gender"],

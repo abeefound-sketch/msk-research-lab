@@ -1,0 +1,72 @@
+{
+  "manifest_version": "1.0.0",
+  "generator": "MSK Research Lab Desktop Packaging Engine",
+  "assets": {
+    "watercmy_anatomy_glb": {
+      "relative_path": "3refs/upstream/watercmy--anatomy-3d/models/anatomy.glb",
+      "description": "Authentic DBCLS BodyParts3D / Z-Anatomy 3D musculoskeletal anatomical mesh",
+      "license": "CC-BY-SA 2.1 JP",
+      "critical": true,
+      "exists": true,
+      "size_bytes": 9291204,
+      "expected_sha256": "318347f91e4989da0c271e9662df536943df1149b413fef01cf21586073ea73e",
+      "actual_sha256": "318347f91e4989da0c271e9662df536943df1149b413fef01cf21586073ea73e",
+      "status": "VALID"
+    },
+    "spacejohnlf_body_glb": {
+      "relative_path": "3refs/upstream/spacejohnlf--tcm-acupoints/public/models/body.glb",
+      "description": "spacejohnlf Z-Anatomy derived 3D acupuncture mannequin mesh",
+      "license": "MIT",
+      "critical": false,
+      "exists": true,
+      "size_bytes": 8249484,
+      "expected_sha256": "0886b6a068e655b284903664e2178d7964f80b1c0ce798461909ac806bcef2e3",
+      "actual_sha256": "0886b6a068e655b284903664e2178d7964f80b1c0ce798461909ac806bcef2e3",
+      "status": "VALID"
+    },
+    "pose_landmarker_lite": {
+      "relative_path": "2data/models/pose_landmarker_lite.task",
+      "description": "MediaPipe Pose Landmarker Lite neural model for 33 2D/3D pose landmarks",
+      "license": "Apache 2.0",
+      "critical": true,
+      "exists": true,
+      "size_bytes": 5777746,
+      "expected_sha256": "59929e1d1ee95287735ddd833b19cf4ac46d29bc7afddbbf6753c459690d574a",
+      "actual_sha256": "59929e1d1ee95287735ddd833b19cf4ac46d29bc7afddbbf6753c459690d574a",
+      "status": "VALID"
+    },
+    "vendor_three_js": {
+      "relative_path": "src/msk_research_lab/api/static/vendor/three.min.js",
+      "description": "Three.js r128 3D rendering runtime",
+      "license": "MIT",
+      "critical": true,
+      "exists": true,
+      "size_bytes": 603445,
+      "expected_sha256": "9274bbcec8d96168626c732b5d31c775aa8cfb7eaa0599bec0c175908a2c1ce2",
+      "actual_sha256": "9274bbcec8d96168626c732b5d31c775aa8cfb7eaa0599bec0c175908a2c1ce2",
+      "status": "VALID"
+    },
+    "vendor_gltf_loader": {
+      "relative_path": "src/msk_research_lab/api/static/vendor/GLTFLoader.js",
+      "description": "Three.js GLTFLoader for parsing binary GLTF / GLB meshes",
+      "license": "MIT",
+      "critical": true,
+      "exists": true,
+      "size_bytes": 108522,
+      "expected_sha256": "d073b438e6a07e1359741dd5d6c76c953420cc0d4fd84eb1bdde94315540e6a3",
+      "actual_sha256": "d073b438e6a07e1359741dd5d6c76c953420cc0d4fd84eb1bdde94315540e6a3",
+      "status": "VALID"
+    },
+    "vendor_orbit_controls": {
+      "relative_path": "src/msk_research_lab/api/static/vendor/OrbitControls.js",
+      "description": "Three.js OrbitControls for camera manipulation",
+      "license": "MIT",
+      "critical": true,
+      "exists": true,
+      "size_bytes": 26375,
+      "expected_sha256": "02bb4ade710f3e607329e37a21f098bc3ac70eb6e33daf8a65e79f4db785e7b2",
+      "actual_sha256": "02bb4ade710f3e607329e37a21f098bc3ac70eb6e33daf8a65e79f4db785e7b2",
+      "status": "VALID"
+    }
+  }
+}

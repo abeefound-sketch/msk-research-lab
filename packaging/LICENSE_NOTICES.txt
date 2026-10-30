@@ -1,0 +1,97 @@
+================================================================================
+MSK RESEARCH LAB OS — THIRD-PARTY SOFTWARE AND ASSET LICENSE NOTICES
+================================================================================
+This workstation bundles and utilizes third-party open source software,
+computational models, and anatomical geometry assets. Applicable notices
+and licenses are documented below pursuant to their distribution terms.
+================================================================================
+
+--------------------------------------------------------------------------------
+Component: DBCLS BodyParts3D / Z-Anatomy 3D Anatomical Meshes (anatomy.glb)
+Author / Origin: DBCLS (Database Center for Life Science, University of Tokyo) & Z-Anatomy Project / watercmy
+License: Creative Commons Attribution-ShareAlike 2.1 Japan (CC BY-SA 2.1 JP) / CC BY-SA 4.0
+--------------------------------------------------------------------------------
+BodyParts3D, Copyright (c) 2008-2026 Database Center for Life Science (DBCLS), University of Tokyo.
+Licensed under the Creative Commons Attribution-ShareAlike 2.1 Japan license.
+Z-Anatomy, Copyright (c) Gauthier Kervyn and contributors.
+Derived and bundled as research and educational anatomical geometry.
+
+
+--------------------------------------------------------------------------------
+Component: spacejohnlf TCM Acupoints 3D Mannequin Mesh (body.glb)
+Author / Origin: spacejohnlf (spacejohnlf--tcm-acupoints)
+License: MIT License
+--------------------------------------------------------------------------------
+MIT License
+Copyright (c) 2024 spacejohnlf
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+
+--------------------------------------------------------------------------------
+Component: MediaPipe Pose Landmarker Lite (pose_landmarker_lite.task)
+Author / Origin: Google LLC
+License: Apache License 2.0
+--------------------------------------------------------------------------------
+Copyright 2023-2026 Google LLC
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at:
+http://www.apache.org/licenses/LICENSE-2.0
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+
+--------------------------------------------------------------------------------
+Component: Three.js (three.min.js, GLTFLoader.js, OrbitControls.js)
+Author / Origin: Ricardo Cabello (mrdoob) and Three.js contributors
+License: MIT License
+--------------------------------------------------------------------------------
+The MIT License
+Copyright (c) 2010-2026 Three.js Authors
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+
+--------------------------------------------------------------------------------
+Component: FastAPI, Starlette & Pydantic
+Author / Origin: Sebastián Ramírez, Encode OSS, and Samuel Colvin
+License: MIT License
+--------------------------------------------------------------------------------
+Copyright (c) 2018 Sebastián Ramírez, Encode OSS, Samuel Colvin.
+Licensed under the MIT License.
+
+
+--------------------------------------------------------------------------------
+Component: OpenCV (Open Source Computer Vision Library)
+Author / Origin: OpenCV team and contributors
+License: Apache License 2.0
+--------------------------------------------------------------------------------
+Copyright (C) 2000-2026, Intel Corporation, all rights reserved.
+Copyright (C) 2009-2026, Willow Garage Inc., all rights reserved.
+Licensed under the Apache License, Version 2.0.
+
+
+--------------------------------------------------------------------------------
+Component: SQLite 3
+Author / Origin: D. Richard Hipp and SQLite contributors
+License: Public Domain
+--------------------------------------------------------------------------------
+SQLite is dedicated to the public domain. All code and documentation in SQLite
+has been dedicated to the public domain by the authors.
+
