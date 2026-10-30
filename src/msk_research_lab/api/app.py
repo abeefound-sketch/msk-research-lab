@@ -110,6 +110,10 @@ static_dir = Path(__file__).resolve().parent / "static"
 if static_dir.exists():
     app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
 
+atlas_models_dir = Path(get_config().storage.root_dir) / "2data" / "models" / "atlas"
+if atlas_models_dir.exists():
+    app.mount("/assets/atlas/models", StaticFiles(directory=str(atlas_models_dir)), name="atlas_models")
+
 # Mount MSK Therapy Personal Workstation Router
 app.include_router(workstation_router)
 

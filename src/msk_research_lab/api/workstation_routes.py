@@ -1,9 +1,10 @@
 """REST API Routes for MSK Therapy Personal Workstation."""
 
 import json
+from pathlib import Path
 from typing import Optional, Dict, List, Any
 from fastapi import APIRouter, HTTPException, Query, Request
-from fastapi.responses import HTMLResponse, JSONResponse, Response
+from fastapi.responses import HTMLResponse, JSONResponse, Response, FileResponse
 
 from msk_research_lab.core.db import get_db
 from msk_research_lab.workstation.patient_manager import (
@@ -361,3 +362,76 @@ async def api_audit_session(request: Request):
 @workstation_router.get("/api/v1/workstation/ai-tutor/search-library")
 def api_search_library(q: str = Query(..., min_length=2), limit: int = 5):
     return search_evidence_library(q, limit=limit)
+
+
+# ==========================================
+# BIOMECHANICS & SHOULDER MOVEMENT LAB API
+# ==========================================
+
+from msk_research_lab.biomechanics.shoulder_lab import get_shoulder_lab_engine
+
+
+@workstation_router.get("/api/v1/biomechanics/shoulder/manifest")
+def api_get_shoulder_manifest():
+    """Retrieve registered BodyParts3D anatomical structures and coordinate metadata."""
+    engine = get_shoulder_lab_engine()
+    return engine.get_manifest()
+
+
+@workstation_router.get("/api/v1/biomechanics/shoulder/kinematics/frame")
+def api_get_shoulder_frame(
+    arm_elevation_deg: float = Query(0.0, ge=0.0, le=180.0),
+    comparison_mode: str = Query("normal_2to1")
+):
+    """Calculate joint rotations for a specific arm elevation angle."""
+    engine = get_shoulder_lab_engine()
+    return engine.get_kinematic_frame(arm_elevation_deg, comparison_mode=comparison_mode)
+
+
+@workstation_router.get("/api/v1/biomechanics/shoulder/kinematics/trajectory")
+def api_get_shoulder_trajectory(
+    comparison_mode: str = Query("normal_2to1"),
+    step_deg: float = Query(1.0, ge=0.5, le=10.0)
+):
+    """Retrieve full continuous trajectory frames from 0 to 180 degrees."""
+    engine = get_shoulder_lab_engine()
+    return engine.get_full_trajectory(comparison_mode=comparison_mode, step_deg=step_deg)
+
+
+@workstation_router.get("/api/v1/biomechanics/shoulder/muscles/response")
+def api_get_shoulder_muscles(arm_elevation_deg: float = Query(0.0, ge=0.0, le=180.0)):
+    """Retrieve interpolated OpenSim muscle fiber lengths, forces, and KMSI classifications."""
+    engine = get_shoulder_lab_engine()
+    return engine.get_muscle_responses(arm_elevation_deg)
+
+
+@workstation_router.get("/api/v1/biomechanics/shoulder/comparisons")
+def api_get_shoulder_comparisons():
+    """Retrieve comparative movement models (Normal 2:1 vs Forward Shoulder Restrained)."""
+    engine = get_shoulder_lab_engine()
+    return engine.get_comparative_models()
+
+
+@workstation_router.get("/api/v1/biomechanics/shoulder/annotations/{structure_id}")
+def api_get_shoulder_annotation(structure_id: str):
+    """Retrieve evidence-based educational annotation for a specific structure."""
+    engine = get_shoulder_lab_engine()
+    anno = engine.get_annotation(structure_id)
+    if not anno:
+        raise HTTPException(status_code=404, detail=f"No annotation found for structure '{structure_id}'.")
+    return anno
+
+
+@workstation_router.get("/api/v1/biomechanics/shoulder/models/{filename}")
+def api_serve_shoulder_model(filename: str):
+    """Securely serve BodyParts3D GLB model files from 2data/models/atlas/."""
+    safe_name = Path(filename).name
+    if not safe_name.lower().endswith((".glb", ".json", ".csv")):
+        raise HTTPException(status_code=400, detail="Invalid model file extension.")
+    engine = get_shoulder_lab_engine()
+    file_path = engine.atlas_dir / safe_name
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail=f"Model file '{safe_name}' not found.")
+    media_type = "model/gltf-binary" if safe_name.endswith(".glb") else "application/json"
+    return FileResponse(path=file_path, media_type=media_type)
+

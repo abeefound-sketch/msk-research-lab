@@ -380,6 +380,9 @@ def render_workstation_ui() -> str:
             <li class="nav-item" onclick="switchView('anatomy')">
                 <span class="nav-icon">🫀</span> 3D Anatomy Atlas
             </li>
+            <li class="nav-item" onclick="switchView('shoulder')">
+                <span class="nav-icon">💪</span> Shoulder Movement Lab
+            </li>
             <li class="nav-item" onclick="switchView('motion')">
                 <span class="nav-icon">📹</span> Motion Assessment
             </li>
@@ -518,6 +521,182 @@ def render_workstation_ui() -> str:
                         <button class="btn btn-secondary" style="font-size:12px; padding:4px 10px;" onclick="searchAnatomyStructure()">Search Structure</button>
                     </div>
                     <div id="anat-citations-box" style="margin-top:16px; font-size:12px; border-top:1px solid var(--border-color); padding-top:12px;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SHOULDER MOVEMENT LAB VIEW (P13 BIOMECHANICS EDUCATION) -->
+        <div id="view-shoulder" class="view-container">
+            <div class="disclaimer-banner">
+                <strong>BIOMECHANICAL EDUCATION LAB:</strong> Interactive forward shoulder posture and arm elevation analysis. Demonstrates the canonical 2:1 Scapulohumeral Rhythm (Inman et al., 1944) vs. restricted scapular upward rotation (Ludewig & Cook, 2000). Muscle fiber lengths (&tilde;l<sub>M</sub>) are calculated via OpenSim (MOBL_ARMS_41) Hill-type models, not measured in-vivo. Model does not diagnose disease or prescribe clinical therapy.
+            </div>
+
+            <div style="display:grid; grid-template-columns: 1.35fr 0.65fr; gap:20px; margin-bottom:20px;">
+                <!-- 3D WebGL Viewport Card -->
+                <div class="stat-card" style="padding:16px; display:flex; flex-direction:column;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <span style="font-weight:600; font-size:14px; color:var(--text-main);">Shoulder 3D Biomechanics Viewport</span>
+                            <span class="badge" id="shoulder-rhythm-badge" style="background:rgba(56,189,248,0.15); color:var(--accent-blue);">Inman 2:1 Rhythm</span>
+                        </div>
+                        <div style="display:flex; gap:8px;">
+                            <button class="btn btn-secondary" style="font-size:11px; padding:4px 8px;" id="btn-shoulder-reset-cam" onclick="resetShoulderCamera()">Reset Cam</button>
+                        </div>
+                    </div>
+
+                    <!-- WebGL Canvas Container -->
+                    <div id="shoulder3d-viewport" style="width:100%; height:460px; background:#020617; border-radius:6px; position:relative; overflow:hidden;">
+                        <div id="shoulder-loading" style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); color:var(--text-muted); font-size:13px; text-align:center;">
+                            Loading Calibrated BodyParts3D Shoulder Girdle...<br>
+                            <span style="font-size:11px; color:#64748b;">Assembling Scapula, Humerus, Clavicle, and Deltoid Assemblies</span>
+                        </div>
+                    </div>
+
+                    <!-- Interactive Movement Timeline & Playback Bar -->
+                    <div style="margin-top:14px; background:rgba(15,23,42,0.6); padding:12px 16px; border-radius:6px; border:1px solid var(--border-color);">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                            <div style="display:flex; align-items:center; gap:10px;">
+                                <button class="btn" style="padding:6px 14px;" id="btn-shoulder-play" onclick="toggleShoulderAnimation()">▶ Play</button>
+                                <div style="display:flex; align-items:center; gap:6px;">
+                                    <span style="font-size:11px; color:var(--text-muted);">Speed:</span>
+                                    <select id="shoulder-speed-select" class="form-control" style="width:80px; padding:4px 8px; font-size:12px;" onchange="changeShoulderSpeed()">
+                                        <option value="0.25">0.25x</option>
+                                        <option value="0.5">0.5x</option>
+                                        <option value="1.0" selected>1.0x</option>
+                                        <option value="2.0">2.0x</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div style="font-size:12px; font-family:monospace; color:var(--accent-blue);">
+                                Arm Elevation: <span id="val-arm-deg" style="font-size:15px; font-weight:700;">0.0</span>° / 180.0°
+                            </div>
+                        </div>
+
+                        <!-- Scrubber Slider -->
+                        <div style="display:flex; align-items:center; gap:12px;">
+                            <span style="font-size:11px; color:var(--text-muted);">0°</span>
+                            <input type="range" id="shoulder-timeline-slider" min="0" max="180" step="0.5" value="0" style="flex:1; cursor:pointer;" oninput="onShoulderTimelineScrub(this.value)">
+                            <span style="font-size:11px; color:var(--text-muted);">180°</span>
+                        </div>
+                    </div>
+
+                    <!-- Layer Toggles -->
+                    <div style="display:flex; gap:16px; margin-top:12px; flex-wrap:wrap; font-size:12px; color:var(--text-muted);">
+                        <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                            <input type="checkbox" id="toggle-layer-bones" checked onchange="toggleShoulderLayer('bones', this.checked)"> Bones (Scapula, Humerus, Clavicle, Forearm)
+                        </label>
+                        <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                            <input type="checkbox" id="toggle-layer-muscles" checked onchange="toggleShoulderLayer('muscles', this.checked)"> Muscles (Deltoid, Biceps, Triceps)
+                        </label>
+                        <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                            <input type="checkbox" id="toggle-layer-thorax" checked onchange="toggleShoulderLayer('thorax', this.checked)"> Reference Thorax Base
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Right Side Control & Inspector Panel -->
+                <div style="display:flex; flex-direction:column; gap:16px;">
+                    <!-- Comparative Mode Selector Card -->
+                    <div class="stat-card">
+                        <div class="stat-label">Comparative Movement Model</div>
+                        <div style="margin-top:8px;">
+                            <select id="shoulder-comparison-select" class="form-control" onchange="changeShoulderComparisonMode()">
+                                <option value="normal_2to1">Model A: Canonical 2:1 Scapulohumeral Rhythm</option>
+                                <option value="forward_shoulder_restricted">Model B: Forward Shoulder / Restricted Scapular Upward Rotation</option>
+                            </select>
+                        </div>
+                        <div id="comparison-mechanism-text" style="font-size:12px; color:var(--text-muted); margin-top:8px; line-height:1.4;">
+                            Normal coordinated 2:1 rhythm preserves subacromial clearance throughout 0° to 180° elevation.
+                        </div>
+                    </div>
+
+                    <!-- Live Joint Angle Readouts Card -->
+                    <div class="stat-card">
+                        <div class="stat-label">Real-Time Joint Angle Coordinates</div>
+                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:10px;">
+                            <div style="background:rgba(15,23,42,0.4); padding:8px 10px; border-radius:4px; border:1px solid var(--border-color);">
+                                <div style="font-size:10px; color:var(--text-muted);">Glenohumeral (GH)</div>
+                                <div id="readout-gh-deg" style="font-size:18px; font-weight:700; color:#38bdf8;">0.0°</div>
+                                <div style="font-size:10px; color:var(--text-muted);">Elevation</div>
+                            </div>
+                            <div style="background:rgba(15,23,42,0.4); padding:8px 10px; border-radius:4px; border:1px solid var(--border-color);">
+                                <div style="font-size:10px; color:var(--text-muted);">Scapulothoracic (ST)</div>
+                                <div id="readout-st-deg" style="font-size:18px; font-weight:700; color:#34d399;">0.0°</div>
+                                <div style="font-size:10px; color:var(--text-muted);">Upward Rotation</div>
+                            </div>
+                            <div style="background:rgba(15,23,42,0.4); padding:8px 10px; border-radius:4px; border:1px solid var(--border-color);">
+                                <div style="font-size:10px; color:var(--text-muted);">Sternoclavicular (SC)</div>
+                                <div id="readout-sc-deg" style="font-size:18px; font-weight:700; color:#facc15;">0.0°</div>
+                                <div style="font-size:10px; color:var(--text-muted);">Elevation</div>
+                            </div>
+                            <div style="background:rgba(15,23,42,0.4); padding:8px 10px; border-radius:4px; border:1px solid var(--border-color);">
+                                <div style="font-size:10px; color:var(--text-muted);">Subacromial Clearance</div>
+                                <div id="readout-subacromial-status" style="font-size:12px; font-weight:600; color:#38bdf8; margin-top:4px;">Adequate</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Structure Details & Scientific Evidence Box -->
+                    <div class="stat-card" style="flex:1;">
+                        <div class="stat-label">Anatomical Structure & Evidence Inspector</div>
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:6px;">
+                            <select id="shoulder-structure-select" class="form-control" style="font-size:12px; padding:4px 8px;" onchange="selectShoulderStructure(this.value)">
+                                <option value="FMA13395">Scapula (FMA13395)</option>
+                                <option value="FMA13322">Clavicle (FMA13322)</option>
+                                <option value="FMA23130">Humerus (FMA23130)</option>
+                                <option value="FMA34680">Anterior Deltoid (FMA34680)</option>
+                                <option value="FMA34682">Middle Deltoid (FMA34682)</option>
+                                <option value="FMA37684">Biceps Short Head (FMA37684)</option>
+                                <option value="FMA37686">Biceps Long Head (FMA37686)</option>
+                                <option value="FMA37699">Triceps Long Head (FMA37699)</option>
+                            </select>
+                        </div>
+                        <h4 id="shoulder-insp-title" style="margin-top:10px; font-size:15px; color:var(--accent-blue);">Right Scapula (Shoulder Blade)</h4>
+                        <div id="shoulder-insp-facts" style="font-size:12px; color:var(--text-main); margin-top:6px; line-height:1.4;"></div>
+                        <div style="margin-top:10px; font-size:11px; color:var(--text-muted);">
+                            <strong style="color:var(--text-main);">Kinematic Role:</strong>
+                            <div id="shoulder-insp-role" style="margin-top:2px; line-height:1.4;"></div>
+                        </div>
+                        <div style="margin-top:10px; font-size:11px; color:var(--text-muted);">
+                            <strong style="color:var(--text-main);">Scientific Literature Citations:</strong>
+                            <div id="shoulder-insp-evidence" style="margin-top:2px; line-height:1.4; color:#94a3b8;"></div>
+                        </div>
+                        <div style="margin-top:10px; font-size:10px; color:#f43f5e; background:rgba(244,63,94,0.08); padding:6px 8px; border-radius:4px; border:1px solid rgba(244,63,94,0.2);">
+                            <strong>Scientific Limitations:</strong> <span id="shoulder-insp-limits"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- OpenSim Muscle Fiber Response Table -->
+            <div class="stat-card">
+                <div class="section-header">
+                    <div>
+                        <h2>OpenSim MoBL-ARMS 4.1 Monitored Muscle Responses</h2>
+                        <div style="font-size:12px; color:var(--text-muted); margin-top:2px;">
+                            Normalized fiber length (&tilde;l<sub>M</sub> = l<sub>M</sub> / l<sub>M,0</sub>), passive elastic tension, and Hill-type state estimates at current arm elevation.
+                        </div>
+                    </div>
+                    <span class="badge" style="background:rgba(52,211,153,0.15); color:var(--accent-green);">Hill Equilibrium Model</span>
+                </div>
+                <div style="overflow-x:auto;">
+                    <table class="data-table" id="shoulder-muscle-table">
+                        <thead>
+                            <tr>
+                                <th>Muscle Name</th>
+                                <th>Compartment / Head</th>
+                                <th>Fiber Length (l<sub>M</sub>)</th>
+                                <th>Optimal (l<sub>M,0</sub>)</th>
+                                <th>Normalized (&tilde;l<sub>M</sub>)</th>
+                                <th>Passive Elastic Force</th>
+                                <th>Biomechanical State</th>
+                                <th>Educational Classification</th>
+                            </tr>
+                        </thead>
+                        <tbody id="shoulder-muscle-tbody">
+                            <tr><td colspan="8" style="text-align:center; color:var(--text-muted);">Loading muscle responses...</td></tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
@@ -966,14 +1145,15 @@ def render_workstation_ui() -> str:
             if (target) target.classList.add('active');
 
             const navMap = {
-                'dashboard': 0, 'anatomy': 1, 'motion': 2, 'patients': 3,
-                'therapy': 4, 'progress': 5, 'library': 6
+                'dashboard': 0, 'anatomy': 1, 'shoulder': 2, 'motion': 3, 'patients': 4,
+                'therapy': 5, 'progress': 6, 'library': 7
             };
             const items = document.querySelectorAll('.nav-item');
             if (items[navMap[viewName]]) items[navMap[viewName]].classList.add('active');
 
             const titleMap = {
                 'dashboard': 'Home Dashboard', 'anatomy': '3D Anatomy Explorer',
+                'shoulder': 'Interactive Shoulder Movement & Biomechanics Lab',
                 'motion': 'Camera Motion Assessment', 'patients': 'Patient Records',
                 'therapy': 'Therapy Session Workspace', 'progress': 'Progress Tracking',
                 'library': 'Knowledge Library & AI Tutor'
@@ -982,6 +1162,9 @@ def render_workstation_ui() -> str:
 
             if (viewName === 'anatomy' && !threeRenderer) {
                 initThreeAnatomy();
+            }
+            if (viewName === 'shoulder' && !shoulderRenderer) {
+                initShoulderMovementLab();
             }
         }
 
@@ -1334,12 +1517,19 @@ def render_workstation_ui() -> str:
                 if (res.ok && data.soap) {
                     document.getElementById('soap-preview-container').style.display = 'block';
                     document.getElementById('soap-content-display').innerText = 
-                        "PREVIEW: GROUNDED CLINICAL SOAP NOTE (UNSAVED DRAFT)\n" +
-                        "====================================================\n" +
-                        "SUBJECTIVE:\n" + data.soap.subjective + "\n\n" +
-                        "OBJECTIVE:\n" + data.soap.objective + "\n\n" +
-                        "ASSESSMENT:\n" + data.soap.assessment + "\n\n" +
-                        "PLAN:\n" + data.soap.plan;
+                        `PREVIEW: GROUNDED CLINICAL SOAP NOTE (UNSAVED DRAFT)
+====================================================
+SUBJECTIVE:
+${data.soap.subjective}
+
+OBJECTIVE:
+${data.soap.objective}
+
+ASSESSMENT:
+${data.soap.assessment}
+
+PLAN:
+${data.soap.plan}`;
                 } else {
                     alert("SOAP preview failed: " + (data.detail || "Unknown error"));
                 }
@@ -1391,12 +1581,19 @@ def render_workstation_ui() -> str:
                 const session = await res.json();
                 document.getElementById('soap-preview-container').style.display = 'block';
                 document.getElementById('soap-content-display').innerText = 
-                    "SOAP CLINICAL RECORD (Session #" + session.session_number + " Saved)\n" +
-                    "====================================================\n" +
-                    "SUBJECTIVE:\n" + session.soap.subjective + "\n\n" +
-                    "OBJECTIVE:\n" + session.soap.objective + "\n\n" +
-                    "ASSESSMENT:\n" + session.soap.assessment + "\n\n" +
-                    "PLAN:\n" + session.soap.plan;
+                    `SOAP CLINICAL RECORD (Session #${session.session_number} Saved)
+====================================================
+SUBJECTIVE:
+${session.soap.subjective}
+
+OBJECTIVE:
+${session.soap.objective}
+
+ASSESSMENT:
+${session.soap.assessment}
+
+PLAN:
+${session.soap.plan}`;
                 refreshOverview();
                 await loadPatients();
                 alert("Therapy Session #" + session.session_number + " saved successfully.");
@@ -1710,6 +1907,441 @@ def render_workstation_ui() -> str:
                 const btn = document.getElementById('btn-toggle-meridians');
                 btn.innerText = 'Meridians: ' + (atlasLayers.meridians ? 'ON' : 'OFF');
                 if (atlasLayers.meridians) btn.classList.remove('btn-active'); else btn.classList.add('btn-active');
+            }
+        }
+
+        // ========================================================
+        // SHOULDER MOVEMENT LAB 3D ENGINE & BIOMECHANICAL RIGGING
+        // ========================================================
+        let shoulderScene = null, shoulderCamera = null, shoulderRenderer = null, shoulderControls = null;
+        let shoulderRootGroup = null, shoulderThoraxGroup = null;
+        let shoulderSCPivot = null, shoulderClavicleGroup = null;
+        let shoulderACPivot = null, shoulderScapulaGroup = null;
+        let shoulderGHPivot = null, shoulderHumerusGroup = null;
+        let shoulderElbowPivot = null, shoulderForearmGroup = null;
+        let shoulderMusclesGroup = null;
+        let shoulderMeshes = {};
+        let isShoulderPlaying = false;
+        let shoulderAnimSpeed = 1.0;
+        let shoulderCurrentAngle = 0.0;
+        let shoulderAnimDirection = 1;
+        let shoulderAnimTimer = null;
+        let shoulderComparisonMode = 'normal_2to1';
+        let shoulderRaycaster = null, shoulderMouse = null;
+        let shoulderSelectedMesh = null;
+        let shoulderDefaultBoneMat = null, shoulderDefaultMuscleMat = null, shoulderSelectedMat = null;
+        let shoulderLoaded = false;
+
+        function initShoulderMovementLab() {
+            const container = document.getElementById('shoulder3d-viewport');
+            if (!container) return;
+            const w = container.clientWidth || 700;
+            const h = container.clientHeight || 460;
+
+            shoulderScene = new THREE.Scene();
+            shoulderScene.background = new THREE.Color(0x020617);
+
+            shoulderCamera = new THREE.PerspectiveCamera(40, w / h, 0.05, 50.0);
+            shoulderCamera.position.set(-0.35, -0.65, 1.45);
+            shoulderCamera.lookAt(new THREE.Vector3(-0.15, -0.05, 1.30));
+
+            shoulderRenderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+            shoulderRenderer.setSize(w, h);
+            shoulderRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            shoulderRenderer.shadowMap.enabled = true;
+            container.innerHTML = '';
+            container.appendChild(shoulderRenderer.domElement);
+
+            if (typeof THREE.OrbitControls !== 'undefined') {
+                shoulderControls = new THREE.OrbitControls(shoulderCamera, shoulderRenderer.domElement);
+                shoulderControls.enableDamping = true;
+                shoulderControls.dampingFactor = 0.08;
+                shoulderControls.target.set(-0.12, -0.05, 1.30);
+            }
+
+            // Lighting
+            const ambient = new THREE.AmbientLight(0xffffff, 0.85);
+            shoulderScene.add(ambient);
+            const keyLight = new THREE.DirectionalLight(0x38bdf8, 1.1);
+            keyLight.position.set(2, -3, 3);
+            shoulderScene.add(keyLight);
+            const fillLight = new THREE.DirectionalLight(0xffedd5, 0.7);
+            fillLight.position.set(-2, 3, 2);
+            shoulderScene.add(fillLight);
+
+            // Hierarchy setup
+            shoulderRootGroup = new THREE.Group();
+            shoulderRootGroup.name = "ShoulderRoot";
+            shoulderRootGroup.position.set(0.0, 0.0, 0.0);
+
+            shoulderThoraxGroup = new THREE.Group();
+            shoulderThoraxGroup.name = "ThoraxGroup";
+
+            shoulderSCPivot = new THREE.Group();
+            shoulderSCPivot.name = "SternoclavicularPivot";
+            shoulderSCPivot.position.set(-0.015, -0.165, 1.340);
+
+            shoulderClavicleGroup = new THREE.Group();
+            shoulderClavicleGroup.position.set(0.015, 0.165, -1.340);
+
+            shoulderACPivot = new THREE.Group();
+            shoulderACPivot.name = "AcromioclavicularPivot";
+            shoulderACPivot.position.set(-0.130, 0.100, 0.015);
+
+            shoulderScapulaGroup = new THREE.Group();
+            shoulderScapulaGroup.position.set(0.145, 0.065, -1.355);
+
+            shoulderGHPivot = new THREE.Group();
+            shoulderGHPivot.name = "GlenohumeralPivot";
+            shoulderGHPivot.position.set(-0.020, -0.007, -0.025);
+
+            shoulderHumerusGroup = new THREE.Group();
+            shoulderHumerusGroup.position.set(0.165, 0.072, -1.330);
+
+            shoulderElbowPivot = new THREE.Group();
+            shoulderElbowPivot.name = "ElbowPivot";
+            shoulderElbowPivot.position.set(-0.050, -0.003, -0.280);
+
+            shoulderForearmGroup = new THREE.Group();
+            shoulderForearmGroup.position.set(0.215, 0.075, -1.050);
+
+            shoulderMusclesGroup = new THREE.Group();
+            shoulderMusclesGroup.name = "MusclesGroup";
+
+            // Assemble kinematic tree
+            shoulderRootGroup.add(shoulderThoraxGroup);
+            shoulderRootGroup.add(shoulderSCPivot);
+            shoulderSCPivot.add(shoulderClavicleGroup);
+            shoulderSCPivot.add(shoulderACPivot);
+            shoulderACPivot.add(shoulderScapulaGroup);
+            shoulderACPivot.add(shoulderGHPivot);
+            shoulderGHPivot.add(shoulderHumerusGroup);
+            shoulderGHPivot.add(shoulderElbowPivot);
+            shoulderElbowPivot.add(shoulderForearmGroup);
+            shoulderRootGroup.add(shoulderMusclesGroup);
+
+            shoulderScene.add(shoulderRootGroup);
+
+            // Standard Materials
+            shoulderDefaultBoneMat = new THREE.MeshStandardMaterial({
+                color: 0xf5f0e6,
+                roughness: 0.45,
+                metalness: 0.1,
+                side: THREE.DoubleSide
+            });
+            shoulderDefaultMuscleMat = new THREE.MeshStandardMaterial({
+                color: 0x991b1b,
+                roughness: 0.55,
+                metalness: 0.05,
+                transparent: true,
+                opacity: 0.85,
+                side: THREE.DoubleSide
+            });
+            shoulderSelectedMat = new THREE.MeshStandardMaterial({
+                color: 0x38bdf8,
+                emissive: 0x0284c7,
+                emissiveIntensity: 0.4,
+                roughness: 0.3,
+                side: THREE.DoubleSide
+            });
+
+            shoulderRaycaster = new THREE.Raycaster();
+            shoulderMouse = new THREE.Vector2();
+
+            shoulderRenderer.domElement.addEventListener('click', onShoulderCanvasClick, false);
+
+            loadShoulderGlbAssets();
+            selectShoulderStructure('FMA13395');
+            updateShoulderKinematics(0.0);
+
+            function renderLoop() {
+                requestAnimationFrame(renderLoop);
+                if (shoulderControls) shoulderControls.update();
+                if (shoulderRenderer && shoulderScene && shoulderCamera) {
+                    shoulderRenderer.render(shoulderScene, shoulderCamera);
+                }
+            }
+            renderLoop();
+        }
+
+        async function loadShoulderGlbAssets() {
+            const loading = document.getElementById('shoulder-loading');
+            if (loading) loading.style.display = 'block';
+
+            const assetDefinitions = [
+                { id: 'FMA7487', file: 'fma7487_thorax.glb', type: 'bone', parent: shoulderThoraxGroup },
+                { id: 'FMA7857', file: 'fma7857_thorax.glb', type: 'bone', parent: shoulderThoraxGroup },
+                { id: 'FMA13322', file: 'fma13322_clavicle.glb', type: 'bone', parent: shoulderClavicleGroup },
+                { id: 'FMA13395', file: 'fma13395_scapula.glb', type: 'bone', parent: shoulderScapulaGroup },
+                { id: 'FMA23130', file: 'fma23130_humerus.glb', type: 'bone', parent: shoulderHumerusGroup },
+                { id: 'FMA23464', file: 'fma23464_radius.glb', type: 'bone', parent: shoulderForearmGroup },
+                { id: 'FMA23467', file: 'fma23467_ulna.glb', type: 'bone', parent: shoulderForearmGroup },
+                { id: 'FMA34680', file: 'fma34680_delt1.glb', type: 'muscle', parent: shoulderMusclesGroup },
+                { id: 'FMA34682', file: 'fma34682_delt2.glb', type: 'muscle', parent: shoulderMusclesGroup },
+                { id: 'FMA37684', file: 'fma37684_bicshort.glb', type: 'muscle', parent: shoulderMusclesGroup },
+                { id: 'FMA37686', file: 'fma37686_biclong.glb', type: 'muscle', parent: shoulderMusclesGroup },
+                { id: 'FMA37668', file: 'fma37668_bra.glb', type: 'muscle', parent: shoulderMusclesGroup },
+                { id: 'FMA37699', file: 'fma37699_trilong.glb', type: 'muscle', parent: shoulderMusclesGroup }
+            ];
+
+            const LoaderClass = window.THREE.GLTFLoader;
+            if (!LoaderClass) {
+                console.error("THREE.GLTFLoader unavailable");
+                if (loading) loading.innerText = "Error: GLTFLoader unavailable";
+                return;
+            }
+
+            const loader = new LoaderClass();
+            let loaded = 0;
+
+            for (const item of assetDefinitions) {
+                const url = `/api/v1/biomechanics/shoulder/models/${item.file}`;
+                loader.load(url, (gltf) => {
+                    const mesh = gltf.scene.children[0] || gltf.scene;
+                    mesh.traverse((child) => {
+                        if (child.isMesh) {
+                            child.castShadow = true;
+                            child.receiveShadow = true;
+                            child.material = (item.type === 'bone') ? shoulderDefaultBoneMat.clone() : shoulderDefaultMuscleMat.clone();
+                            child.userData = { id: item.id, type: item.type, name: item.id };
+                            shoulderMeshes[item.id] = child;
+                        }
+                    });
+                    item.parent.add(gltf.scene);
+                    loaded++;
+                    if (loaded === assetDefinitions.length) {
+                        shoulderLoaded = true;
+                        if (loading) loading.style.display = 'none';
+                        console.log("[ShoulderLab] All 13 BodyParts3D structures loaded successfully.");
+                    }
+                }, undefined, (err) => {
+                    console.warn(`[ShoulderLab] Failed to load ${item.file}:`, err);
+                });
+            }
+        }
+
+        async function updateShoulderKinematics(armDeg) {
+            shoulderCurrentAngle = parseFloat(armDeg);
+            document.getElementById('val-arm-deg').innerText = shoulderCurrentAngle.toFixed(1);
+            const slider = document.getElementById('shoulder-timeline-slider');
+            if (slider && Math.abs(parseFloat(slider.value) - shoulderCurrentAngle) > 0.4) {
+                slider.value = shoulderCurrentAngle;
+            }
+
+            let scDeg = 0.0, scapUpDeg = 0.0, ghDeg = 0.0, tiltDeg = 0.0, subacromial = "Adequate";
+
+            if (shoulderComparisonMode === 'forward_shoulder_restricted') {
+                scDeg = 0.12 * shoulderCurrentAngle;
+                scapUpDeg = shoulderCurrentAngle <= 30.0 ? 0.0 : ((shoulderCurrentAngle - 30.0) / 3.0) * 0.60;
+                ghDeg = shoulderCurrentAngle - scapUpDeg;
+                tiltDeg = 12.0 - (shoulderCurrentAngle * 0.04);
+                subacromial = (shoulderCurrentAngle >= 50.0 && shoulderCurrentAngle <= 130.0) ? "Compromised (Impingement Risk)" : "Reduced Clearance";
+                const badge = document.getElementById('shoulder-rhythm-badge');
+                if (badge) {
+                    badge.innerText = "Restricted 4:1 Rhythm";
+                    badge.style.color = "#f43f5e";
+                    badge.style.background = "rgba(244,63,94,0.15)";
+                }
+            } else {
+                scDeg = 0.18 * shoulderCurrentAngle;
+                scapUpDeg = shoulderCurrentAngle <= 30.0 ? 0.0 : (shoulderCurrentAngle - 30.0) / 3.0;
+                ghDeg = shoulderCurrentAngle - scapUpDeg;
+                tiltDeg = -shoulderCurrentAngle * 0.10;
+                subacromial = "Adequate Clearance";
+                const badge = document.getElementById('shoulder-rhythm-badge');
+                if (badge) {
+                    badge.innerText = "Inman 2:1 Rhythm";
+                    badge.style.color = "#38bdf8";
+                    badge.style.background = "rgba(56,189,248,0.15)";
+                }
+            }
+
+            if (shoulderSCPivot) {
+                shoulderSCPivot.rotation.z = (scDeg * Math.PI) / 180.0;
+            }
+            if (shoulderACPivot) {
+                shoulderACPivot.rotation.y = (scapUpDeg * Math.PI) / 180.0;
+                shoulderACPivot.rotation.x = (tiltDeg * Math.PI) / 180.0;
+            }
+            if (shoulderGHPivot) {
+                shoulderGHPivot.rotation.y = (ghDeg * Math.PI) / 180.0;
+            }
+
+            const ghElem = document.getElementById('readout-gh-deg');
+            if (ghElem) ghElem.innerText = ghDeg.toFixed(1) + '°';
+            const stElem = document.getElementById('readout-st-deg');
+            if (stElem) stElem.innerText = scapUpDeg.toFixed(1) + '°';
+            const scElem = document.getElementById('readout-sc-deg');
+            if (scElem) scElem.innerText = scDeg.toFixed(1) + '°';
+            const subElem = document.getElementById('readout-subacromial-status');
+            if (subElem) {
+                subElem.innerText = subacromial;
+                subElem.style.color = subacromial.includes("Compromised") ? "#f43f5e" : "#38bdf8";
+            }
+
+            loadShoulderMuscleTable(shoulderCurrentAngle);
+        }
+
+        function toggleShoulderAnimation() {
+            isShoulderPlaying = !isShoulderPlaying;
+            const btn = document.getElementById('btn-shoulder-play');
+            if (isShoulderPlaying) {
+                btn.innerText = '⏸ Pause';
+                btn.classList.add('btn-secondary');
+                startShoulderAnimationLoop();
+            } else {
+                btn.innerText = '▶ Play';
+                btn.classList.remove('btn-secondary');
+                stopShoulderAnimationLoop();
+            }
+        }
+
+        function startShoulderAnimationLoop() {
+            if (shoulderAnimTimer) clearInterval(shoulderAnimTimer);
+            shoulderAnimTimer = setInterval(() => {
+                if (!isShoulderPlaying) return;
+                const step = 1.0 * shoulderAnimSpeed;
+                shoulderCurrentAngle += (step * shoulderAnimDirection);
+                if (shoulderCurrentAngle >= 180.0) {
+                    shoulderCurrentAngle = 180.0;
+                    shoulderAnimDirection = -1;
+                } else if (shoulderCurrentAngle <= 0.0) {
+                    shoulderCurrentAngle = 0.0;
+                    shoulderAnimDirection = 1;
+                }
+                updateShoulderKinematics(shoulderCurrentAngle);
+            }, 30);
+        }
+
+        function stopShoulderAnimationLoop() {
+            if (shoulderAnimTimer) {
+                clearInterval(shoulderAnimTimer);
+                shoulderAnimTimer = null;
+            }
+        }
+
+        function changeShoulderSpeed() {
+            const sel = document.getElementById('shoulder-speed-select');
+            shoulderAnimSpeed = parseFloat(sel.value) || 1.0;
+        }
+
+        function onShoulderTimelineScrub(val) {
+            if (isShoulderPlaying) {
+                toggleShoulderAnimation();
+            }
+            updateShoulderKinematics(val);
+        }
+
+        function resetShoulderCamera() {
+            if (shoulderCamera) {
+                shoulderCamera.position.set(-0.35, -0.65, 1.45);
+                shoulderCamera.lookAt(new THREE.Vector3(-0.15, -0.05, 1.30));
+            }
+            if (shoulderControls) {
+                shoulderControls.target.set(-0.12, -0.05, 1.30);
+                shoulderControls.reset();
+            }
+        }
+
+        function toggleShoulderLayer(layer, isVisible) {
+            if (layer === 'bones') {
+                [shoulderClavicleGroup, shoulderScapulaGroup, shoulderHumerusGroup, shoulderForearmGroup].forEach(g => {
+                    if (g) g.visible = isVisible;
+                });
+            } else if (layer === 'muscles') {
+                if (shoulderMusclesGroup) shoulderMusclesGroup.visible = isVisible;
+            } else if (layer === 'thorax') {
+                if (shoulderThoraxGroup) shoulderThoraxGroup.visible = isVisible;
+            }
+        }
+
+        function changeShoulderComparisonMode() {
+            const sel = document.getElementById('shoulder-comparison-select');
+            shoulderComparisonMode = sel.value;
+            const mechText = document.getElementById('comparison-mechanism-text');
+            if (shoulderComparisonMode === 'forward_shoulder_restricted') {
+                mechText.innerText = "Restricted Model: Scapular upward rotation is reduced by 40% (4:1 rhythm) and anterior tilt persists. Glenohumeral space narrows between 60°–120° elevation.";
+            } else {
+                mechText.innerText = "Normal Model: 2:1 coordinated rhythm (Inman et al., 1944). Subacromial clearance is preserved throughout 0° to 180° elevation.";
+            }
+            updateShoulderKinematics(shoulderCurrentAngle);
+        }
+
+        async function selectShoulderStructure(structId) {
+            const sel = document.getElementById('shoulder-structure-select');
+            if (sel) sel.value = structId;
+
+            if (shoulderSelectedMesh) {
+                shoulderSelectedMesh.material = (shoulderSelectedMesh.userData.type === 'bone') ? shoulderDefaultBoneMat.clone() : shoulderDefaultMuscleMat.clone();
+                shoulderSelectedMesh = null;
+            }
+            if (shoulderMeshes[structId]) {
+                shoulderSelectedMesh = shoulderMeshes[structId];
+                shoulderSelectedMesh.material = shoulderSelectedMat;
+            }
+
+            try {
+                const res = await fetch(`/api/v1/biomechanics/shoulder/annotations/${structId}`);
+                if (res.ok) {
+                    const data = await res.json();
+                    document.getElementById('shoulder-insp-title').innerText = `${data.name} (${data.fma_id})`;
+                    document.getElementById('shoulder-insp-facts').innerText = data.direct_anatomical_facts;
+                    document.getElementById('shoulder-insp-role').innerText = data.kinematic_role_during_elevation;
+                    
+                    const evDiv = document.getElementById('shoulder-insp-evidence');
+                    evDiv.innerHTML = data.evidence_sources.map(s => `• ${s}`).join('<br>');
+                    
+                    document.getElementById('shoulder-insp-limits').innerText = data.scientific_limitations;
+                }
+            } catch (e) {
+                console.warn("Could not fetch structure annotation:", e);
+            }
+        }
+
+        function onShoulderCanvasClick(event) {
+            if (!shoulderRenderer || !shoulderCamera || !shoulderRaycaster) return;
+            const rect = shoulderRenderer.domElement.getBoundingClientRect();
+            shoulderMouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+            shoulderMouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+            shoulderRaycaster.setFromCamera(shoulderMouse, shoulderCamera);
+            const clickable = Object.values(shoulderMeshes);
+            const intersects = shoulderRaycaster.intersectObjects(clickable, true);
+
+            if (intersects.length > 0) {
+                const hit = intersects[0].object;
+                if (hit.userData && hit.userData.id) {
+                    selectShoulderStructure(hit.userData.id);
+                }
+            }
+        }
+
+        let _lastMuscleFetchAngle = -999;
+        async function loadShoulderMuscleTable(angleDeg) {
+            if (Math.abs(angleDeg - _lastMuscleFetchAngle) < 1.0) return;
+            _lastMuscleFetchAngle = angleDeg;
+
+            try {
+                const res = await fetch(`/api/v1/biomechanics/shoulder/muscles/response?arm_elevation_deg=${angleDeg.toFixed(1)}`);
+                if (res.ok) {
+                    const muscles = await res.json();
+                    const tbody = document.getElementById('shoulder-muscle-tbody');
+                    if (!tbody) return;
+                    tbody.innerHTML = muscles.map(m => `
+                        <tr>
+                            <td style="font-weight:600; color:var(--text-main);">${m.muscle_name}</td>
+                            <td style="color:var(--text-muted);">${m.muscle_name.startsWith('DELT') ? 'Deltoid' : m.muscle_name.startsWith('PEC') ? 'Pectoralis Major' : m.muscle_name.startsWith('BIC') ? 'Biceps Brachii' : m.muscle_name.startsWith('TRI') ? 'Triceps Brachii' : 'Cuff / Arm'}</td>
+                            <td style="font-family:monospace;">${(m.fiber_length_m * 100).toFixed(2)} cm</td>
+                            <td style="font-family:monospace;">${(m.optimal_fiber_length_m * 100).toFixed(2)} cm</td>
+                            <td style="font-family:monospace; font-weight:700;">${m.normalized_fiber_length.toFixed(3)}</td>
+                            <td style="font-family:monospace;">${m.passive_force_n.toFixed(1)} N</td>
+                            <td><span style="font-size:11px;">${m.biomechanical_state}</span></td>
+                            <td><span class="badge" style="background:${m.kmsi_color_hex}22; color:${m.kmsi_color_hex}; border:1px solid ${m.kmsi_color_hex}66;">${m.kmsi_tag}</span></td>
+                        </tr>
+                    `).join('');
+                }
+            } catch (e) {
+                console.warn("Could not load muscle responses:", e);
             }
         }
 

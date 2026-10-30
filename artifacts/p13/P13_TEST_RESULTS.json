@@ -1,0 +1,99 @@
+{
+  "milestone": "P13",
+  "title": "Existing Software Reuse, Interactive Anatomy & Biomechanics Integration",
+  "timestamp": "2026-10-30T23:22:00Z",
+  "environment": {
+    "os": "Linux 6.6.87.2-microsoft-standard-WSL2 (x86_64) / Windows 10 Pro Host",
+    "python_wsl": "3.10.12",
+    "python_windows": "3.11.9",
+    "browser": "Microsoft Edge (Chromium msedge channel)",
+    "opensim_version": "4.6",
+    "threejs_version": "r128"
+  },
+  "summary": {
+    "total_tests": 299,
+    "passed": 299,
+    "failed": 0,
+    "skipped": 0,
+    "warnings": 1,
+    "pass_rate": 100.0
+  },
+  "test_suites": [
+    {
+      "suite": "tests/unit/test_p13_shoulder_biomechanics.py",
+      "tests_total": 15,
+      "passed": 15,
+      "failed": 0,
+      "tests": [
+        {"name": "test_manifest_loads_thirteen_structures", "status": "PASSED"},
+        {"name": "test_inman_scapulohumeral_rhythm_kinematics", "status": "PASSED"},
+        {"name": "test_forward_shoulder_restricted_comparison", "status": "PASSED"},
+        {"name": "test_trajectory_array_generation", "status": "PASSED"},
+        {"name": "test_muscle_response_interpolation", "status": "PASSED"},
+        {"name": "test_kmsi_color_classifier", "status": "PASSED"},
+        {"name": "test_comparative_models_evidence_disclaimer", "status": "PASSED"},
+        {"name": "test_evidence_based_annotations_citations", "status": "PASSED"},
+        {"name": "test_api_manifest_endpoint", "status": "PASSED"},
+        {"name": "test_api_kinematics_frame_endpoint", "status": "PASSED"},
+        {"name": "test_api_kinematics_trajectory_endpoint", "status": "PASSED"},
+        {"name": "test_api_muscles_response_endpoint", "status": "PASSED"},
+        {"name": "test_api_comparisons_endpoint", "status": "PASSED"},
+        {"name": "test_api_annotations_endpoint", "status": "PASSED"},
+        {"name": "test_api_model_file_serving", "status": "PASSED"}
+      ]
+    },
+    {
+      "suite": "tests/integration/test_p13_shoulder_lab_browser_e2e.py",
+      "tests_total": 1,
+      "passed": 1,
+      "failed": 0,
+      "controls_verified": [
+        "CTL-01: Nav item click & view activation",
+        "CTL-02: WebGL 3D Viewport canvas initialization",
+        "CTL-03: Camera reset button and target snap",
+        "CTL-04: Play / pause animation toggle loop",
+        "CTL-05: Animation playback speed selector (0.25x - 2.0x)",
+        "CTL-06: Movement timeline scrubber (0° to 180°)",
+        "CTL-07: Real-time joint angle coordinate readouts (GH, ST, SC)",
+        "CTL-08: Comparative movement model selector (Normal vs Restricted)",
+        "CTL-09: Anatomical layer visibility toggles (Bones, Muscles, Thorax)",
+        "CTL-10: Structure selection & evidence annotation inspector",
+        "CTL-11: OpenSim monitored muscle fiber response table population"
+      ]
+    },
+    {
+      "suite": "tests/unit/test_p12_metrology_independent_oracle.py",
+      "tests_total": 5,
+      "passed": 5,
+      "failed": 0
+    },
+    {
+      "suite": "tests/unit/test_p12_scientific_quality_decisions.py",
+      "tests_total": 3,
+      "passed": 3,
+      "failed": 0
+    },
+    {
+      "suite": "tests/integration/test_p12_durability_and_consistency.py",
+      "tests_total": 3,
+      "passed": 3,
+      "failed": 0
+    },
+    {
+      "suite": "tests/integration/test_p12_windows_native_e2e.py",
+      "tests_total": 4,
+      "passed": 4,
+      "failed": 0
+    },
+    {
+      "suite": "P11_Regression_Baseline",
+      "tests_total": 269,
+      "passed": 269,
+      "failed": 0
+    }
+  ],
+  "gates": {
+    "clinical_realworld_gate": "BLOCKED",
+    "physical_stereo_hardware_gate": "BLOCKED"
+  }
+}

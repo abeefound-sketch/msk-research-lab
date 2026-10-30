@@ -421,3 +421,51 @@ All operational verification evidence is documented in `artifacts/p12/`:
 - `artifacts/p12/P12_TO_P13_HANDOFF.md`
 - `dist/MSK-Workstation/` (Self-contained desktop distribution)
 
+
+
+---
+
+## 12. Milestone P13 Completion: Existing Software Reuse, Interactive Anatomy & Biomechanics Integration (2026-10-30)
+
+### Objective & Philosophy
+Executed the revised product directive: transform the workstation into an **Interactive Human Anatomy & Biomechanics Education Workstation** grounded in the primary engineering constraint: **DO NOT REBUILD WHAT ALREADY EXISTS.**
+
+### Local Asset Discovery & Reuse Accomplishments (P13-A & P13-B)
+- **Zero New Clones & Zero New Installs:** Conducted comprehensive host and WSL discovery. Reused 100% of existing local assets across `C:\Users\tuanh\MSK-Biomechanics-Workbench`, `C:\Users\tuanh\MSK-OpenSim-Task02`, `C:\Users\tuanh\MSK-OpenSim-Feasibility`, and `C:\Users\tuanh\MSK-Pose-Vision-Bridge`.
+- **OpenSim 4.6 Core & Models:** Bound existing OpenSim 4.6 Python engine and upper extremity `MOBL_ARMS_41.osim` model with 12 bodies, 26 coordinates, and 50 muscle compartments.
+- **Calibrated BodyParts3D Meshes:** Integrated 13 CC BY-SA 2.1 Japan GLB assets (`FMA13322`, `FMA13395`, `FMA23130`, `FMA23464`, `FMA23467`, `FMA34680`, `FMA34682`, `FMA37684`, `FMA37686`, `FMA37668`, `FMA37699`, `FMA7487`, `FMA7857`) and `atlas_manifest.json` into `2data/models/atlas/`.
+- **System Browser Automation:** Reused pre-installed Microsoft Edge (`channel="msedge"`) with Playwright for 100% offline browser verification.
+
+### Core Architecture & Shoulder Movement Lab (P13-C, P13-D & P13-E)
+- **Biomechanics Computational Engine:** Authored `src/msk_research_lab/biomechanics/shoulder_lab.py`:
+  - Implements canonical Inman 2:1 Scapulohumeral Rhythm (0° - 180° arm elevation) with clavicular elevation and scapular upward rotation.
+  - Implements Comparative Model B: Forward Shoulder Restrained (40% restricted scapular upward rotation, persistent anterior tilt, and early subacromial narrowing at 60° - 120°).
+  - Continuous muscle response interpolation from OpenSim `MUSCLE_RESPONSE_VALIDATION.csv` for normalized fiber length, passive force, and educational KMSI classification badges.
+  - Evidence-based educational annotations with peer-reviewed literature citations (Inman 1944, Ludewig & Cook 2000, McClure 2001, Saul 2015).
+- **FastAPI Endpoints:** Added `/api/v1/biomechanics/shoulder/*` and static model serving route in `src/msk_research_lab/api/workstation_routes.py` and `src/msk_research_lab/api/app.py`.
+- **Interactive Workstation UI:** Integrated `#view-shoulder` view in `src/msk_research_lab/api/workstation_ui.py`:
+  - 3D WebGL viewport with hierarchical kinematic pivots (`SCPivot`, `ACPivot`, `GHPivot`, `ElbowPivot`).
+  - Play / Pause animation loop, speed selector (0.25x - 2.0x), timeline scrubber (0° - 180°).
+  - Real-time joint angle readouts (GH, ST, SC, Subacromial clearance).
+  - Comparative movement mode switcher (Model A Normal vs. Model B Forward Shoulder).
+  - Layer toggles (Bones, Muscles, Thorax base).
+  - Raycaster click and dropdown structure inspector.
+  - OpenSim monitored muscle fiber response table.
+
+### Defect Remediations (DEF-39 through DEF-41)
+- **DEF-39 (HIGH): Unescaped Newlines in UI JavaScript Multiline Strings.**
+  - *Root Cause:* Python triple-quoted string `"""` converted `\n` into raw literal newlines within JS double-quoted string literals, causing `SyntaxError` and breaking client script parsing (`switchView is not defined`).
+  - *Remediation:* Converted clinical SOAP notes displays to ES6 template literals; verified 0 syntax errors via `node --check`.
+- **DEF-40 (MEDIUM): Missing Path and FileResponse Imports in Model Serving Route.**
+  - *Root Cause:* `Path` and `FileResponse` were referenced in `workstation_routes.py` without module imports.
+  - *Remediation:* Added explicit imports in `workstation_routes.py`.
+- **DEF-41 (LOW): HTML5 Range Input fill() Action Rejection in Playwright.**
+  - *Root Cause:* Browser range sliders reject direct `fill()`.
+  - *Remediation:* Updated test to set element value and trigger `onShoulderTimelineScrub()` handler.
+
+### Final Qualification Verdict
+- **Automated Tests:** **299 / 299 PASS** (15 new unit tests in `test_p13_shoulder_biomechanics.py`, 1 Playwright E2E browser test verifying 11 controls, 284 regression tests passing).
+- **Browser Acceptance:** 11/11 interactive controls verified on Microsoft Edge.
+- **Visual Evidence:** Real screenshots archived in `artifacts/p13/screenshots/`.
+- **Gates:** `CLINICAL_REALWORLD_GATE` and `PHYSICAL_STEREO_HARDWARE_GATE` remain strictly **BLOCKED**.
+- **Release Verdict:** **GO — PERSONAL OFFLINE WORKSTATION / SYNTHETIC & RESEARCH ONLY**.
