@@ -269,42 +269,49 @@ def delete_patient(patient_id: str) -> bool:
 
 
 def scrub_phi_from_text(text: Optional[str]) -> str:
-    """Scrub direct and quasi-identifiers from clinical free-text (DEF-21, DEF-29).
+    """Scrub direct and quasi-identifiers from clinical free-text (DEF-21, DEF-29, DEF-35).
     
     Removes:
     - Email addresses
-    - Social Security Numbers (SSNs)
+    - Social Security Numbers (SSNs - hyphen, space, dot, or prefixed 9-digit)
     - Medical Record Numbers (MRNs)
+    - National Provider Identifiers (NPIs)
+    - Medical License and DEA registration numbers
     - Phone numbers (domestic & international)
     - Clinician titles & names (e.g. 'Dr. Smith', 'Doctor Jane Doe')
     - IPv4 Addresses
     - Postal / ZIP Codes
-    - Numeric calendar dates (e.g. 12/31/2020, 2024-05-18)
-    - Textual calendar dates (e.g. October 14, 2024, 12 Jan 2023, March 2022)
+    - Numeric calendar dates (e.g. 12/31/2020, 2024-05-18, 2024.05.18)
+    - Textual calendar dates (e.g. October 14, 2024, 14-Oct-2024, 12 Jan 2023, March 2022)
     """
     if not text or not isinstance(text, str):
         return "" if text is None else str(text)
 
     # 1. Emails
     s = re.sub(r"[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+", "[REDACTED_EMAIL]", text)
-    # 2. SSN
-    s = re.sub(r"\b\d{3}-\d{2}-\d{4}\b", "[REDACTED_SSN]", s)
+    # 2. SSN (hyphen, dot, space, or prefixed 9-digit) (DEF-35)
+    s = re.sub(r"\b\d{3}[-.\s]\d{2}[-.\s]\d{4}\b", "[REDACTED_SSN]", s)
+    s = re.sub(r"\b(?:SSN|Social\s+Security(?:\s+Number)?)[:#\s]*\d{9}\b", "[REDACTED_SSN]", s, flags=re.IGNORECASE)
     # 3. Medical Record Number (MRN) (DEF-29)
     s = re.sub(r"\b(?:MRN|Medical\s+Record\s+Number)[:#\s]*[A-Z0-9-]+\b", "[REDACTED_MRN]", s, flags=re.IGNORECASE)
-    # 4. Phone numbers (e.g., (555) 019-2834, 555-123-4567, +1-555-555-0199)
+    # 4. National Provider Identifier (NPI) (DEF-35)
+    s = re.sub(r"\b(?:NPI|National\s+Provider\s+Identifier)[:#\s]*\d{10}\b", "[REDACTED_NPI]", s, flags=re.IGNORECASE)
+    # 5. Medical License / DEA numbers (DEF-35)
+    s = re.sub(r"\b(?:License|Medical\s+License|DEA)[:#\s]*[A-Z0-9-]{5,15}\b", "[REDACTED_LICENSE]", s, flags=re.IGNORECASE)
+    # 6. Phone numbers (e.g., (555) 019-2834, 555-123-4567, +1-555-555-0199)
     s = re.sub(r"(?:\+?\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}\b", "[REDACTED_PHONE]", s)
-    # 5. Clinician titles & names (e.g. Dr. John Doe, Doctor Smith, Prof. Williams)
+    # 7. Clinician titles & names (e.g. Dr. John Doe, Doctor Smith, Prof. Williams)
     s = re.sub(r"\b(?:Dr\.|Doctor|Prof\.|MD)\s+[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*\b", "[REDACTED_PROVIDER]", s)
-    # 6. IPv4 Addresses (DEF-29)
+    # 8. IPv4 Addresses (DEF-29)
     s = re.sub(r"\b(?:\d{1,3}\.){3}\d{1,3}\b", "[REDACTED_IP]", s)
-    # 7. Postal / ZIP Codes (DEF-29)
+    # 9. Postal / ZIP Codes (DEF-29)
     s = re.sub(r"\b(?:ZIP(?:[ -]code)?|Postal(?:\s+Code)?|Zipcode)[:\s]+[A-Z0-9 -]{3,10}\b", "[REDACTED_POSTAL_CODE]", s, flags=re.IGNORECASE)
     s = re.sub(r"\b\d{5}-\d{4}\b", "[REDACTED_POSTAL_CODE]", s)
-    # 8. Numeric calendar dates (e.g. 10/12/1985, 2024-05-18, 05-12-2023)
-    s = re.sub(r"\b(?:\d{1,2}[/-]\d{1,2}[/-]\d{2,4}|\d{4}[/-]\d{1,2}[/-]\d{1,2})\b", "[REDACTED_DATE]", s)
-    # 9. Textual calendar dates (DEF-29)
+    # 10. Numeric calendar dates (e.g. 10/12/1985, 2024-05-18, 05-12-2023, 2024.10.14) (DEF-35)
+    s = re.sub(r"\b(?:\d{1,2}[/.-]\d{1,2}[/.-]\d{2,4}|\d{4}[/.-]\d{1,2}[/.-]\d{1,2})\b", "[REDACTED_DATE]", s)
+    # 11. Textual calendar dates (including hyphenated e.g. 14-Oct-2024) (DEF-35)
     month_pat = r"(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)"
-    text_date_regex = rf"\b(?:\d{{1,2}}(?:st|nd|rd|th)?\s+)?{month_pat}(?:\s+\d{{1,2}}(?:st|nd|rd|th)?)?(?:,?\s+\d{{2,4}})\b|\b\d{{1,2}}(?:st|nd|rd|th)?\s+{month_pat}\b"
+    text_date_regex = rf"\b(?:\d{{1,2}}(?:st|nd|rd|th)?[\s\-_]+)?{month_pat}(?:[\s\-_]+\d{{1,2}}(?:st|nd|rd|th)?)?(?:,?\s*[\-_]?\s*\d{{2,4}})\b|\b\d{{1,2}}(?:st|nd|rd|th)?[\s\-_]+{month_pat}\b"
     s = re.sub(text_date_regex, "[REDACTED_DATE]", s, flags=re.IGNORECASE)
 
     return s

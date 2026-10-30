@@ -15,6 +15,10 @@ from msk_research_lab.motion.calibration import (
     distort_normalized_point,
     undistort_normalized_point,
 )
+from msk_research_lab.scientific.quality import (
+    MeasurementQualityDecision,
+    evaluate_optical_registration_decision,
+)
 from msk_research_lab.studio.dien_chan import DienChanError, attempt_project_2d_to_3d
 
 
@@ -542,6 +546,13 @@ def register_2d_reflexology_point_to_3d(
     # Uncertainty estimation: 1.96 * (residual_px / fx) * depth_mm
     uncertainty_radius_mm = round(1.96 * (calibration_context.mean_reprojection_residual_px / K.fx) * scale, 2)
 
+    q_dec = evaluate_optical_registration_decision(
+        is_calibrated=True,
+        max_residual_px=calibration_context.max_reprojection_residual_px,
+        spatial_condition_number=calibration_context.spatial_condition_number,
+        planarity_ratio=calibration_context.planarity_ratio,
+    )
+
     return {
         "status": "CALIBRATED_RESEARCH_REGISTRATION",
         "point_id": point_id,
@@ -553,6 +564,8 @@ def register_2d_reflexology_point_to_3d(
         "mean_residual_px": calibration_context.mean_reprojection_residual_px,
         "spatial_condition_number": calibration_context.spatial_condition_number,
         "planarity_ratio": calibration_context.planarity_ratio,
+        "quality_decision": q_dec["decision"],
+        "quality_justification": q_dec["justification"],
         "provenance_type": "SYNTHETIC_TEST",
         "epistemic_provenance": "RIGID_OPTICAL_CALIBRATION_RESEARCH_ONLY",
         "clinical_certification": "NOT_CLINICALLY_CERTIFIED",

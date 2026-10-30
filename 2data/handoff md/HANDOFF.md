@@ -373,3 +373,51 @@ All operational verification evidence is documented in `artifacts/p11/`:
 - `artifacts/p11/P11_TO_P12_HANDOFF.md`
 - `dist/MSK-Workstation/` (Self-contained desktop distribution)
 
+---
+
+## 11. Milestone P12 Completion & Verification Checkpoint
+
+**Date:** 2026-10-30  
+**Git Branch:** `fix/workstation-real-functional-acceptance`  
+**Test Suite Verification:** **284 PASSED, 0 FAILED, 1 WARNING** (Expanded from 269 to 284 automated tests across 31 test suites)  
+**Defects Remediated:** DEF-33 through DEF-38 (0 active open defects)  
+**Release Verdict:** **`GO — PERSONAL OFFLINE WORKSTATION / SYNTHETIC & RESEARCH ONLY`**  
+**Desktop Distribution Package:** Verified distribution package staged at `dist/MSK-Workstation/` (6/6 critical assets verified)  
+**Clinical Real-World Gate:** **`BLOCKED (PERMANENT SERVER INVARIANT)`**  
+**Physical Stereo Camera Hardware Gate:** **`BLOCKED (DUAL_CAMERA_UNAVAILABLE)`**  
+**Epistemic 2D-to-3D Invariant:** **FAIL-CLOSED (`CANNOT_IMPLICITLY_PROJECT_2D_TO_3D`)**  
+
+### Newly Remediated P12 Defects (DEF-33 through DEF-38)
+- **DEF-33 (HIGH): Path Traversal Vulnerability in Unencrypted Backup Archive Extraction.**
+  - *Root Cause:* `restore_backup()` unpacked tar archives using `extractall()` without verifying that extracted members did not escape the target destination root.
+  - *Remediation:* Enforced destination prefix validation on all tar members; members containing `..` or absolute paths are rejected with `BackupIntegrityError`. Verified in `test_p12_durability_and_consistency.py`.
+- **DEF-34 (HIGH): SQLite Online Backup API Migration & WAL Orphan Purge on Restore.**
+  - *Root Cause:* `VACUUM INTO` failed or hung under active concurrency; restoring into directories with preexisting `-wal` or `-shm` sidecars replayed stale transactions, corrupting restored databases.
+  - *Remediation:* Migrated backup creation to `sqlite3.Connection.backup()` under passive checkpointing (`PRAGMA wal_checkpoint(PASSIVE);`); restore operations atomically purge orphaned sidecars prior to deployment. Verified in `test_p12_durability_and_consistency.py` and `test_p12_windows_native_e2e.py`.
+- **DEF-35 (HIGH): Incomplete Safe Harbor PHI De-identification in Free-Text Notes.**
+  - *Root Cause:* Free-text scrubbers failed to redact 10-digit National Provider Identifiers (NPIs), state medical licenses / DEA numbers, dot/space-separated SSNs, and dotted/hyphenated dates.
+  - *Remediation:* Added comprehensive regex redactions producing `[REDACTED_NPI]`, `[REDACTED_LICENSE]`, `[REDACTED_SSN]`, and `[REDACTED_DATE]`. Verified in `test_p12_durability_and_consistency.py` and `test_p12_windows_native_e2e.py`.
+- **DEF-36 (MEDIUM): Standardized Metrological 4-State Quality Decision Engine.**
+  - *Root Cause:* Biomechanical and registration outputs lacked uniform, quantitative 4-state categorization.
+  - *Remediation:* Created `src/msk_research_lab/scientific/quality.py` with `MeasurementQualityDecision` enum (`VALID`, `DEGRADED`, `REJECTED`, `NOT_VERIFIED`) with quantitative threshold justifications. Verified in `test_p12_scientific_quality_decisions.py` and `test_p12_metrology_independent_oracle.py`.
+- **DEF-37 (MEDIUM): Windows VBS Launcher Local Runtime Discovery & User-Facing Error Dialog.**
+  - *Root Cause:* `MSK-Workstation-Launch.vbs` exited silently without notification when Python was missing, and did not search local `.venv` directories.
+  - *Remediation:* Added multi-tier discovery (`.venv`, bridge runtime, system PATH) and native Windows `MsgBox` error dialog. Verified in `test_p12_windows_native_e2e.py`.
+- **DEF-38 (MEDIUM): Windows File Lock Sharing Violation Retry Loop During Atomic Database Replacement.**
+  - *Root Cause:* Transient antivirus / SQLite file locks on Windows caused `PermissionError` during `os.replace()`.
+  - *Remediation:* Implemented exponential backoff retry loop (5 attempts, up to 1.6s delay) before failing. Verified in `test_p12_durability_and_consistency.py`.
+
+### Consolidated P12 Evidence Artifacts
+All operational verification evidence is documented in `artifacts/p12/`:
+- `artifacts/p12/P12_BASELINE_AUDIT.md`
+- `artifacts/p12/P12_WINDOWS_NATIVE_ACCEPTANCE.md`
+- `artifacts/p12/P12_DATABASE_CRASH_CONSISTENCY.md`
+- `artifacts/p12/P12_METROLOGY_INDEPENDENT_ORACLE.md`
+- `artifacts/p12/P12_SECURITY_PRIVACY_CHALLENGE.md`
+- `artifacts/p12/P12_REAL_USER_WORKFLOW_E2E.md`
+- `artifacts/p12/P12_DEFECT_REGISTER.md`
+- `artifacts/p12/P12_TEST_RESULTS.json`
+- `artifacts/p12/P12_INDEPENDENT_ACCEPTANCE_REPORT.md`
+- `artifacts/p12/P12_TO_P13_HANDOFF.md`
+- `dist/MSK-Workstation/` (Self-contained desktop distribution)
+

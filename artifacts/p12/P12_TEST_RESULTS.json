@@ -1,0 +1,91 @@
+{
+  "milestone": "P12",
+  "timestamp": "2026-10-30T18:35:00+07:00",
+  "environment": {
+    "os": "Windows 11 x64 (Native) / Linux WSL2 Kernel 6.6.x",
+    "python_native_windows": "Python 3.11.9 (C:\\Users\\tuanh\\MSK-Pose-Vision-Bridge\\.venv\\Scripts\\python.exe)",
+    "python_wsl2": "Python 3.10.12 (/home/tuan/.venvs/msk-lab/bin/python3)",
+    "pytest_version": "9.1.1 (WSL2) / 9.2.0 (Windows)"
+  },
+  "git": {
+    "branch": "fix/workstation-real-functional-acceptance",
+    "baseline_commit": "7f49fa2",
+    "clean_working_tree": true
+  },
+  "gates": {
+    "CLINICAL_REALWORLD_GATE": "BLOCKED",
+    "PHYSICAL_STEREO_HARDWARE_GATE": "BLOCKED (DUAL_CAMERA_UNAVAILABLE)",
+    "CANNOT_IMPLICITLY_PROJECT_2D_TO_3D": "BLOCKED (DienChanError)",
+    "AIRGAP_OFFLINE_VERIFIED": "PASS (127.0.0.1 and ::1 only, zero outbound calls)"
+  },
+  "summary": {
+    "total_tests": 284,
+    "passed": 284,
+    "failed": 0,
+    "skipped": 0,
+    "warnings": 1,
+    "baseline_p11_tests": 269,
+    "new_p12_tests": 15
+  },
+  "new_p12_suites": {
+    "tests/unit/test_p12_scientific_quality_decisions.py": {
+      "total": 3,
+      "passed": 3,
+      "failed": 0,
+      "tests": [
+        "test_kinematics_four_state_decisions",
+        "test_optical_registration_four_state_decisions",
+        "test_stereo_triangulation_quality_decisions"
+      ]
+    },
+    "tests/unit/test_p12_metrology_independent_oracle.py": {
+      "total": 5,
+      "passed": 5,
+      "failed": 0,
+      "tests": [
+        "test_oracle_vs_production_exact_angles",
+        "test_oracle_degenerate_landmarks_fail_closed",
+        "test_adversarial_missing_landmarks_fail_closed",
+        "test_out_of_plane_foreshortening_quality_decision",
+        "test_independent_rom_oracle"
+      ]
+    },
+    "tests/integration/test_p12_durability_and_consistency.py": {
+      "total": 3,
+      "passed": 3,
+      "failed": 0,
+      "tests": [
+        "test_def33_unencrypted_backup_path_traversal_rejection",
+        "test_def34_sqlite_online_backup_api_and_wal_orphan_cleanup",
+        "test_def35_enhanced_phi_scrubbing_npi_license_space_dot_ssn"
+      ]
+    },
+    "tests/integration/test_p12_windows_native_e2e.py": {
+      "total": 4,
+      "passed": 4,
+      "failed": 0,
+      "tests": [
+        "test_loopback_binding_and_offline_security",
+        "test_complete_researcher_workflow_e2e",
+        "test_windows_launcher_scripts_and_dist_integrity",
+        "test_sqlite_wal_durability_and_backup_roundtrip"
+      ]
+    }
+  },
+  "defects_verified_resolved": [
+    "DEF-33",
+    "DEF-34",
+    "DEF-35",
+    "DEF-36",
+    "DEF-37",
+    "DEF-38"
+  ],
+  "desktop_packaging": {
+    "distribution_path": "dist/MSK-Workstation",
+    "critical_valid": true,
+    "all_valid": true,
+    "manifest_assets": 6,
+    "license_bytes": 5234
+  },
+  "verdict": "GO — PERSONAL OFFLINE WORKSTATION / SYNTHETIC & RESEARCH ONLY"
+}

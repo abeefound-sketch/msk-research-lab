@@ -19,12 +19,23 @@ Else
     projectDir = scriptDir
 End If
 
-' Locate Python runtime
+' Locate Python runtime (DEF-37)
 If fso.FileExists(projectDir & "\.venv\Scripts\python.exe") Then
     pythonExe = """" & projectDir & "\.venv\Scripts\python.exe" & """"
+ElseIf fso.FileExists("C:\Users\tuanh\MSK-Pose-Vision-Bridge\.venv\Scripts\python.exe") Then
+    pythonExe = """C:\Users\tuanh\MSK-Pose-Vision-Bridge\.venv\Scripts\python.exe"""
 ElseIf fso.FileExists(projectDir & "\python\python.exe") Then
     pythonExe = """" & projectDir & "\python\python.exe" & """"
 Else
+    ' Fallback to PATH
+    On Error Resume Next
+    Dim testExec
+    Set testExec = WshShell.Exec("python --version")
+    If Err.Number <> 0 Then
+        MsgBox "Python runtime not detected. Please install Python 3.10+ or create a virtual environment in .venv.", vbCritical, "MSK Research Lab Workstation"
+        WScript.Quit 1
+    End If
+    On Error GoTo 0
     pythonExe = "python"
 End If
 

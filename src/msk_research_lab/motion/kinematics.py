@@ -3,6 +3,11 @@
 import math
 from typing import Dict, List, Tuple, Optional, Any
 
+from msk_research_lab.scientific.quality import (
+    MeasurementQualityDecision,
+    evaluate_kinematics_quality_decision,
+)
+
 NORMAL_ROM_REFERENCES = {
     "ELBOW_FLEXION": 140.0,
     "SHOULDER_ABDUCTION": 160.0,
@@ -100,8 +105,17 @@ def evaluate_motion_quality(
     coverage_factor_k = 1.96  # 95% confidence level
     expanded_uncertainty_u95 = round(coverage_factor_k * u_combined, 2)
 
+    q_dec = evaluate_kinematics_quality_decision(
+        has_missing_landmarks=False,
+        is_degenerate=False,
+        tracking_confidence=round(avg_visibility, 3),
+        apparent_span_ratio=apparent_span_ratio,
+    )
+
     return {
         "quality_status": quality_status,
+        "quality_decision": q_dec["decision"],
+        "quality_justification": q_dec["justification"],
         "warnings": warnings,
         "confounding_factors": confounders,
         "tracking_confidence": round(avg_visibility, 3),
@@ -142,6 +156,7 @@ def compute_joint_rom(
     missing = [k for k in req_keys if k not in landmarks or landmarks[k] is None]
 
     if missing:
+        q_dec = evaluate_kinematics_quality_decision(has_missing_landmarks=True)
         return {
             "joint_tested": joint_tested,
             "side": side,
@@ -151,6 +166,8 @@ def compute_joint_rom(
             "uncertainty_u95_deg": None,
             "tracking_confidence": 0.0,
             "quality_status": "INSUFFICIENT_DATA",
+            "quality_decision": q_dec["decision"],
+            "quality_justification": q_dec["justification"],
             "warnings": [f"MISSING_LANDMARK: Required key '{k}' missing from pose tracking." for k in missing],
             "confounding_factors": ["INCOMPLETE_LANDMARK_SET"],
             "uncertainty_budget": {
@@ -173,6 +190,7 @@ def compute_joint_rom(
     mag2 = math.hypot(v2[0], v2[1])
 
     if mag1 < 1e-4 or mag2 < 1e-4:
+        q_dec = evaluate_kinematics_quality_decision(is_degenerate=True)
         return {
             "joint_tested": joint_tested,
             "side": side,
@@ -182,6 +200,8 @@ def compute_joint_rom(
             "uncertainty_u95_deg": None,
             "tracking_confidence": 0.0,
             "quality_status": "DEGENERATE_GEOMETRY",
+            "quality_decision": q_dec["decision"],
+            "quality_justification": q_dec["justification"],
             "warnings": ["DEGENERATE_VECTORS: Landmark coordinates have zero displacement between adjacent joint points."],
             "confounding_factors": ["DEGENERATE_GEOMETRY"],
             "uncertainty_budget": {
@@ -195,17 +215,25 @@ def compute_joint_rom(
 
     measured_angle = compute_2d_angle(pt_a, pt_b, pt_c)
     deficit = max(0.0, ref_rom - measured_angle)
+    span_ratio = apparent_span_ratio if apparent_span_ratio is not None else 1.0
 
     quality = evaluate_motion_quality(
         landmarks=landmarks,
         joint_tested=joint_tested,
         side=side,
-        apparent_span_ratio=apparent_span_ratio if apparent_span_ratio is not None else 1.0,
+        apparent_span_ratio=span_ratio,
         visibility_scores=visibility_scores
     )
 
     if apparent_span_ratio is None:
         quality["confounding_factors"].append("UNCALIBRATED_YAW")
+
+    q_dec = evaluate_kinematics_quality_decision(
+        has_missing_landmarks=False,
+        is_degenerate=False,
+        tracking_confidence=quality["tracking_confidence"],
+        apparent_span_ratio=span_ratio,
+    )
 
     return {
         "joint_tested": joint_tested,
@@ -216,6 +244,8 @@ def compute_joint_rom(
         "uncertainty_u95_deg": quality["uncertainty_budget"]["expanded_uncertainty_u95_deg"],
         "tracking_confidence": quality["tracking_confidence"],
         "quality_status": quality["quality_status"],
+        "quality_decision": q_dec["decision"],
+        "quality_justification": q_dec["justification"],
         "warnings": quality["warnings"],
         "confounding_factors": quality["confounding_factors"],
         "uncertainty_budget": quality["uncertainty_budget"],

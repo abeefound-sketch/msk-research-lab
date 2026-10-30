@@ -326,10 +326,14 @@ def create_encrypted_backup(
         tmp_dir = Path(tmp_dir_str)
         staged_db = tmp_dir / "lab.sqlite3"
 
-        # Checkpoint WAL and capture consistent snapshot using VACUUM INTO
+        # Checkpoint WAL and capture consistent snapshot using SQLite online backup API (DEF-34)
         with get_db() as conn:
-            conn.execute("PRAGMA wal_checkpoint(TRUNCATE);")
-            conn.execute(f"VACUUM INTO '{staged_db}';")
+            conn.execute("PRAGMA wal_checkpoint(PASSIVE);")
+            dst_conn = sqlite3.connect(str(staged_db))
+            try:
+                conn.backup(dst_conn)
+            finally:
+                dst_conn.close()
 
         # Copy pepper if requested
         active_pepper_file, _ = get_pepper_storage_paths()
@@ -463,7 +467,7 @@ def restore_encrypted_backup(
             except sqlite3.DatabaseError as db_err:
                 raise BackupDecryptionError(f"Staged database validation failed: {db_err}")
 
-        # Atomic deployment from verified staging to final restore directory (DEF-27)
+        # Atomic deployment from verified staging to final restore directory (DEF-27, DEF-34, DEF-38)
         for item in staging_extracted.iterdir():
             target_item = restore_dir / item.name
             if item.is_dir():
@@ -474,7 +478,43 @@ def restore_encrypted_backup(
                 shutil.copy2(item, tmp_restore)
                 if item.name.startswith("."):
                     secure_file_permissions(tmp_restore)
-                os.replace(tmp_restore, target_item)
+
+                # Clean up orphaned WAL/SHM files to prevent WAL salt mismatch or corruption on restored DB (DEF-34)
+                if item.name.endswith(".sqlite3") or item.name.endswith(".db"):
+                    wal_file = restore_dir / f"{item.name}-wal"
+                    shm_file = restore_dir / f"{item.name}-shm"
+                    try:
+                        if wal_file.exists():
+                            wal_file.unlink(missing_ok=True)
+                        if shm_file.exists():
+                            shm_file.unlink(missing_ok=True)
+                    except Exception:
+                        pass
+
+                # Retry loop for Windows sharing violations / transient file locks (DEF-38)
+                replaced = False
+                for attempt in range(5):
+                    try:
+                        os.replace(tmp_restore, target_item)
+                        replaced = True
+                        break
+                    except (PermissionError, OSError) as lock_err:
+                        if attempt == 4:
+                            try:
+                                if target_item.exists():
+                                    target_item.unlink(missing_ok=True)
+                                os.replace(tmp_restore, target_item)
+                                replaced = True
+                                break
+                            except Exception:
+                                raise BackupDecryptionError(
+                                    f"File replacement failed due to file lock or sharing violation: {lock_err}"
+                                )
+                        time.sleep(0.05 * (2 ** attempt))
+
+                if not replaced:
+                    raise BackupDecryptionError(f"Failed to replace target file '{target_item}'.")
+
                 if item.name.startswith("."):
                     secure_file_permissions(target_item)
 

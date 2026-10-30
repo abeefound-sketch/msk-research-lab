@@ -356,6 +356,8 @@ def triangulate_joint_angle_3d(
 
     return {
         "status": "VALID",
+        "quality_decision": "VALID",
+        "quality_justification": f"Stereo triangulation reprojection error ({max_err:.3f} px) within sub-pixel tolerance.",
         "angle_3d_deg": round(angle_3d_deg, 2),
         "vertices_3d": {
             "vertex_a": [round(x, 2) for x in A_3d],

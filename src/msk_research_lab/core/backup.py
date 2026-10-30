@@ -34,10 +34,15 @@ def create_backup(target_export_dir: Optional[Path] = None) -> Dict[str, Any]:
 
     manifest_files = {}
 
-    # 1. Consistent SQLite backup using VACUUM INTO or sqlite3 online backup API
+    # 1. Consistent SQLite backup using online backup API (DEF-34)
     staged_db = staging_dir / "lab.sqlite3"
     with get_db() as conn:
-        conn.execute(f"VACUUM INTO '{staged_db}';")
+        conn.execute("PRAGMA wal_checkpoint(PASSIVE);")
+        dst_conn = sqlite3.connect(str(staged_db))
+        try:
+            conn.backup(dst_conn)
+        finally:
+            dst_conn.close()
     manifest_files["lab.sqlite3"] = compute_sha256(staged_db)
 
     # 2. Copy originals
@@ -85,6 +90,11 @@ def restore_backup(archive_path: Path, target_restore_dir: Path) -> Dict[str, An
     target_restore_dir.mkdir(parents=True, exist_ok=True)
 
     with tarfile.open(archive_path, "r:gz") as tar:
+        # Guard against path traversal attacks (DEF-33)
+        for member in tar.getmembers():
+            m_path = Path(member.name)
+            if m_path.is_absolute() or ".." in m_path.parts:
+                raise BackupIntegrityError(f"Path traversal attempt rejected in backup member '{member.name}'.")
         tar.extractall(path=target_restore_dir)
 
     # Find extracted folder
