@@ -469,3 +469,42 @@ Executed the revised product directive: transform the workstation into an **Inte
 - **Visual Evidence:** Real screenshots archived in `artifacts/p13/screenshots/`.
 - **Gates:** `CLINICAL_REALWORLD_GATE` and `PHYSICAL_STEREO_HARDWARE_GATE` remain strictly **BLOCKED**.
 - **Release Verdict:** **GO — PERSONAL OFFLINE WORKSTATION / SYNTHETIC & RESEARCH ONLY**.
+
+---
+
+## 13. Milestone P14 Completion: Scientifically Grounded Interactive Movement Education & Visual Biomechanics Validation (2026-10-30)
+
+### Objective & Philosophy
+Executed Milestone P14: Rigorous scientific model qualification, 3D transformation forward kinematics verification, epistemic provenance tracking, and interactive motor control education.
+
+### Scientific Qualification of the 10 Challenged Biomechanical Assumptions (P14-A)
+1. **Inman 2:1 Scapulohumeral Ratio:** Reclassified from physiological dogma to a `SIMPLIFIED_EDUCATIONAL_MODEL` (1.5:1 to 3:1 in vivo dynamic range documented).
+2. **30° Setting Phase:** Reclassified as an empirical observation with acknowledged inter-individual variation.
+3. **Upward Rotation Coefficient (0.33×):** Verified as a linear approximation of complex 3D scapulothoracic kinematics.
+4. **Clavicular Elevation Coefficient (0.18×):** Reclassified from isolated sternoclavicular rotation to a composite elevation estimate.
+5. **Model B Restricted Movement (40% Scapular Restriction):** Reclassified from personal patient diagnosis to a `HYPOTHETICAL_SCENARIO` grounded in impingement cohort literature (Ludewig & Cook 2000).
+6. **+8.4° Persistent Anterior Scapular Tilt:** Explicitly qualified as an educational simulation variable derived from symptomatic cohort means.
+7. **Subacromial Narrowing Risk Classification:** Relabeled strictly as an `EDUCATIONAL_HYPOTHESIS (GEOMETRIC_PROXIMITY_MODEL)`.
+8. **Normalized Muscle Fiber Length Interpolation:** Qualified as a geometric posture-dependent state estimate (\(\tilde{l}_M\)).
+9. **Passive Muscle Force Representation:** Delineated Hill-type passive elastic tissue stiffness (\(F^{pe}\)) from voluntary neural recruitment or active contractile tension.
+10. **Coordinate Frame Consistency:** BodyParts3D RAS coordinates systematically validated across scene graph hierarchy.
+
+### 3D Kinematic Chain Audit & Geometry Oracle (P14-B)
+- **Resolved DEF-42 (HIGH): Clavicular Rotation Axis Remediation in Three.js Scene Graph.**
+  - *Root Cause:* Clavicle rotation was applied to vertical Z-axis (`rotation.z = scRad`), causing horizontal retraction rather than coronal elevation.
+  - *Remediation:* Refactored to coronal Y-axis rotation (`shoulderSCPivot.rotation.y = scRad`) with relative hierarchical compensation at acromioclavicular pivot (`shoulderACPivot.rotation.y = (scapUpDeg - scDeg) * Math.PI / 180.0`).
+- **Independent Forward Kinematics Oracle:** Authored `tests/unit/test_p14_geometry_and_animation_oracle.py` (17/17 PASS). Formulated an analytical forward kinematics oracle using 3x3 rotation matrices, proving zero residual error across all world-space bone orientations (0°, 30°, 45°, 90°, 120°, 180°), proper elbow elevation (\(z > 1.6\text{ m}\)), and subacromial clearance narrowing.
+
+### Epistemic Provenance Tracking & Cross-Model Integrity (P14-C & P14-D)
+- **Resolved DEF-43 (HIGH): Misleading Cross-Model OpenSim Muscle Attribution.**
+  - *Root Cause:* Muscle response endpoint displayed baseline OpenSim forces under the restricted scapular posture without caveat.
+  - *Remediation:* Updated `/api/v1/biomechanics/shoulder/muscles/response` with `comparison_mode` parameter. Restricted records are explicitly tagged with `validation_status = "NOT_VERIFIED_FOR_MODIFIED_POSTURE"`, `scenario_adjusted = False`, and rendered with amber `[BASELINE (UNADJUSTED)]` caution badges in the UI.
+- **Scientific Content Provenance Schema:** Standardized `ScientificContentProvenance` Pydantic model (`source_model`, `model_version`, `assumption_type`, `validation_status`, etc.) across all educational payloads.
+- **Motor Control Education Module:** Added 3 evidence-based topics to `shoulder_lab.py`, `/api/v1/biomechanics/shoulder/motor-control`, and `#motor-control-container` explaining sensory proprioception (muscle spindles, GTOs), why passive tension release provides temporary symptom relief without changing habitual motor programs (viscoelastic stress relaxation vs central motor maps), and the neuroplastic requirements of active movement practice (Kandel 2021, Weppler & Magnusson 2010, Hodges & Richardson 1996, Kleim & Jones 2008).
+
+### Real-Browser Acceptance & Defect Remediations (P14-E)
+- **Automated Playwright E2E Test:** Authored `tests/integration/test_p14_shoulder_educational_e2e.py` running on native Microsoft Edge (`channel="msedge"`). Verified 13/13 interactive controls and UI state transitions.
+- **Visual Evidence:** Captured 7 unique evidence screenshots with distinct SHA-256 hashes into `artifacts/p14/screenshots/`.
+- **Automated Test Suite:** **316 / 316 PASS** (179 unit tests including 17 new geometry oracle tests, 125 integration tests, 12 native/recovery tests).
+- **Gates:** `CLINICAL_REALWORLD_GATE` and `PHYSICAL_STEREO_HARDWARE_GATE` remain strictly **BLOCKED**.
+- **Release Verdict:** **GO — PERSONAL OFFLINE WORKSTATION / SYNTHETIC & RESEARCH ONLY**.

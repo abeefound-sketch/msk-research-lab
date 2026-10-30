@@ -664,6 +664,7 @@ def render_workstation_ui() -> str:
                         <div style="margin-top:10px; font-size:10px; color:#f43f5e; background:rgba(244,63,94,0.08); padding:6px 8px; border-radius:4px; border:1px solid rgba(244,63,94,0.2);">
                             <strong>Scientific Limitations:</strong> <span id="shoulder-insp-limits"></span>
                         </div>
+                        <div id="shoulder-insp-provenance" style="margin-top:10px; font-size:11px; background:rgba(56,189,248,0.06); padding:8px 10px; border-radius:4px; border:1px solid rgba(56,189,248,0.2);"></div>
                     </div>
                 </div>
             </div>
@@ -697,6 +698,30 @@ def render_workstation_ui() -> str:
                             <tr><td colspan="8" style="text-align:center; color:var(--text-muted);">Loading muscle responses...</td></tr>
                         </tbody>
                     </table>
+                </div>
+                <div style="margin-top:10px; font-size:11px; color:#94a3b8; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+                    <div>
+                        <strong>Neural Drive Note:</strong> OpenSim Millard2012 equilibrium model (fixed 0.02 nominal passive tone). Values quantify geometric fiber stretch and passive elastic tension, <em>not</em> real-time EMG motor unit recruitment.
+                    </div>
+                    <div>
+                        <span class="badge" style="background:rgba(56,189,248,0.12); color:var(--accent-blue);">Hill Equilibrium Dynamics</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4. MOTOR CONTROL & MOVEMENT LEARNING EDUCATION (P14-C) -->
+            <div class="stat-card" style="margin-top:20px;">
+                <div class="section-header">
+                    <div>
+                        <h2>Motor Control, Sensory Feedback & Movement Learning</h2>
+                        <div style="font-size:12px; color:var(--text-muted); margin-top:2px;">
+                            Evidence-based physiological principles: Sensory proprioception, transient viscoelastic relaxation vs. central motor coordination, and deliberate practice.
+                        </div>
+                    </div>
+                    <span class="badge" style="background:rgba(56,189,248,0.15); color:var(--accent-blue);">Neuroscience Education</span>
+                </div>
+                <div id="motor-control-container" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap:16px; margin-top:14px;">
+                    <!-- Rendered dynamically by loadMotorControlEducation() -->
                 </div>
             </div>
         </div>
@@ -1163,8 +1188,11 @@ def render_workstation_ui() -> str:
             if (viewName === 'anatomy' && !threeRenderer) {
                 initThreeAnatomy();
             }
-            if (viewName === 'shoulder' && !shoulderRenderer) {
-                initShoulderMovementLab();
+            if (viewName === 'shoulder') {
+                if (!shoulderRenderer) {
+                    initShoulderMovementLab();
+                }
+                loadMotorControlEducation();
             }
         }
 
@@ -2156,15 +2184,21 @@ ${session.soap.plan}`;
                 }
             }
 
+            const scRad = (scDeg * Math.PI) / 180.0;
+            const acRelUpDeg = scapUpDeg - scDeg;
+            const acRelRad = (acRelUpDeg * Math.PI) / 180.0;
+            const tiltRad = (tiltDeg * Math.PI) / 180.0;
+            const ghRad = (ghDeg * Math.PI) / 180.0;
+
             if (shoulderSCPivot) {
-                shoulderSCPivot.rotation.z = (scDeg * Math.PI) / 180.0;
+                shoulderSCPivot.rotation.y = scRad;
             }
             if (shoulderACPivot) {
-                shoulderACPivot.rotation.y = (scapUpDeg * Math.PI) / 180.0;
-                shoulderACPivot.rotation.x = (tiltDeg * Math.PI) / 180.0;
+                shoulderACPivot.rotation.y = acRelRad;
+                shoulderACPivot.rotation.x = tiltRad;
             }
             if (shoulderGHPivot) {
-                shoulderGHPivot.rotation.y = (ghDeg * Math.PI) / 180.0;
+                shoulderGHPivot.rotation.y = ghRad;
             }
 
             const ghElem = document.getElementById('readout-gh-deg');
@@ -2292,6 +2326,16 @@ ${session.soap.plan}`;
                     evDiv.innerHTML = data.evidence_sources.map(s => `• ${s}`).join('<br>');
                     
                     document.getElementById('shoulder-insp-limits').innerText = data.scientific_limitations;
+
+                    const provDiv = document.getElementById('shoulder-insp-provenance');
+                    if (provDiv && data.provenance) {
+                        provDiv.innerHTML = `
+                            <div style="font-weight:600; color:var(--accent-blue);">Epistemic Provenance:</div>
+                            <div style="color:var(--text-muted); margin-top:2px;"><strong>Source Model:</strong> ${data.provenance.source_model} (v${data.provenance.model_version})</div>
+                            <div style="color:var(--text-muted); margin-top:2px;"><strong>Classification:</strong> ${data.provenance.assumption_type} (${data.provenance.measurement_or_simulation})</div>
+                            <div style="color:var(--text-muted); margin-top:2px;"><strong>Validation:</strong> <span class="badge" style="background:rgba(52,211,153,0.15); color:var(--accent-green); font-size:10px;">${data.provenance.validation_status}</span></div>
+                        `;
+                    }
                 }
             } catch (e) {
                 console.warn("Could not fetch structure annotation:", e);
@@ -2317,19 +2361,25 @@ ${session.soap.plan}`;
         }
 
         let _lastMuscleFetchAngle = -999;
+        let _lastMuscleFetchMode = '';
         async function loadShoulderMuscleTable(angleDeg) {
-            if (Math.abs(angleDeg - _lastMuscleFetchAngle) < 1.0) return;
+            if (Math.abs(angleDeg - _lastMuscleFetchAngle) < 1.0 && shoulderComparisonMode === _lastMuscleFetchMode) return;
             _lastMuscleFetchAngle = angleDeg;
+            _lastMuscleFetchMode = shoulderComparisonMode;
 
             try {
-                const res = await fetch(`/api/v1/biomechanics/shoulder/muscles/response?arm_elevation_deg=${angleDeg.toFixed(1)}`);
+                const res = await fetch(`/api/v1/biomechanics/shoulder/muscles/response?arm_elevation_deg=${angleDeg.toFixed(1)}&comparison_mode=${shoulderComparisonMode}`);
                 if (res.ok) {
                     const muscles = await res.json();
                     const tbody = document.getElementById('shoulder-muscle-tbody');
                     if (!tbody) return;
-                    tbody.innerHTML = muscles.map(m => `
+                    tbody.innerHTML = muscles.map(m => {
+                        const provBadge = (m.validation_status === 'VERIFIED_BASELINE_BENCHMARK')
+                            ? `<span class="badge" style="background:rgba(52,211,153,0.15); color:var(--accent-green); font-size:10px;">BENCHMARK</span>`
+                            : `<span class="badge" style="background:rgba(244,63,94,0.15); color:#f43f5e; font-size:10px;" title="${m.scenario_note}">BASELINE (UNADJUSTED)</span>`;
+                        return `
                         <tr>
-                            <td style="font-weight:600; color:var(--text-main);">${m.muscle_name}</td>
+                            <td style="font-weight:600; color:var(--text-main);">${m.muscle_name} ${provBadge}</td>
                             <td style="color:var(--text-muted);">${m.muscle_name.startsWith('DELT') ? 'Deltoid' : m.muscle_name.startsWith('PEC') ? 'Pectoralis Major' : m.muscle_name.startsWith('BIC') ? 'Biceps Brachii' : m.muscle_name.startsWith('TRI') ? 'Triceps Brachii' : 'Cuff / Arm'}</td>
                             <td style="font-family:monospace;">${(m.fiber_length_m * 100).toFixed(2)} cm</td>
                             <td style="font-family:monospace;">${(m.optimal_fiber_length_m * 100).toFixed(2)} cm</td>
@@ -2338,10 +2388,51 @@ ${session.soap.plan}`;
                             <td><span style="font-size:11px;">${m.biomechanical_state}</span></td>
                             <td><span class="badge" style="background:${m.kmsi_color_hex}22; color:${m.kmsi_color_hex}; border:1px solid ${m.kmsi_color_hex}66;">${m.kmsi_tag}</span></td>
                         </tr>
-                    `).join('');
+                        `;
+                    }).join('');
                 }
             } catch (e) {
                 console.warn("Could not load muscle responses:", e);
+            }
+        }
+
+        async function loadMotorControlEducation() {
+            const container = document.getElementById('motor-control-container');
+            if (!container || container.children.length > 0) return;
+            try {
+                const res = await fetch('/api/v1/biomechanics/shoulder/motor-control');
+                if (res.ok) {
+                    const topics = await res.json();
+                    container.innerHTML = topics.map(t => `
+                        <div style="background:rgba(15,23,42,0.6); border:1px solid var(--border-color); border-radius:6px; padding:16px; display:flex; flex-direction:column; justify-content:space-between;">
+                            <div>
+                                <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px;">
+                                    <h3 style="font-size:14px; font-weight:600; color:var(--accent-blue); margin:0;">${t.title}</h3>
+                                    <span class="badge" style="font-size:9px; background:rgba(56,189,248,0.12); color:var(--accent-blue);">${t.provenance.assumption_type}</span>
+                                </div>
+                                <p style="font-size:12px; color:var(--text-main); margin-top:8px; line-height:1.4;">${t.summary}</p>
+                                <div style="margin-top:10px; font-size:11px; color:var(--text-muted); line-height:1.4;">
+                                    ${t.detailed_explanation}
+                                </div>
+                                <div style="margin-top:10px; padding:8px; background:rgba(2,6,23,0.5); border-radius:4px; font-size:11px;">
+                                    <strong style="color:#38bdf8;">Key Mechanisms:</strong>
+                                    <ul style="margin:4px 0 0 16px; padding:0; color:#cbd5e1;">
+                                        ${t.physiological_mechanisms.map(m => `<li>${m}</li>`).join('')}
+                                    </ul>
+                                </div>
+                            </div>
+                            <div style="margin-top:12px; border-top:1px solid rgba(148,163,184,0.15); padding-top:10px;">
+                                <div style="font-size:11px; color:#34d399; font-weight:600;">Educational Takeaway:</div>
+                                <div style="font-size:11px; color:#e2e8f0; margin-top:2px;">${t.clinical_educational_takeaway}</div>
+                                <div style="margin-top:8px; font-size:10px; color:#64748b;">
+                                    <strong>References:</strong> ${t.scientific_references.join(' | ')}
+                                </div>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+            } catch (err) {
+                console.warn("Could not load motor control education topics:", err);
             }
         }
 

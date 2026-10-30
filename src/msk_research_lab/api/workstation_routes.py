@@ -399,10 +399,13 @@ def api_get_shoulder_trajectory(
 
 
 @workstation_router.get("/api/v1/biomechanics/shoulder/muscles/response")
-def api_get_shoulder_muscles(arm_elevation_deg: float = Query(0.0, ge=0.0, le=180.0)):
+def api_get_shoulder_muscles(
+    arm_elevation_deg: float = Query(0.0, ge=0.0, le=180.0),
+    comparison_mode: str = Query("normal_2to1")
+):
     """Retrieve interpolated OpenSim muscle fiber lengths, forces, and KMSI classifications."""
     engine = get_shoulder_lab_engine()
-    return engine.get_muscle_responses(arm_elevation_deg)
+    return engine.get_muscle_responses(arm_elevation_deg, comparison_mode=comparison_mode)
 
 
 @workstation_router.get("/api/v1/biomechanics/shoulder/comparisons")
@@ -410,6 +413,13 @@ def api_get_shoulder_comparisons():
     """Retrieve comparative movement models (Normal 2:1 vs Forward Shoulder Restrained)."""
     engine = get_shoulder_lab_engine()
     return engine.get_comparative_models()
+
+
+@workstation_router.get("/api/v1/biomechanics/shoulder/motor-control")
+def api_get_motor_control_education():
+    """Retrieve evidence-based educational topics on motor control, sensory feedback, and movement learning."""
+    engine = get_shoulder_lab_engine()
+    return engine.get_motor_control_education()
 
 
 @workstation_router.get("/api/v1/biomechanics/shoulder/annotations/{structure_id}")
