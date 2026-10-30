@@ -125,11 +125,13 @@ app.add_middleware(
 
 @app.middleware("http")
 async def security_host_guard(request: Request, call_next):
-    """Enforce loopback host access only and validate Origin/Referer against CSRF."""
-    host_header = request.headers.get("host", "")
-    host_name = host_header.split(":")[0].lower()
-    allowed_hosts = {"127.0.0.1", "localhost", "testserver"}
-    if host_name not in allowed_hosts:
+    """Enforce loopback host access only and validate Origin/Referer against CSRF (DEF-16, DEF-26)."""
+    host_header = request.headers.get("host", "").strip()
+    from urllib.parse import urlsplit, urlparse
+    parsed = urlsplit(f"//{host_header}")
+    host_name = (parsed.hostname or "").lower()
+    allowed_hosts = {"127.0.0.1", "localhost", "testserver", "::1"}
+    if not host_name or host_name not in allowed_hosts:
         return JSONResponse(
             status_code=403,
             content={"detail": "Forbidden: MSK Research Lab OS only permits loopback access."}
@@ -141,19 +143,22 @@ async def security_host_guard(request: Request, call_next):
         referer = request.headers.get("referer")
 
         if origin:
-            from urllib.parse import urlparse
+            if origin.strip().lower() == "null":
+                return JSONResponse(
+                    status_code=403,
+                    content={"detail": "Forbidden: Cross-site request rejected by CSRF/Origin guard (null origin)."}
+                )
             parsed_origin = urlparse(origin)
             origin_host = (parsed_origin.hostname or "").lower()
-            if origin_host not in allowed_hosts:
+            if not origin_host or origin_host not in allowed_hosts:
                 return JSONResponse(
                     status_code=403,
                     content={"detail": "Forbidden: Cross-site request rejected by CSRF/Origin guard."}
                 )
         elif referer:
-            from urllib.parse import urlparse
             parsed_referer = urlparse(referer)
             referer_host = (parsed_referer.hostname or "").lower()
-            if referer_host not in allowed_hosts:
+            if not referer_host or referer_host not in allowed_hosts:
                 return JSONResponse(
                     status_code=403,
                     content={"detail": "Forbidden: Cross-site referer rejected by CSRF guard."}

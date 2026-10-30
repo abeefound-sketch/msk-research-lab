@@ -5,12 +5,14 @@ import hashlib
 import json
 import uuid
 import datetime
+import re
 from typing import Dict, List, Optional, Any
 from msk_research_lab.core.db import get_db
 
 import os
 import secrets
 from pathlib import Path
+from msk_research_lab.security.permissions import secure_file_permissions
 
 DEFAULT_PEPPER = b"msk_workstation_local_secret_pepper_v1"
 
@@ -49,10 +51,7 @@ def get_or_create_pepper() -> bytes:
         pepper_file.parent.mkdir(parents=True, exist_ok=True)
         new_pepper = secrets.token_bytes(32)
         pepper_file.write_bytes(new_pepper)
-        try:
-            os.chmod(pepper_file, 0o600)
-        except Exception:
-            pass
+        secure_file_permissions(pepper_file)
         return new_pepper
     except Exception:
         return DEFAULT_PEPPER
@@ -269,42 +268,98 @@ def delete_patient(patient_id: str) -> bool:
     return True
 
 
+def scrub_phi_from_text(text: Optional[str]) -> str:
+    """Scrub direct and quasi-identifiers from clinical free-text (DEF-21).
+    
+    Removes:
+    - Phone numbers (domestic & international)
+    - Email addresses
+    - Social Security Numbers (SSNs)
+    - Physician / Provider names (e.g. 'Dr. Smith', 'Doctor Jane Doe')
+    - Specific calendar dates (e.g. 12/31/2020, 2024-05-18)
+    """
+    if not text or not isinstance(text, str):
+        return "" if text is None else str(text)
+
+    # 1. Emails
+    s = re.sub(r"[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+", "[REDACTED_EMAIL]", text)
+    # 2. SSN
+    s = re.sub(r"\b\d{3}-\d{2}-\d{4}\b", "[REDACTED_SSN]", s)
+    # 3. Phone numbers (e.g., (555) 019-2834, 555-123-4567, +1-555-555-0199)
+    s = re.sub(r"(?:\+?\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}\b", "[REDACTED_PHONE]", s)
+    # 4. Clinician titles & names (e.g. Dr. John Doe, Doctor Smith, Prof. Williams)
+    s = re.sub(r"\b(?:Dr\.|Doctor|Prof\.|MD)\s+[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*\b", "[REDACTED_PROVIDER]", s)
+    # 5. Specific dates (e.g. 10/12/1985, 2024-05-18, 05-12-2023)
+    s = re.sub(r"\b(?:\d{1,2}[/-]\d{1,2}[/-]\d{2,4}|\d{4}[/-]\d{1,2}[/-]\d{1,2})\b", "[REDACTED_DATE]", s)
+
+    return s
+
+
 def export_deidentified_research_record(
     patient_id: str,
     operator_id: str = "RESEARCHER",
 ) -> Dict[str, Any]:
-    """Export de-identified research record stripping all direct PII (HIPAA Safe Harbor aligned).
+    """Export de-identified research record with scrubbed text and non-certified research label.
     
     Guarantees:
     - Direct identifiers ('full_name') are strictly excluded from output.
+    - Clinical free-text fields (notes, history, referrals) are scrubbed of phone, email, SSN, provider names, and dates (DEF-21).
+    - Patients aged > 89 are aggregated to '90+' (Safe Harbor § 164.514(b)(2)(i)(C)).
     - Patient ID is replaced by keyed HMAC pseudonym hash prefix.
+    - Explicitly labeled 'SYNTHETIC_RESEARCH_SCRUBBED_NOT_CERTIFIED_FOR_PHI'.
     - Audit tri-ledger event 'RESEARCH_RECORD_EXPORTED' is logged.
     """
     patient = get_patient(patient_id)
     now = datetime.datetime.utcnow().isoformat() + "Z"
     pseudo = patient["pseudonym_hash"]
 
+    # Safe Harbor age aggregation
+    raw_age = patient["age"]
+    deidentified_age: Any = raw_age
+    if isinstance(raw_age, (int, float)) and raw_age > 89:
+        deidentified_age = "90+"
+
+    # Free-text scrubbing
+    deidentified_med_hist = scrub_phi_from_text(patient.get("medical_history", ""))
+    deidentified_complaint = scrub_phi_from_text(patient.get("primary_complaint", ""))
+    deidentified_occ = scrub_phi_from_text(patient.get("occupation", ""))
+
+    # Red flags scrubbing
+    raw_flags = patient.get("red_flags")
+    scrubbed_flags: Any = {}
+    if isinstance(raw_flags, dict):
+        for k, v in raw_flags.items():
+            if isinstance(v, str):
+                scrubbed_flags[k] = scrub_phi_from_text(v)
+            else:
+                scrubbed_flags[k] = v
+    else:
+        scrubbed_flags = raw_flags
+
     deidentified = {
         "research_subject_id": f"SUBJ-{pseudo[:12].upper()}",
         "pseudonym_hash": pseudo,
         "pepper_version": patient.get("pepper_version", 1),
-        "age": patient["age"],
+        "age": deidentified_age,
         "gender": patient["gender"],
         "height_cm": patient["height_cm"],
         "weight_kg": patient["weight_kg"],
-        "occupation": patient["occupation"],
+        "occupation": deidentified_occ,
         "activity_level": patient["activity_level"],
-        "medical_history_summary": patient["medical_history"],
-        "primary_complaint": patient["primary_complaint"],
+        "medical_history_summary": deidentified_med_hist,
+        "primary_complaint": deidentified_complaint,
         "pain_locations": patient["pain_locations"],
         "current_pain_score": patient["current_pain_score"],
         "radiating_symptoms": patient["radiating_symptoms"],
         "functional_limitations": patient["functional_limitations"],
-        "red_flags": patient["red_flags"],
+        "red_flags": scrubbed_flags,
         "status": patient["status"],
         "exported_at": now,
         "operator_id": operator_id,
         "pii_redacted": True,
+        "hipaa_safe_harbor_certified": False,
+        "deidentification_method": "SYNTHETIC_RESEARCH_SCRUBBED_NOT_CERTIFIED_FOR_PHI",
+        "compliance_disclaimer": "SYNTHETIC/EDUCATIONAL RESEARCH ONLY — NOT CERTIFIED FOR REAL PHI",
     }
 
     with get_db() as conn:

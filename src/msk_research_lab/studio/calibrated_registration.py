@@ -202,6 +202,35 @@ def estimate_rigid_pose_from_landmarks(
             f"Under-constrained registration: requires at least 4 non-coplanar landmarks, got {len(correspondences)}."
         )
 
+    # Check 3D landmark spatial distribution / collinearity (DEF-25)
+    pts3d = [pt3 for pt3, _ in correspondences]
+    n_pts = len(pts3d)
+    centroid = [
+        sum(p[0] for p in pts3d) / n_pts,
+        sum(p[1] for p in pts3d) / n_pts,
+        sum(p[2] for p in pts3d) / n_pts,
+    ]
+    d_pts = [
+        (p[0] - centroid[0], p[1] - centroid[1], p[2] - centroid[2])
+        for p in pts3d
+    ]
+    max_cross_mag = 0.0
+    for i in range(n_pts):
+        for j in range(i + 1, n_pts):
+            cross = (
+                d_pts[i][1] * d_pts[j][2] - d_pts[i][2] * d_pts[j][1],
+                d_pts[i][2] * d_pts[j][0] - d_pts[i][0] * d_pts[j][2],
+                d_pts[i][0] * d_pts[j][1] - d_pts[i][1] * d_pts[j][0],
+            )
+            cross_mag = math.hypot(cross[0], cross[1], cross[2])
+            if cross_mag > max_cross_mag:
+                max_cross_mag = cross_mag
+
+    if max_cross_mag < 1.0:
+        raise CalibratedRegistrationError(
+            "Degenerate landmark geometry: input 3D landmarks are collinear or lack 2D/3D spatial variance."
+        )
+
     # Initial linear least squares estimation of translation vector t = [tx, ty, tz]
     M = [[0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0]]
     b = [0.0, 0.0, 0.0]
@@ -383,19 +412,18 @@ def register_2d_reflexology_point_to_3d(
     ray_mag = math.hypot(ray_cam[0], ray_cam[1], ray_cam[2])
     ray_cam_unit = (ray_cam[0] / ray_mag, ray_cam[1] / ray_mag, ray_cam[2] / ray_mag)
 
-    # Anchor depth from reference landmark
+    # Anchor depth from reference landmark in true rotated camera frame (DEF-24)
     ref_3d = CANONICAL_FACIAL_3D_LANDMARKS.get(nearest_landmark_hint, (0.0, 0.0, 20.0))
-    t_z = calibration_context.t[2]
-    # Depth to intersection with facial surface plane
-    z_target = t_z + ref_3d[2]
+    R = calibration_context.R
+    t = calibration_context.t
+    ref_cam_z = R[2][0] * ref_3d[0] + R[2][1] * ref_3d[1] + R[2][2] * ref_3d[2] + t[2]
+    z_target = ref_cam_z
     scale = z_target / ray_cam_unit[2]
 
     # 3D coordinate in camera frame
     P_cam = (ray_cam_unit[0] * scale, ray_cam_unit[1] * scale, ray_cam_unit[2] * scale)
 
     # Transform back to head object frame: X_obj = R^T * (P_cam - t)
-    R = calibration_context.R
-    t = calibration_context.t
     diff = (P_cam[0] - t[0], P_cam[1] - t[1], P_cam[2] - t[2])
 
     X_obj = (

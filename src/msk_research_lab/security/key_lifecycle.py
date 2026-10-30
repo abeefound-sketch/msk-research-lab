@@ -22,6 +22,10 @@ from msk_research_lab.security.openssl_gcm import (
     aes_256_gcm_encrypt,
     is_openssl_gcm_available,
 )
+from msk_research_lab.security.permissions import (
+    secure_directory_permissions,
+    secure_file_permissions,
+)
 from msk_research_lab.workstation.patient_manager import (
     DEFAULT_PEPPER,
     get_or_create_pepper,
@@ -50,10 +54,7 @@ def get_pepper_storage_paths() -> Tuple[Path, Path]:
     active_pepper = db_dir / ".workstation_pepper"
     vault_dir = db_dir / ".key_vault"
     vault_dir.mkdir(parents=True, exist_ok=True)
-    try:
-        os.chmod(vault_dir, 0o700)
-    except Exception:
-        pass
+    secure_directory_permissions(vault_dir)
     return active_pepper, vault_dir
 
 
@@ -115,11 +116,9 @@ def recover_active_pepper_from_vault(custom_path: Optional[Path] = None) -> Dict
         if expected_hash is None or vault_hash == expected_hash:
             tmp_target = active_pepper_file.parent / f".tmp_recover_{secrets.token_hex(4)}"
             tmp_target.write_bytes(vault_data)
-            try:
-                os.chmod(tmp_target, 0o600)
-            except Exception:
-                pass
+            secure_file_permissions(tmp_target)
             os.replace(tmp_target, active_pepper_file)
+            secure_file_permissions(active_pepper_file)
             return {
                 "status": "RECOVERED",
                 "version": active_version,
@@ -164,70 +163,76 @@ def rotate_pepper(
     # 1. Write candidate key to write-ahead file with strict permissions
     candidate_file = active_pepper_file.parent / ".workstation_pepper.new"
     candidate_file.write_bytes(new_pepper)
+    secure_file_permissions(candidate_file)
+
     try:
-        os.chmod(candidate_file, 0o600)
-    except Exception:
-        pass
+        with get_db(custom_path) as conn:
+            # 2. Fetch all current patient records
+            rows = conn.execute("SELECT id, pseudonym_hash, pepper_version FROM patients;").fetchall()
+            migration_journal: List[Dict[str, str]] = []
 
-    with get_db(custom_path) as conn:
-        # 2. Fetch all current patient records
-        rows = conn.execute("SELECT id, pseudonym_hash, pepper_version FROM patients;").fetchall()
-        migration_journal: List[Dict[str, str]] = []
+            for r in rows:
+                pid = r["id"]
+                old_hash = r["pseudonym_hash"]
+                new_hash = get_pseudonym_hash(pid, pepper=new_pepper)
+                migration_journal.append({
+                    "patient_id": pid,
+                    "old_hash": old_hash,
+                    "new_hash": new_hash,
+                })
 
-        for r in rows:
-            pid = r["id"]
-            old_hash = r["pseudonym_hash"]
-            new_hash = get_pseudonym_hash(pid, pepper=new_pepper)
-            migration_journal.append({
-                "patient_id": pid,
-                "old_hash": old_hash,
-                "new_hash": new_hash,
-            })
-
-        # 3. Deactivate previous version in key store
-        conn.execute("""
-            UPDATE pepper_key_store SET status = 'RETIRED' WHERE status = 'ACTIVE';
-        """)
-
-        # 4. Insert new version into pepper_key_store
-        conn.execute("""
-            INSERT INTO pepper_key_store (version, key_hash, status, created_at)
-            VALUES (?, ?, 'ACTIVE', ?);
-        """, (new_version, new_pepper_fingerprint, now))
-
-        # 5. Atomically update patient pseudonym hashes
-        for item in migration_journal:
+            # 3. Deactivate previous version in key store
             conn.execute("""
-                UPDATE patients
-                SET pseudonym_hash = ?, pepper_version = ?
-                WHERE id = ?;
-            """, (item["new_hash"], new_version, item["patient_id"]))
+                UPDATE pepper_key_store SET status = 'RETIRED' WHERE status = 'ACTIVE';
+            """)
 
-        # 6. Log rotation event into journal table
-        journal_json = json.dumps({
-            "migrated_records": len(migration_journal),
-            "fingerprint": new_pepper_fingerprint[:16],
-            "details": migration_journal,
-        })
-        conn.execute("""
-            INSERT INTO pepper_rotation_log (
-                from_version, to_version, rotated_at, records_migrated, operator_id, status, journal_json
-            ) VALUES (?, ?, ?, ?, ?, 'COMPLETED', ?);
-        """, (current_version, new_version, now, len(migration_journal), operator_id, journal_json))
+            # 4. Insert new version into pepper_key_store
+            conn.execute("""
+                INSERT INTO pepper_key_store (version, key_hash, status, created_at)
+                VALUES (?, ?, 'ACTIVE', ?);
+            """, (new_version, new_pepper_fingerprint, now))
 
-        # 7. Audit tri-ledger entry
-        conn.execute("""
-            INSERT INTO audit_events (event_type, actor, payload_json)
-            VALUES (?, ?, ?);
-        """, (
-            "PEPPER_ROTATED", operator_id,
-            json.dumps({
-                "from_version": current_version,
-                "to_version": new_version,
-                "records_migrated": len(migration_journal),
+            # 5. Atomically update patient pseudonym hashes
+            for item in migration_journal:
+                conn.execute("""
+                    UPDATE patients
+                    SET pseudonym_hash = ?, pepper_version = ?
+                    WHERE id = ?;
+                """, (item["new_hash"], new_version, item["patient_id"]))
+
+            # 6. Log rotation event into journal table
+            journal_json = json.dumps({
+                "migrated_records": len(migration_journal),
                 "fingerprint": new_pepper_fingerprint[:16],
-            }),
-        ))
+                "details": migration_journal,
+            })
+            conn.execute("""
+                INSERT INTO pepper_rotation_log (
+                    from_version, to_version, rotated_at, records_migrated, operator_id, status, journal_json
+                ) VALUES (?, ?, ?, ?, ?, 'COMPLETED', ?);
+            """, (current_version, new_version, now, len(migration_journal), operator_id, journal_json))
+
+            # 7. Audit tri-ledger entry
+            conn.execute("""
+                INSERT INTO audit_events (event_type, actor, payload_json)
+                VALUES (?, ?, ?);
+            """, (
+                "PEPPER_ROTATED", operator_id,
+                json.dumps({
+                    "from_version": current_version,
+                    "to_version": new_version,
+                    "records_migrated": len(migration_journal),
+                    "fingerprint": new_pepper_fingerprint[:16],
+                }),
+            ))
+    except Exception:
+        # Fault injection cleanup: eliminate orphan candidate file on failure
+        if candidate_file.exists():
+            try:
+                candidate_file.unlink()
+            except Exception:
+                pass
+        raise
 
     # 8. Post-commit key material commitment:
     # Archive existing active pepper into vault
@@ -235,27 +240,18 @@ def rotate_pepper(
         old_archive = vault_dir / f"pepper_v{current_version}.key"
         try:
             shutil.copy2(active_pepper_file, old_archive)
-            try:
-                os.chmod(old_archive, 0o600)
-            except Exception:
-                pass
+            secure_file_permissions(old_archive)
         except Exception:
             pass
 
     # Atomically commit candidate pepper to active pepper path
     os.replace(candidate_file, active_pepper_file)
-    try:
-        os.chmod(active_pepper_file, 0o600)
-    except Exception:
-        pass
+    secure_file_permissions(active_pepper_file)
 
     # Also store committed key in vault under new version
     new_archive = vault_dir / f"pepper_v{new_version}.key"
     new_archive.write_bytes(new_pepper)
-    try:
-        os.chmod(new_archive, 0o600)
-    except Exception:
-        pass
+    secure_file_permissions(new_archive)
 
     return {
         "status": "SUCCESS",
@@ -475,10 +471,7 @@ def restore_encrypted_backup(
             else:
                 shutil.copy2(item, target_item)
                 if item.name.startswith("."):
-                    try:
-                        os.chmod(target_item, 0o600)
-                    except Exception:
-                        pass
+                    secure_file_permissions(target_item)
 
     return {
         "status": "RESTORED",

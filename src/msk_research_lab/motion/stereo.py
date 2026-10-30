@@ -267,6 +267,32 @@ def stereo_depth_sensitivity_table(
     return table
 
 
+def evaluate_focal_length_depth_sensitivity(
+    focals_px: Optional[List[float]] = None,
+    baseline_mm: float = 200.0,
+    depth_mm: float = 1000.0,
+    disparity_std_px: float = 0.5,
+) -> List[Dict[str, Any]]:
+    """Evaluate optical focal length (f) impact on depth measurement precision (P10-C)."""
+    f_list = focals_px or [400.0, 600.0, 800.0, 1000.0, 1200.0, 1600.0]
+    results = []
+    for f in f_list:
+        sigma_z = compute_stereo_depth_uncertainty(
+            depth_z_mm=depth_mm,
+            baseline_mm=baseline_mm,
+            focal_length_px=f,
+            disparity_std_px=disparity_std_px,
+        )
+        results.append({
+            "focal_length_px": f,
+            "baseline_mm": baseline_mm,
+            "depth_mm": depth_mm,
+            "sigma_z_mm": round(sigma_z, 3),
+            "relative_uncertainty_pct": round((sigma_z / depth_mm) * 100.0, 3),
+        })
+    return results
+
+
 def triangulate_joint_angle_3d(
     pt_a_left: Tuple[float, float],
     pt_b_left: Tuple[float, float],

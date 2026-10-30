@@ -1,14 +1,16 @@
 """OpenSSL EVP AES-256-GCM Authenticated Encryption with Associated Data (AEAD).
 
-Provides FIPS-compliant hardware-accelerated AES-256-GCM via standard libcrypto
+Provides NIST SP 800-38D standard-aligned hardware-accelerated AES-256-GCM via standard libcrypto
 without requiring external third-party binary wheels, with graceful fallback.
+Note: Standard OS libcrypto runs the default non-FIPS cryptographic provider unless explicitly
+configured with an external FIPS 140 provider module.
 """
 
 import ctypes
 import ctypes.util
 import os
 import sys
-from typing import Optional, Tuple
+from typing import Any, Dict, Optional, Tuple
 
 
 class OpenSSLCryptoError(Exception):
@@ -117,6 +119,54 @@ def _load_libcrypto() -> Optional[ctypes.CDLL]:
 def is_openssl_gcm_available() -> bool:
     """Return True if system OpenSSL EVP AES-256-GCM is operational."""
     return _load_libcrypto() is not None
+
+
+def probe_fips_status() -> Dict[str, Any]:
+    """Probe whether the underlying OpenSSL libcrypto has CMVP FIPS provider active.
+    
+    Standard Linux/Windows system libcrypto distributions use the default (non-FIPS) provider.
+    This function accurately reports whether FIPS mode is enabled via EVP_default_properties_is_fips_enabled
+    or FIPS_mode to avoid false compliance claims (DEF-20).
+    """
+    lib = _load_libcrypto()
+    if not lib:
+        return {
+            "openssl_available": False,
+            "is_fips": False,
+            "provider": "NONE",
+            "standard": "NIST_SP_800_38D",
+            "compliance_claim": "NON_FIPS_FALLBACK"
+        }
+
+    is_fips = False
+    provider_name = "default"
+
+    if hasattr(lib, "EVP_default_properties_is_fips_enabled"):
+        try:
+            lib.EVP_default_properties_is_fips_enabled.argtypes = [ctypes.c_void_p]
+            lib.EVP_default_properties_is_fips_enabled.restype = ctypes.c_int
+            is_fips = bool(lib.EVP_default_properties_is_fips_enabled(None))
+            if is_fips:
+                provider_name = "fips"
+        except Exception:
+            pass
+    elif hasattr(lib, "FIPS_mode"):
+        try:
+            lib.FIPS_mode.argtypes = []
+            lib.FIPS_mode.restype = ctypes.c_int
+            is_fips = bool(lib.FIPS_mode())
+            if is_fips:
+                provider_name = "fips"
+        except Exception:
+            pass
+
+    return {
+        "openssl_available": True,
+        "is_fips": is_fips,
+        "provider": provider_name,
+        "standard": "NIST_SP_800_38D",
+        "compliance_claim": "NIST_SP_800_38D_ALIGNED_DEFAULT_PROVIDER" if not is_fips else "FIPS_140_ACTIVE"
+    }
 
 
 def aes_256_gcm_encrypt(

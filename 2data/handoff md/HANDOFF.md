@@ -271,3 +271,56 @@ All operational verification evidence is documented in `artifacts/p9/`:
 - `artifacts/p9/P9_TO_P10_HANDOFF.md`
 - `dist/MSK-Workstation/` (Self-contained desktop distribution)
 
+
+---
+
+## P10 Independent Release Challenge & Scientific Integrity Checkpoint (2026-10-30)
+
+**Operating Mode:** Autonomous Implementation + Adversarial Verification + Evidence-Based Acceptance  
+**Git Branch:** `fix/workstation-real-functional-acceptance`  
+**Test Suite Verification:** **256 PASSED, 0 FAILED, 1 WARNING** (Expanded from 241 to 256 automated tests)  
+**Historical Defects Remediated:** DEF-20 through DEF-26 (0 active open defects)  
+**Interactive UI Controls:** 49/49 VERIFIED with state mutation and database persistence  
+**Release Verdict:** **`GO — PERSONAL OFFLINE WORKSTATION / SYNTHETIC & RESEARCH ONLY`**  
+**Desktop Distribution Package:** Verified distribution package staged at `dist/MSK-Workstation/` (6/6 SHA-256 asset manifest matches)  
+**Clinical Real-World Gate:** **`BLOCKED (PERMANENT SERVER INVARIANT)`**  
+**Physical Stereo Camera Hardware Gate:** **`BLOCKED (DUAL_CAMERA_UNAVAILABLE)`**  
+**Epistemic 2D-to-3D Invariant:** **FAIL-CLOSED (`CANNOT_IMPLICITLY_PROJECT_2D_TO_3D`)**  
+
+### Newly Remediated P10 Defects (DEF-20 through DEF-26)
+- **DEF-20 (HIGH): False FIPS Compliance Claim in OpenSSL AEAD Module.**
+  - *Root Cause:* System `libcrypto` runs default non-FIPS providers; calling `EVP_aes_256_gcm` does not constitute CMVP FIPS 140-2/3 validation.
+  - *Remediation:* Implemented `probe_fips_status() -> Dict[str, Any]` querying OpenSSL provider status; corrected module claims to NIST SP 800-38D standard alignment. Verified in `test_p10_adversarial_security.py`.
+- **DEF-21 (HIGH): Incomplete HIPAA Safe Harbor De-Identification & Free-Text PHI Leakage.**
+  - *Root Cause:* Exported raw clinical notes containing provider names, phone numbers, emails, and dates; exact age > 89; claimed Safe Harbor without certification.
+  - *Remediation:* Implemented `scrub_phi_from_text()` redacting phones, emails, SSN, provider names, and dates; aggregated age > 89 to `"90+"`; labeled export `NOT_CERTIFIED_FOR_PHI`. Verified in `test_p10_adversarial_security.py`.
+- **DEF-22 (HIGH): Non-Enforcement of Native Windows NTFS File DACLs on Cryptographic Key Storage.**
+  - *Root Cause:* POSIX `os.chmod 0600/0700` is ineffective on Windows NTFS, leaving key material with inherited user read permissions.
+  - *Remediation:* Implemented `secure_file_permissions()` and `secure_directory_permissions()` utilizing native Windows `icacls.exe` to restrict DACL to current user. Verified in `test_p10_adversarial_security.py`.
+- **DEF-23 (HIGH): Non-Atomic Migration Execution via sqlite3.executescript.**
+  - *Root Cause:* `conn.executescript()` issued an implicit commit before execution; multi-statement migration failures left partial tables committed without schema_migrations entries.
+  - *Remediation:* Replaced `executescript` with statement splitting and wrapped each migration in transactional savepoint blocks with atomic rollback on error. Verified in `test_p10_disaster_fault_injection.py`.
+- **DEF-24 (HIGH): Rotated Camera Frame Depth Error in 2D-to-3D Ray-Surface Projection.**
+  - *Root Cause:* Back-projection assumed $R = I$ ($z_{target} = t_z + ref\_3d[2]$), causing depth errors whenever head exhibited yaw or pitch.
+  - *Remediation:* Computed true rotated reference depth in camera optical frame $Z_{cam} = (\mathbf{R}\mathbf{X}_{ref} + \mathbf{t})_z$. Verified in `test_p10_metrology_degeneracy.py`.
+- **DEF-25 (MEDIUM): Collinear and Degenerate Landmark Geometry Non-Detection in 6-DoF LM PnP.**
+  - *Root Cause:* Collinear landmarks left rotation around the line unconstrained, risking arbitrary optimizer convergence.
+  - *Remediation:* Added pairwise 3D cross-product spatial variance evaluation; fails closed if landmarks lack 2D/3D spatial variance. Verified in `test_p10_metrology_degeneracy.py`.
+- **DEF-26 (MEDIUM): IPv6 Loopback [::1] Parsing Failure in security_host_guard.**
+  - *Root Cause:* `host_header.split(":")[0]` caused IPv6 `[::1]:8000` to be misparsed as `"["`, rejecting legitimate loopback requests; state-changing `Origin: null` was not rejected.
+  - *Remediation:* Parsed host using `urllib.parse.urlsplit`; added `::1` to loopback hosts; rejected `Origin: null` on state-changing endpoints. Verified in `test_p10_adversarial_security.py`.
+
+### Consolidated P10 Evidence Artifacts
+All operational verification evidence is documented in `artifacts/p10/`:
+- `artifacts/p10/P10_BASELINE_EVIDENCE_CHALLENGE.md`
+- `artifacts/p10/P10_CRYPTO_PRIVACY_SECURITY_REPORT.md`
+- `artifacts/p10/P10_DATA_DURABILITY_AND_DISASTER_RECOVERY.md`
+- `artifacts/p10/P10_METROLOGY_GEOMETRY_INDEPENDENT_CHALLENGE.md`
+- `artifacts/p10/P10_CLEAN_WINDOWS_RELEASE_ACCEPTANCE.md`
+- `artifacts/p10/P10_INDEPENDENT_TEST_VALIDITY_AND_RELEASE_PROVENANCE.md`
+- `artifacts/p10/P10_DEFECT_REGISTER.md`
+- `artifacts/p10/P10_UI_ACTION_MATRIX.md`
+- `artifacts/p10/P10_TEST_RESULTS.json`
+- `artifacts/p10/P10_INDEPENDENT_RELEASE_DECISION.md`
+- `artifacts/p10/P10_TO_P11_HANDOFF.md`
+- `dist/MSK-Workstation/` (Self-contained desktop distribution)

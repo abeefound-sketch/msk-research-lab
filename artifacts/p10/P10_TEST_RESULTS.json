@@ -1,0 +1,76 @@
+{
+  "milestone": "P10",
+  "title": "Independent Release Challenge, Windows Operational Proof & Scientific Integrity",
+  "timestamp": "2026-10-30T14:52:16Z",
+  "branch": "fix/workstation-real-functional-acceptance",
+  "python_version": "3.10.12",
+  "pytest_version": "9.1.1",
+  "summary": {
+    "total_tests": 256,
+    "passed": 256,
+    "failed": 0,
+    "skipped": 0,
+    "warnings": 1,
+    "execution_time_seconds": 388.57,
+    "pass_rate_pct": 100.0
+  },
+  "workstreams": {
+    "P10-G0": {
+      "status": "PASSED",
+      "description": "Baseline verification across 241 pre-existing repository tests and warning analysis",
+      "tests_passed": 241
+    },
+    "P10-A": {
+      "status": "PASSED",
+      "description": "Adversarial cryptography, FIPS probe, HIPAA Safe Harbor free-text scrubbing, Windows NTFS DACL permissions, and loopback/CSRF guards",
+      "test_suite": "tests/integration/test_p10_adversarial_security.py",
+      "tests_passed": 7,
+      "defects_resolved": ["DEF-20", "DEF-21", "DEF-22", "DEF-26"]
+    },
+    "P10-B": {
+      "status": "PASSED",
+      "description": "Crash-consistent data durability, transactional migration rollback, key rotation orphan cleanup, and tamper rejection",
+      "test_suite": "tests/integration/test_p10_disaster_fault_injection.py",
+      "tests_passed": 4,
+      "defects_resolved": ["DEF-23"]
+    },
+    "P10-C": {
+      "status": "PASSED",
+      "description": "6-DoF metrology collinear landmark degeneracy detection, rotated camera-space depth ray projection, and focal length sensitivity",
+      "test_suite": "tests/unit/test_p10_metrology_degeneracy.py",
+      "tests_passed": 4,
+      "defects_resolved": ["DEF-24", "DEF-25"]
+    },
+    "P10-D": {
+      "status": "PASSED",
+      "description": "Desktop distribution package operations and 49 interactive UI control verification",
+      "test_suite": "tests/integration/test_p8_desktop_packaging.py",
+      "tests_passed": 4,
+      "ui_controls_verified": 49
+    },
+    "P10-E": {
+      "status": "PASSED",
+      "description": "Intentional fault/mutation testing, supply-chain SBOM and license inventory",
+      "assets_verified": 6,
+      "critical_assets_verified": 6
+    }
+  },
+  "safety_gates": {
+    "CLINICAL_REALWORLD_GATE": {
+      "status": "BLOCKED",
+      "enforcement": "Permanent server-side invariant in runner guard and API routes",
+      "reason": "Personal offline and synthetic research only. Real patient diagnosis and therapy actuation strictly blocked."
+    },
+    "PHYSICAL_STEREO_HARDWARE_GATE": {
+      "status": "BLOCKED (DUAL_CAMERA_UNAVAILABLE)",
+      "enforcement": "probe_physical_stereo_hardware() query",
+      "reason": "Workstation host lacks dual genlocked physical camera sensors. Single webcam / WSL2 environment detected."
+    },
+    "CANNOT_IMPLICITLY_PROJECT_2D_TO_3D": {
+      "status": "FAIL_CLOSED",
+      "enforcement": "attempt_project_2d_to_3d() raised DienChanError",
+      "reason": "Epistemic invariant: 2D reflexology points cannot be projected to 3D without rigid photogrammetric calibration."
+    }
+  },
+  "release_verdict": "GO — PERSONAL OFFLINE WORKSTATION / SYNTHETIC & RESEARCH ONLY"
+}

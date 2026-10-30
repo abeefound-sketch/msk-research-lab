@@ -1,9 +1,58 @@
 """Transactional migration runner for MSK Research Lab OS SQLite database."""
 
 import datetime
+import json
 from pathlib import Path
 from typing import List, Tuple, Optional
 from msk_research_lab.core.db import get_db
+
+
+class MigrationError(Exception):
+    """Raised when a schema migration fails to apply atomically (DEF-23)."""
+    pass
+
+
+def _split_sql_statements(sql: str) -> List[str]:
+    """Split multi-statement SQL text by semicolon while honoring string literals and comments."""
+    statements = []
+    buffer = []
+    in_string = False
+    string_char = ""
+    lines = sql.splitlines()
+    for line in lines:
+        stripped = line.strip()
+        if stripped.startswith("--"):
+            continue
+        i = 0
+        while i < len(line):
+            ch = line[i]
+            if not in_string:
+                if ch in ("'", '"'):
+                    in_string = True
+                    string_char = ch
+                    buffer.append(ch)
+                elif ch == ";":
+                    stmt = "".join(buffer).strip()
+                    if stmt:
+                        statements.append(stmt)
+                    buffer = []
+                else:
+                    buffer.append(ch)
+            else:
+                buffer.append(ch)
+                if ch == string_char:
+                    if i + 1 < len(line) and line[i + 1] == string_char:
+                        buffer.append(line[i + 1])
+                        i += 1
+                    else:
+                        in_string = False
+            i += 1
+        buffer.append("\n")
+
+    remainder = "".join(buffer).strip()
+    if remainder:
+        statements.append(remainder)
+    return statements
 
 MIGRATIONS: List[Tuple[int, str, str]] = [
     (
@@ -882,7 +931,7 @@ def get_applied_migrations(conn) -> List[int]:
 
 
 def run_migrations(custom_path: Optional[Path] = None) -> List[str]:
-    """Run pending migrations in sequence within individual transactions."""
+    """Run pending migrations in sequence within individual transactional savepoints (DEF-23)."""
     applied_names = []
     with get_db(custom_path) as conn:
         init_migration_table(conn)
@@ -890,17 +939,25 @@ def run_migrations(custom_path: Optional[Path] = None) -> List[str]:
 
         for version, name, sql in MIGRATIONS:
             if version not in applied:
-                # Execute migration within transaction
-                conn.executescript(sql)
-                conn.execute(
-                    "INSERT INTO schema_migrations (version, name, applied_at) VALUES (?, ?, ?);",
-                    (version, name, datetime.datetime.utcnow().isoformat() + "Z")
-                )
-                # Record audit event
-                conn.execute(
-                    "INSERT INTO audit_events (event_type, actor, payload_json) VALUES (?, ?, ?);",
-                    ("MIGRATION_APPLIED", "SYSTEM", f'{{"version": {version}, "name": "{name}"}}')
-                )
-                applied_names.append(name)
+                cur = conn.cursor()
+                savepoint_name = f"mig_sp_{version}"
+                cur.execute(f"SAVEPOINT {savepoint_name};")
+                try:
+                    for stmt in _split_sql_statements(sql):
+                        cur.execute(stmt)
+                    cur.execute(
+                        "INSERT INTO schema_migrations (version, name, applied_at) VALUES (?, ?, ?);",
+                        (version, name, datetime.datetime.utcnow().isoformat() + "Z")
+                    )
+                    cur.execute(
+                        "INSERT INTO audit_events (event_type, actor, payload_json) VALUES (?, ?, ?);",
+                        ("MIGRATION_APPLIED", "SYSTEM", json.dumps({"version": version, "name": name}))
+                    )
+                    cur.execute(f"RELEASE SAVEPOINT {savepoint_name};")
+                    applied_names.append(name)
+                except Exception as e:
+                    cur.execute(f"ROLLBACK TO SAVEPOINT {savepoint_name};")
+                    cur.execute(f"RELEASE SAVEPOINT {savepoint_name};")
+                    raise MigrationError(f"Migration {version} ({name}) failed atomically: {e}") from e
 
     return applied_names
