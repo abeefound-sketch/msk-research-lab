@@ -1,0 +1,87 @@
+{
+  "milestone": "P16",
+  "timestamp": "2026-10-31T15:25:00+07:00",
+  "git_branch": "fix/workstation-real-functional-acceptance",
+  "parent_checkpoint": "bb13eed",
+  "overall_status": "PASS",
+  "summary": {
+    "total_tests": 335,
+    "passed": 335,
+    "failed": 0,
+    "skipped": 0,
+    "warnings": 1,
+    "pass_rate_percentage": 100.0
+  },
+  "browser_qualification": {
+    "browser": "Microsoft Edge",
+    "channel": "msedge",
+    "viewport": "1440x1000",
+    "total_controls_tested": 15,
+    "total_controls_verified": 15,
+    "verification_rate_percentage": 100.0,
+    "screenshots_captured": 11,
+    "unique_sha256_digests": 11
+  },
+  "test_suites": {
+    "tests/unit/test_p16_kinematics_and_opensim_oracle.py": {
+      "total": 19,
+      "passed": 19,
+      "failed": 0,
+      "description": "P16 independent analytical shoulder kinematics and OpenSim parameter oracles"
+    },
+    "tests/unit/test_p15_biomechanics_and_guided_oracle.py": {
+      "total": 9,
+      "passed": 9,
+      "failed": 0,
+      "description": "Guided learning curriculum, muscle dynamics catalog, and epistemic tags"
+    },
+    "tests/unit/test_p14_geometry_and_animation_oracle.py": {
+      "total": 17,
+      "passed": 17,
+      "failed": 0,
+      "description": "Forward kinematics oracle and provenance schema validation"
+    },
+    "tests/unit/test_p13_shoulder_biomechanics.py": {
+      "total": 15,
+      "passed": 15,
+      "failed": 0,
+      "description": "OpenSim kinematics frames, continuous trajectories, and structure annotations"
+    },
+    "tests/unit/prior_regressions": {
+      "total": 147,
+      "passed": 147,
+      "failed": 0,
+      "description": "Atlas registry, metrology calibration, backup/restore, crypto, P9-P12 oracles"
+    },
+    "tests/integration/core_regressions": {
+      "total": 125,
+      "passed": 125,
+      "failed": 0,
+      "description": "FastAPI REST routes, SQLite WAL consistency, crypto durability, and recovery journeys"
+    },
+    "tests/integration/browser_e2e_suites": {
+      "total": 3,
+      "passed": 3,
+      "failed": 0,
+      "description": "P13, P14, and P15 Playwright E2E suites executed on native Microsoft Edge"
+    }
+  },
+  "safety_gates": {
+    "CLINICAL_REALWORLD_GATE": "BLOCKED",
+    "PHYSICAL_STEREO_HARDWARE_GATE": "BLOCKED",
+    "CANNOT_IMPLICITLY_PROJECT_2D_TO_3D": "FAIL_CLOSED"
+  },
+  "defects_remediated": [
+    "DEF-16",
+    "DEF-17",
+    "DEF-18",
+    "DEF-19",
+    "DEF-20"
+  ],
+  "runtime_environment": {
+    "wsl_python_version": "3.10.12",
+    "host_python_version": "3.11.9",
+    "playwright_version": "1.64.1",
+    "opensim_version": "4.6.0"
+  }
+}

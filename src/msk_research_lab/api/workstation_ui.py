@@ -664,7 +664,10 @@ def render_workstation_ui() -> str:
 
                     <!-- Live Joint Angle Readouts Card -->
                     <div class="stat-card">
-                        <div class="stat-label">Real-Time Joint Angle Coordinates</div>
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <div class="stat-label">Real-Time Joint Angle Coordinates</div>
+                            <span id="readout-rhythm-type" class="badge" style="font-size:10px; background:rgba(56,189,248,0.1); color:#38bdf8;" title="Incremental vs cumulative scapulohumeral ratio">Inc: Setting Phase | Cum: 0°</span>
+                        </div>
                         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:10px;">
                             <div style="background:rgba(15,23,42,0.4); padding:8px 10px; border-radius:4px; border:1px solid var(--border-color);">
                                 <div style="font-size:10px; color:var(--text-muted);">Glenohumeral (GH)</div>
@@ -683,7 +686,7 @@ def render_workstation_ui() -> str:
                             </div>
                             <div style="background:rgba(15,23,42,0.4); padding:8px 10px; border-radius:4px; border:1px solid var(--border-color);">
                                 <div style="font-size:10px; color:var(--text-muted);">Subacromial Clearance</div>
-                                <div id="readout-subacromial-status" style="font-size:12px; font-weight:600; color:#38bdf8; margin-top:4px;">Adequate</div>
+                                <div id="readout-subacromial-status" style="font-size:12px; font-weight:600; color:#38bdf8; margin-top:4px;">Adequate Clearance</div>
                             </div>
                         </div>
                     </div>
@@ -2302,32 +2305,59 @@ ${session.soap.plan}`;
                 slider.value = shoulderCurrentAngle;
             }
 
-            let scDeg = 0.0, scapUpDeg = 0.0, ghDeg = 0.0, tiltDeg = 0.0, subacromial = "Adequate";
+            let scDeg = 0.0, scapUpDeg = 0.0, ghDeg = 0.0, tiltDeg = 0.0, subacromial = "Adequate Clearance";
+            let incRhythmStr = "", cumRhythmStr = "";
 
             if (shoulderComparisonMode === 'forward_shoulder_restricted') {
                 scDeg = 0.12 * shoulderCurrentAngle;
-                scapUpDeg = shoulderCurrentAngle <= 30.0 ? 0.0 : ((shoulderCurrentAngle - 30.0) / 3.0) * 0.60;
+                if (shoulderCurrentAngle <= 30.0) {
+                    scapUpDeg = 0.0;
+                    incRhythmStr = "Setting Phase (ST=0°)";
+                    cumRhythmStr = shoulderCurrentAngle > 0 ? "Pure GH" : "Neutral 0°";
+                } else {
+                    scapUpDeg = ((shoulderCurrentAngle - 30.0) / 3.0) * 0.60;
+                    incRhythmStr = "4.0:1 (>30°)";
+                    const cumVal = (shoulderCurrentAngle - scapUpDeg) / scapUpDeg;
+                    cumRhythmStr = `${cumVal.toFixed(1)}:1`;
+                }
                 ghDeg = shoulderCurrentAngle - scapUpDeg;
                 tiltDeg = 12.0 - (shoulderCurrentAngle * 0.04);
                 subacromial = (shoulderCurrentAngle >= 50.0 && shoulderCurrentAngle <= 130.0) ? "Compromised (Impingement Risk)" : "Reduced Clearance";
                 const badge = document.getElementById('shoulder-rhythm-badge');
                 if (badge) {
                     badge.innerText = "Restricted 4:1 Rhythm";
+                    badge.title = `Incremental: 4:1 above 30° | Cumulative: ${cumRhythmStr} | Ludewig & Cook 2000 model`;
                     badge.style.color = "#f43f5e";
                     badge.style.background = "rgba(244,63,94,0.15)";
                 }
             } else {
                 scDeg = 0.18 * shoulderCurrentAngle;
-                scapUpDeg = shoulderCurrentAngle <= 30.0 ? 0.0 : (shoulderCurrentAngle - 30.0) / 3.0;
+                if (shoulderCurrentAngle <= 30.0) {
+                    scapUpDeg = 0.0;
+                    incRhythmStr = "Setting Phase (ST=0°)";
+                    cumRhythmStr = shoulderCurrentAngle > 0 ? "Pure GH" : "Neutral 0°";
+                } else {
+                    scapUpDeg = (shoulderCurrentAngle - 30.0) / 3.0;
+                    incRhythmStr = "2.0:1 (>30°)";
+                    const cumVal = (shoulderCurrentAngle - scapUpDeg) / scapUpDeg;
+                    cumRhythmStr = `${cumVal.toFixed(1)}:1`;
+                }
                 ghDeg = shoulderCurrentAngle - scapUpDeg;
                 tiltDeg = -shoulderCurrentAngle * 0.10;
                 subacromial = "Adequate Clearance";
                 const badge = document.getElementById('shoulder-rhythm-badge');
                 if (badge) {
                     badge.innerText = "Inman 2:1 Rhythm";
+                    badge.title = `Incremental: 2:1 above 30° | Cumulative: ${cumRhythmStr} | Inman 1944 baseline. Normal range: 1.5:1 to 3:1`;
                     badge.style.color = "#38bdf8";
                     badge.style.background = "rgba(56,189,248,0.15)";
                 }
+            }
+
+            const rhythmTypeElem = document.getElementById('readout-rhythm-type');
+            if (rhythmTypeElem) {
+                rhythmTypeElem.innerText = `Inc: ${incRhythmStr} | Cum: ${cumRhythmStr}`;
+                rhythmTypeElem.style.color = (shoulderComparisonMode === 'forward_shoulder_restricted') ? "#f43f5e" : "#38bdf8";
             }
 
             const scRad = (scDeg * Math.PI) / 180.0;
@@ -2444,9 +2474,9 @@ ${session.soap.plan}`;
             shoulderComparisonMode = sel.value;
             const mechText = document.getElementById('comparison-mechanism-text');
             if (shoulderComparisonMode === 'forward_shoulder_restricted') {
-                mechText.innerText = "Restricted Model: Scapular upward rotation is reduced by 40% (4:1 rhythm) and anterior tilt persists. Glenohumeral space narrows between 60°–120° elevation.";
+                mechText.innerText = "Restricted Model: Scapular upward rotation is reduced by 40% (4:1 incremental rhythm above 30°) and anterior tilt persists (Ludewig & Cook 2000). Modeled subacromial clearance narrows between 60°–120° (educational estimate, not clinical diagnosis).";
             } else {
-                mechText.innerText = "Normal Model: 2:1 coordinated rhythm (Inman et al., 1944). Subacromial clearance is preserved throughout 0° to 180° elevation.";
+                mechText.innerText = "Normal Model: 2:1 incremental rhythm above 30° setting phase (Inman et al., 1944). Normal physiological variation spans 1.5:1 to 3:1 across healthy individuals. Subacromial clearance is preserved throughout 0° to 180° elevation.";
             }
             updateShoulderKinematics(shoulderCurrentAngle);
         }

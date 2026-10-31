@@ -39,6 +39,8 @@ class ShoulderKinematicsFrame(BaseModel):
     subacromial_clearance_status: str = "ADEQUATE CLEARANCE"
     subacromial_risk_classification: str = "EDUCATIONAL_HYPOTHESIS (GEOMETRIC_PROXIMITY_MODEL)"
     rhythm_ratio: str = "2:1"
+    incremental_rhythm_ratio: str = "2.0:1 (above 30°)"
+    cumulative_rhythm_ratio: str = "N/A"
     acromioclavicular_relative_upward_rot_deg: float = 0.0
     provenance: Optional[ScientificContentProvenance] = None
 
@@ -241,8 +243,13 @@ class ShoulderMovementLabEngine:
             sc_deg = round(0.12 * arm_deg, 2)
             if arm_deg <= 30.0:
                 scap_up_deg = 0.0
+                inc_rhythm = "Setting Phase (Pure GH, ST=0°)"
+                cum_rhythm = "Setting Phase (Pure GH, ST=0°)" if arm_deg > 0 else "Neutral (0°)"
             else:
                 scap_up_deg = round(((arm_deg - 30.0) / 3.0) * 0.60, 2)
+                inc_rhythm = "4.0:1 (incremental above 30°)"
+                cum_ratio = round((arm_deg - scap_up_deg) / scap_up_deg, 2) if scap_up_deg > 0 else 0.0
+                cum_rhythm = f"{cum_ratio:.2f}:1 (cumulative GH:ST at {arm_deg:.0f}°)"
             gh_deg = round(arm_deg - scap_up_deg, 2)
             tilt_deg = round(12.0 - (arm_deg * 0.04), 2)  # fails to posteriorly tilt adequately
             int_rot_deg = round(8.0 - (arm_deg * 0.03), 2)
@@ -275,8 +282,13 @@ class ShoulderMovementLabEngine:
             sc_deg = round(0.18 * arm_deg, 2)
             if arm_deg <= 30.0:
                 scap_up_deg = 0.0
+                inc_rhythm = "Setting Phase (Pure GH, ST=0°)"
+                cum_rhythm = "Setting Phase (Pure GH, ST=0°)" if arm_deg > 0 else "Neutral (0°)"
             else:
                 scap_up_deg = round((arm_deg - 30.0) / 3.0, 2)
+                inc_rhythm = "2.0:1 (incremental above 30°)"
+                cum_ratio = round((arm_deg - scap_up_deg) / scap_up_deg, 2) if scap_up_deg > 0 else 0.0
+                cum_rhythm = f"{cum_ratio:.2f}:1 (cumulative GH:ST at {arm_deg:.0f}°)"
             gh_deg = round(arm_deg - scap_up_deg, 2)
             tilt_deg = round(-arm_deg * 0.10, 2)  # healthy posterior tilting (negative anterior tilt)
             int_rot_deg = 0.0
@@ -311,6 +323,8 @@ class ShoulderMovementLabEngine:
             subacromial_clearance_status=subacromial,
             subacromial_risk_classification="EDUCATIONAL_HYPOTHESIS (GEOMETRIC_PROXIMITY_MODEL)",
             rhythm_ratio=rhythm,
+            incremental_rhythm_ratio=inc_rhythm,
+            cumulative_rhythm_ratio=cum_rhythm,
             acromioclavicular_relative_upward_rot_deg=ac_rel_up_deg,
             provenance=prov,
         )

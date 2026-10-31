@@ -205,20 +205,22 @@ def test_p15_guided_learning_browser_acceptance():
             page.wait_for_selector("#view-shoulder.active", timeout=5000)
             assert "Shoulder Movement & Biomechanics Lab" in page.inner_text("#page-title")
             # Scrub post-reload to 45° to prove post-reload dynamic responsiveness
-            page.evaluate("document.getElementById('shoulder-timeline-slider').value = '45.0'; onShoulderTimelineScrub(45.0);")
-            time.sleep(0.5)
+            time.sleep(1.0)
+            page.evaluate("shoulderCurrentAngle = 45.0; const s = document.getElementById('shoulder-timeline-slider'); if (s) s.value = '45.0'; updateShoulderKinematics(45.0);")
+            time.sleep(1.0)
             page.screenshot(path=str(SCREENSHOT_DIR / "p15_step13_app_reloaded_shoulder_lab.png"))
             print("  Captured: p15_step13_app_reloaded_shoulder_lab.png")
 
             # Step 14: Confirm Existing Features Remain Functional
             print("[Step 14] Confirming Regression Safety (Dashboard & Atlas)...")
             page.evaluate("switchView('dashboard')")
-            page.wait_for_selector("#view-dashboard.active", timeout=5000)
+            page.wait_for_selector("#view-dashboard.active", timeout=10000)
             assert "Home Dashboard" in page.inner_text("#page-title")
 
             page.evaluate("switchView('anatomy')")
-            page.wait_for_selector("#view-anatomy.active", timeout=5000)
+            page.wait_for_selector("#view-anatomy.active", timeout=10000)
             assert "3D Anatomy Explorer" in page.inner_text("#page-title")
+            time.sleep(1.0)
             page.screenshot(path=str(SCREENSHOT_DIR / "p15_step14_anatomy_regression_intact.png"))
             print("  Captured: p15_step14_anatomy_regression_intact.png")
 

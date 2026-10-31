@@ -581,3 +581,36 @@ In response to adversarial verification, all 6 items of the P16 Addendum were ri
    - Re-verified Millard2012 equilibrium model dataset derivation (`muscle_response_validation.csv`) at 0.02 nominal tone ($k_{pe} = 0.6$). Confirmed zero arbitrary visual mappings.
 6. **Defect Log:**
    - Logged and resolved DEF-16 (Visual Evidence Duplication) and DEF-17 (OpenSim Action Line & Length Metrics Epistemic Delineation).
+
+---
+
+## 16. Milestone P16 Completion: Scientific Model Integrity, Verified 3D Movement & Educational Product Acceptance (2026-10-31)
+
+### Key Achievements & Verifications
+Milestone P16 finalized the comprehensive scientific, numerical, and browser qualification of the MSK Research Lab OS workstation:
+
+1. **Node-ID Level Test Suite Accounting (P16-G0):**
+   - Conducted an exhaustive forensic audit across all test nodes. Uncovered the root cause of the historical 316-test count: P14 had double-counted 10 recovery journeys, yielding 306 true unique tests.
+   - P15 legitimately added 9 unit tests and 1 browser E2E test, reaching 316 unique tests.
+   - P16 authored 19 new analytical kinematics and OpenSim oracles ([`test_p16_kinematics_and_opensim_oracle.py`](file:///mnt/c/Users/tuanh/Downloads/msk-research-lab/tests/unit/test_p16_kinematics_and_opensim_oracle.py)), bringing the total passing automated test suite to **335 tests (100% PASS, 0 FAIL, 1 WARNING)**.
+2. **8-Angle Kinematic Oracles & Ratio Disambiguation (P16-A):**
+   - Validated forward kinematics across 8 benchmark elevation angles: 0°, 30°, 45°, 60°, 90°, 120°, 150°, and 180°.
+   - Explicitly delineated the **incremental scapulohumeral rhythm** (2:1 / 4:1 above the 30° setting phase) from the **cumulative scapulohumeral ratio** ($GH:ST$), adding dedicated schema fields and UI readouts (`#readout-rhythm-type`).
+   - Verified Three.js scene graph Euler angle conservation: $\theta_{Arm} = \theta_{GH} + \theta_{ST}$ and $\theta_{ST} = \theta_{SC} + \theta_{AC,rel}$.
+3. **OpenSim Biomechanics & Parameter Audit (P16-B):**
+   - Audited all 10 muscle compartments from MoBL-ARMS 4.1.
+   - Verified that $l_{MT} \ge l_M$; rejected $l_{MT} = l_M + l_{T,s}$ assumption for pennated architectures; verified Millard 2012 passive force formulation; explicitly classified 0.02 activation as unmodeled nominal tone.
+4. **5-Tier Neurophysiology Classification (P16-C):**
+   - Implemented a 5-tier epistemic taxonomy (`ESTABLISHED_PHYSIOLOGY`, `MODEL_BASED_INTERPRETATION`, `PLAUSIBLE_HYPOTHESIS`, `INSUFFICIENT_EVIDENCE`, `EDUCATIONAL_SIMPLIFICATION`).
+   - Calibrated Scene 6 and Motor Control topics; eliminated dogmatic claims of gamma-loop shutdown; broadened recurrent tension etiology to include occupational exposure, cumulative holding workload, sympathetic stress, and anatomical morphology.
+5. **3D Visual Geometry & Native Edge Acceptance (P16-D, P16-F):**
+   - Confirmed spatial tracking of dynamic action lines between moving bone frames; verified absence of fake muscle mesh deformation.
+   - Verified 15/15 acceptance steps on native Microsoft Edge via Playwright. All 11 screenshots verified with 100% distinct SHA-256 digests.
+6. **Defect Log:**
+   - Logged and resolved DEF-16, DEF-17, DEF-18 (Rhythm ratio ambiguity), DEF-19 (P14 test accounting double-count), and DEF-20 (Post-reload screenshot timing).
+
+### Qualification Verdict
+- **Total Automated Suite:** **335 / 335 PASS** (207 unit tests, 125 integration tests, 3 browser E2E suites).
+- **Browser Acceptance:** 15 / 15 steps VERIFIED on native Microsoft Edge.
+- **Safety Invariant Gates:** `CLINICAL_REALWORLD_GATE = BLOCKED` | `PHYSICAL_STEREO_HARDWARE_GATE = BLOCKED`.
+- **Verdict:** **GO — PERSONAL OFFLINE / SYNTHETIC & RESEARCH ONLY**.
