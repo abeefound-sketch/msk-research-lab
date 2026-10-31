@@ -9,6 +9,7 @@ def render_workstation_ui() -> str:
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MSK Therapy Personal Workstation</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🦴</text></svg>">
     <!-- Three.js and ES Module Import Map for Genuine 3D Anatomy -->
     <script src="/static/vendor/three.min.js"></script>
     <script src="/static/vendor/OrbitControls.js"></script>
@@ -363,6 +364,17 @@ def render_workstation_ui() -> str:
             overflow-y: auto;
             padding: 24px;
         }
+        /* Responsive Viewport Optimizations for 1840x800, 1366x768, 1920x1080 */
+        @media (max-height: 820px) {
+            .view-container { padding: 12px 18px; }
+            .topbar { height: 48px; }
+            #shoulder3d-viewport { height: 410px !important; }
+            .stat-card { padding: 10px 14px; margin-bottom: 12px; }
+            .guided-learning-card { padding: 10px 14px; margin-bottom: 12px !important; }
+        }
+        @media (max-width: 1440px) {
+            .hero-grid { grid-template-columns: 1.25fr 0.75fr !important; gap: 14px !important; }
+        }
     </style>
 </head>
 <body>
@@ -374,28 +386,28 @@ def render_workstation_ui() -> str:
             <span class="badge" id="sidebar-badge">Offline Workstation</span>
         </div>
         <ul class="nav-list">
-            <li class="nav-item active" onclick="switchView('dashboard')">
+            <li class="nav-item active" id="nav-dashboard" onclick="switchView('dashboard')">
                 <span class="nav-icon">📊</span> Home Dashboard
             </li>
-            <li class="nav-item" onclick="switchView('anatomy')">
+            <li class="nav-item" id="nav-anatomy" onclick="switchView('anatomy')">
                 <span class="nav-icon">🫀</span> 3D Anatomy Atlas
             </li>
-            <li class="nav-item" onclick="switchView('shoulder')">
+            <li class="nav-item" id="nav-shoulder" onclick="switchView('shoulder')">
                 <span class="nav-icon">💪</span> Shoulder Movement Lab
             </li>
-            <li class="nav-item" onclick="switchView('motion')">
+            <li class="nav-item" id="nav-motion" onclick="switchView('motion')">
                 <span class="nav-icon">📹</span> Motion Assessment
             </li>
-            <li class="nav-item" onclick="switchView('patients')">
+            <li class="nav-item" id="nav-patients" onclick="switchView('patients')">
                 <span class="nav-icon">📁</span> Patient Records
             </li>
-            <li class="nav-item" onclick="switchView('therapy')">
+            <li class="nav-item" id="nav-therapy" onclick="switchView('therapy')">
                 <span class="nav-icon">⚡</span> Therapy Workspace
             </li>
-            <li class="nav-item" onclick="switchView('progress')">
+            <li class="nav-item" id="nav-progress" onclick="switchView('progress')">
                 <span class="nav-icon">📈</span> Progress Analytics
             </li>
-            <li class="nav-item" onclick="switchView('library')">
+            <li class="nav-item" id="nav-library" onclick="switchView('library')">
                 <span class="nav-icon">📚</span> Knowledge & AI Tutor
             </li>
         </ul>
@@ -527,74 +539,55 @@ def render_workstation_ui() -> str:
 
         <!-- SHOULDER MOVEMENT LAB VIEW (P13 BIOMECHANICS EDUCATION) -->
         <div id="view-shoulder" class="view-container">
-            <div class="disclaimer-banner">
-                <strong>BIOMECHANICAL EDUCATION LAB:</strong> Interactive forward shoulder posture and arm elevation analysis. Demonstrates the canonical 2:1 Scapulohumeral Rhythm (Inman et al., 1944) vs. restricted scapular upward rotation (Ludewig & Cook, 2000). Muscle fiber lengths (&tilde;l<sub>M</sub>) are calculated via OpenSim (MOBL_ARMS_41) Hill-type models, not measured in-vivo. Model does not diagnose disease or prescribe clinical therapy.
+            <div class="disclaimer-banner" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; padding:8px 14px; margin-bottom:10px;">
+                <div>
+                    <strong>BIOMECHANICAL EDUCATION LAB:</strong> Interactive forward shoulder posture & arm elevation analysis (Canonical 2:1 Rhythm vs Restricted Scapular Upward Rotation). Muscle fiber lengths (&tilde;l<sub>M</sub>) derived from OpenSim (MOBL_ARMS_41) Hill-type models. Educational simulation only — does not diagnose disease or prescribe therapy.
+                </div>
             </div>
 
-            <!-- GUIDED LEARNING MODE BANNER & CONTAINER (P15-D) -->
-            <div class="stat-card" style="margin-bottom:20px; border:1px solid rgba(56,189,248,0.3); background:rgba(15,23,42,0.85);">
-                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
-                    <div style="display:flex; align-items:center; gap:12px;">
-                        <span style="font-size:22px;">🎓</span>
+            <!-- GUIDED LEARNING STEPPER BAR (P15-D) -->
+            <div class="stat-card guided-learning-card" style="margin-bottom:12px; border:1px solid rgba(56,189,248,0.35); background:rgba(15,23,42,0.9); padding:10px 16px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <span style="font-size:20px;">🎓</span>
                         <div>
-                            <div style="font-weight:700; font-size:15px; color:var(--text-main);">Guided Movement Case Study</div>
-                            <div style="font-size:12px; color:var(--text-muted);">
-                                Investigation: <em>Why can shoulder tension temporarily improve after manual muscle treatment while a familiar posture or movement pattern later returns?</em>
+                            <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                                <h3 id="guided-scene-title" style="margin:0; font-size:14px; font-weight:700; color:var(--accent-blue);">Scene 1: Anatomical Architecture of the Shoulder Girdle</h3>
+                                <span class="badge" id="guided-scene-badge" style="background:rgba(56,189,248,0.18); color:var(--accent-blue); font-size:10px;">Scene 1 of 6</span>
                             </div>
+                            <div id="guided-scene-subtitle" style="font-size:11px; color:#94a3b8; margin-top:2px; font-weight:600;">Bony Articulations & Neutral Structural Alignment</div>
                         </div>
                     </div>
                     <div style="display:flex; align-items:center; gap:8px;">
-                        <button class="btn btn-secondary" style="font-size:12px; padding:6px 12px;" id="btn-guided-prev" onclick="prevGuidedScene()">← Prev Scene</button>
-                        <div id="guided-scene-dots" style="display:flex; gap:6px;">
+                        <button class="btn btn-secondary" style="font-size:11px; padding:4px 10px;" id="btn-guided-prev" onclick="prevGuidedScene()">← Prev Scene</button>
+                        <div id="guided-scene-dots" style="display:flex; gap:5px;">
                             <!-- Dots / pills for Scene 1 through 6 -->
                         </div>
-                        <button class="btn btn-primary" style="font-size:12px; padding:6px 14px;" id="btn-guided-next" onclick="nextGuidedScene()">Next Scene →</button>
-                    </div>
-                </div>
-
-                <!-- Guided Scene Content Box -->
-                <div id="guided-scene-content" style="margin-top:14px; padding-top:14px; border-top:1px solid var(--border-color);">
-                    <div style="display:flex; justify-content:space-between; align-items:baseline; flex-wrap:wrap; gap:8px;">
-                        <h3 id="guided-scene-title" style="margin:0; font-size:16px; color:var(--accent-blue);">Scene 1: Anatomical Architecture of the Shoulder Girdle</h3>
-                        <span class="badge" id="guided-scene-badge" style="background:rgba(56,189,248,0.15); color:var(--accent-blue);">Scene 1 of 6</span>
-                    </div>
-                    <div id="guided-scene-subtitle" style="font-size:12px; color:#94a3b8; margin-top:2px; font-weight:600;">Bony Articulations & Neutral Structural Alignment</div>
-                    
-                    <div id="guided-scene-narrative" style="margin-top:10px; font-size:13px; color:var(--text-main); line-height:1.5;"></div>
-
-                    <div style="display:grid; grid-template-columns: 1.2fr 0.8fr; gap:16px; margin-top:12px;">
-                        <div style="background:rgba(15,23,42,0.5); padding:10px 12px; border-radius:6px; border:1px solid var(--border-color);">
-                            <div style="font-size:11px; font-weight:700; color:var(--accent-green); text-transform:uppercase;">Biomechanical Insights</div>
-                            <ul id="guided-scene-insights" style="margin:6px 0 0 16px; padding:0; font-size:12px; color:var(--text-main); line-height:1.4;"></ul>
-                        </div>
-                        <div style="background:rgba(244,63,94,0.06); padding:10px 12px; border-radius:6px; border:1px solid rgba(244,63,94,0.2);">
-                            <div style="font-size:11px; font-weight:700; color:#f43f5e; text-transform:uppercase;">Why Tension Returns Context</div>
-                            <div id="guided-scene-tension-context" style="margin-top:6px; font-size:12px; color:var(--text-main); line-height:1.4;"></div>
-                        </div>
-                    </div>
-
-                    <div style="margin-top:10px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; font-size:11px; color:var(--text-muted);">
-                        <div id="guided-scene-evidence" style="color:#64748b;"></div>
-                        <div id="guided-scene-limitations" style="color:#f59e0b;"></div>
+                        <button class="btn btn-primary" style="font-size:11px; padding:4px 12px;" id="btn-guided-next" onclick="nextGuidedScene()">Next Scene →</button>
                     </div>
                 </div>
             </div>
 
-            <div style="display:grid; grid-template-columns: 1.35fr 0.65fr; gap:20px; margin-bottom:20px;">
-                <!-- 3D WebGL Viewport Card -->
-                <div class="stat-card" style="padding:16px; display:flex; flex-direction:column;">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+            <!-- PRIMARY 3D HERO WORKSPACE GRID (IMMEDIATELY PROMINENT IN VIEWPORT) -->
+            <div class="hero-grid" style="display:grid; grid-template-columns: 1.35fr 0.65fr; gap:16px; margin-bottom:16px;">
+                <!-- Left: 3D WebGL Viewport Card & Interactive Controls -->
+                <div class="stat-card" style="padding:14px; display:flex; flex-direction:column;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
                         <div style="display:flex; align-items:center; gap:8px;">
-                            <span style="font-weight:600; font-size:14px; color:var(--text-main);">Shoulder 3D Biomechanics Viewport</span>
+                            <span style="font-weight:700; font-size:14px; color:var(--text-main);">Shoulder 3D Biomechanics Viewport</span>
                             <span class="badge" id="shoulder-rhythm-badge" style="background:rgba(56,189,248,0.15); color:var(--accent-blue);">Inman 2:1 Rhythm</span>
                         </div>
-                        <div style="display:flex; gap:8px;">
-                            <button class="btn btn-secondary" style="font-size:11px; padding:4px 8px;" id="btn-shoulder-reset-cam" onclick="resetShoulderCamera()">Reset Cam</button>
+                        <div style="display:flex; gap:6px; align-items:center;">
+                            <span style="font-size:10px; color:var(--text-muted);">Camera:</span>
+                            <button class="btn btn-secondary" style="font-size:10px; padding:3px 8px;" onclick="setShoulderCameraView('anterior')">Anterior</button>
+                            <button class="btn btn-secondary" style="font-size:10px; padding:3px 8px;" onclick="setShoulderCameraView('lateral')">Lateral</button>
+                            <button class="btn btn-secondary" style="font-size:10px; padding:3px 8px;" onclick="setShoulderCameraView('superior')">Superior</button>
+                            <button class="btn btn-secondary" style="font-size:10px; padding:3px 8px;" id="btn-shoulder-reset-cam" onclick="resetShoulderCamera()">Reset Cam</button>
                         </div>
                     </div>
 
-                    <!-- WebGL Canvas Container -->
-                    <div id="shoulder3d-viewport" style="width:100%; height:460px; background:#020617; border-radius:6px; position:relative; overflow:hidden;">
+                    <!-- WebGL Canvas Container (Prominent, High-Visibility) -->
+                    <div id="shoulder3d-viewport" style="width:100%; height:440px; min-height:380px; background:#020617; border-radius:6px; position:relative; overflow:hidden; border:1px solid rgba(56,189,248,0.15);">
                         <div id="shoulder-loading" style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); color:var(--text-muted); font-size:13px; text-align:center;">
                             Loading Calibrated BodyParts3D Shoulder Girdle...<br>
                             <span style="font-size:11px; color:#64748b;">Assembling Scapula, Humerus, Clavicle, and Deltoid Assemblies</span>
@@ -602,13 +595,13 @@ def render_workstation_ui() -> str:
                     </div>
 
                     <!-- Interactive Movement Timeline & Playback Bar -->
-                    <div style="margin-top:14px; background:rgba(15,23,42,0.6); padding:12px 16px; border-radius:6px; border:1px solid var(--border-color);">
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-                            <div style="display:flex; align-items:center; gap:10px;">
-                                <button class="btn" style="padding:6px 14px;" id="btn-shoulder-play" onclick="toggleShoulderAnimation()">▶ Play</button>
+                    <div style="margin-top:10px; background:rgba(15,23,42,0.7); padding:10px 14px; border-radius:6px; border:1px solid var(--border-color);">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                            <div style="display:flex; align-items:center; gap:8px;">
+                                <button class="btn btn-primary" style="padding:5px 14px; font-size:12px; font-weight:600;" id="btn-shoulder-play" onclick="toggleShoulderAnimation()">▶ Play</button>
                                 <div style="display:flex; align-items:center; gap:6px;">
                                     <span style="font-size:11px; color:var(--text-muted);">Speed:</span>
-                                    <select id="shoulder-speed-select" class="form-control" style="width:80px; padding:4px 8px; font-size:12px;" onchange="changeShoulderSpeed()">
+                                    <select id="shoulder-speed-select" class="form-control" style="width:75px; padding:3px 6px; font-size:11px;" onchange="changeShoulderSpeed()">
                                         <option value="0.25">0.25x</option>
                                         <option value="0.5">0.5x</option>
                                         <option value="1.0" selected>1.0x</option>
@@ -622,84 +615,84 @@ def render_workstation_ui() -> str:
                         </div>
 
                         <!-- Scrubber Slider -->
-                        <div style="display:flex; align-items:center; gap:12px;">
+                        <div style="display:flex; align-items:center; gap:10px;">
                             <span style="font-size:11px; color:var(--text-muted);">0°</span>
-                            <input type="range" id="shoulder-timeline-slider" min="0" max="180" step="0.5" value="0" style="flex:1; cursor:pointer;" oninput="onShoulderTimelineScrub(this.value)">
+                            <input type="range" id="shoulder-timeline-slider" min="0" max="180" step="0.5" value="0" style="flex:1; cursor:pointer; accent-color:var(--accent-blue);" oninput="onShoulderTimelineScrub(this.value)">
                             <span style="font-size:11px; color:var(--text-muted);">180°</span>
                         </div>
                     </div>
 
                     <!-- Layer Toggles -->
-                    <div style="display:flex; gap:16px; margin-top:12px; flex-wrap:wrap; font-size:12px; color:var(--text-muted);">
-                        <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                    <div style="display:flex; gap:14px; margin-top:8px; flex-wrap:wrap; font-size:11px; color:var(--text-muted);">
+                        <label style="display:flex; align-items:center; gap:5px; cursor:pointer;">
                             <input type="checkbox" id="toggle-layer-bones" checked onchange="toggleShoulderLayer('bones', this.checked)"> Bones (Scapula, Humerus, Clavicle, Forearm)
                         </label>
-                        <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                        <label style="display:flex; align-items:center; gap:5px; cursor:pointer;">
                             <input type="checkbox" id="toggle-layer-muscles" checked onchange="toggleShoulderLayer('muscles', this.checked)"> Static Anatomical Meshes
                         </label>
-                        <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                        <label style="display:flex; align-items:center; gap:5px; cursor:pointer;">
                             <input type="checkbox" id="toggle-layer-action-lines" checked onchange="toggleShoulderLayer('actionLines', this.checked)"> OpenSim Dynamic Action Lines
                         </label>
-                        <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                        <label style="display:flex; align-items:center; gap:5px; cursor:pointer;">
                             <input type="checkbox" id="toggle-layer-thorax" checked onchange="toggleShoulderLayer('thorax', this.checked)"> Reference Thorax Base
                         </label>
                     </div>
                 </div>
 
-                <!-- Right Side Control & Inspector Panel -->
-                <div style="display:flex; flex-direction:column; gap:16px;">
+                <!-- Right: Control & Multi-Inspector Panel -->
+                <div style="display:flex; flex-direction:column; gap:12px;">
                     <!-- Comparative Mode Selector Card -->
-                    <div class="stat-card">
-                        <div class="stat-label">Comparative Movement Model</div>
-                        <div style="margin-top:8px;">
-                            <select id="shoulder-comparison-select" class="form-control" onchange="changeShoulderComparisonMode()">
+                    <div class="stat-card" style="padding:12px;">
+                        <div class="stat-label" style="font-size:11px;">Comparative Movement Model</div>
+                        <div style="margin-top:6px;">
+                            <select id="shoulder-comparison-select" class="form-control" style="font-size:12px; padding:5px 8px;" onchange="changeShoulderComparisonMode()">
                                 <option value="normal_2to1">Model A: Canonical 2:1 Scapulohumeral Rhythm</option>
                                 <option value="forward_shoulder_restricted">Model B: Forward Shoulder / Restricted Scapular Upward Rotation</option>
                             </select>
                         </div>
-                        <div id="comparison-mechanism-text" style="font-size:12px; color:var(--text-muted); margin-top:8px; line-height:1.4;">
+                        <div id="comparison-mechanism-text" style="font-size:11px; color:var(--text-muted); margin-top:6px; line-height:1.4;">
                             Normal coordinated 2:1 rhythm preserves subacromial clearance throughout 0° to 180° elevation.
                         </div>
                     </div>
 
                     <!-- Live Joint Angle Readouts Card -->
-                    <div class="stat-card">
+                    <div class="stat-card" style="padding:12px;">
                         <div style="display:flex; justify-content:space-between; align-items:center;">
-                            <div class="stat-label">Real-Time Joint Angle Coordinates</div>
+                            <div class="stat-label" style="font-size:11px;">Real-Time Joint Angle Coordinates</div>
                             <span id="readout-rhythm-type" class="badge" style="font-size:10px; background:rgba(56,189,248,0.1); color:#38bdf8;" title="Incremental vs cumulative scapulohumeral ratio">Inc: Setting Phase | Cum: 0°</span>
                         </div>
-                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:10px;">
-                            <div style="background:rgba(15,23,42,0.4); padding:8px 10px; border-radius:4px; border:1px solid var(--border-color);">
-                                <div style="font-size:10px; color:var(--text-muted);">Glenohumeral (GH)</div>
-                                <div id="readout-gh-deg" style="font-size:18px; font-weight:700; color:#38bdf8;">0.0°</div>
-                                <div style="font-size:10px; color:var(--text-muted);">Elevation</div>
+                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-top:8px;">
+                            <div style="background:rgba(15,23,42,0.4); padding:6px 8px; border-radius:4px; border:1px solid var(--border-color);">
+                                <div style="font-size:9px; color:var(--text-muted);">Glenohumeral (GH)</div>
+                                <div id="readout-gh-deg" style="font-size:16px; font-weight:700; color:#38bdf8;">0.0°</div>
+                                <div style="font-size:9px; color:var(--text-muted);">Elevation</div>
                             </div>
-                            <div style="background:rgba(15,23,42,0.4); padding:8px 10px; border-radius:4px; border:1px solid var(--border-color);">
-                                <div style="font-size:10px; color:var(--text-muted);">Scapulothoracic (ST)</div>
-                                <div id="readout-st-deg" style="font-size:18px; font-weight:700; color:#34d399;">0.0°</div>
-                                <div style="font-size:10px; color:var(--text-muted);">Upward Rotation</div>
+                            <div style="background:rgba(15,23,42,0.4); padding:6px 8px; border-radius:4px; border:1px solid var(--border-color);">
+                                <div style="font-size:9px; color:var(--text-muted);">Scapulothoracic (ST)</div>
+                                <div id="readout-st-deg" style="font-size:16px; font-weight:700; color:#34d399;">0.0°</div>
+                                <div style="font-size:9px; color:var(--text-muted);">Upward Rotation</div>
                             </div>
-                            <div style="background:rgba(15,23,42,0.4); padding:8px 10px; border-radius:4px; border:1px solid var(--border-color);">
-                                <div style="font-size:10px; color:var(--text-muted);">Sternoclavicular (SC)</div>
-                                <div id="readout-sc-deg" style="font-size:18px; font-weight:700; color:#facc15;">0.0°</div>
-                                <div style="font-size:10px; color:var(--text-muted);">Elevation</div>
+                            <div style="background:rgba(15,23,42,0.4); padding:6px 8px; border-radius:4px; border:1px solid var(--border-color);">
+                                <div style="font-size:9px; color:var(--text-muted);">Sternoclavicular (SC)</div>
+                                <div id="readout-sc-deg" style="font-size:16px; font-weight:700; color:#facc15;">0.0°</div>
+                                <div style="font-size:9px; color:var(--text-muted);">Elevation</div>
                             </div>
-                            <div style="background:rgba(15,23,42,0.4); padding:8px 10px; border-radius:4px; border:1px solid var(--border-color);">
-                                <div style="font-size:10px; color:var(--text-muted);">Subacromial Clearance</div>
-                                <div id="readout-subacromial-status" style="font-size:12px; font-weight:600; color:#38bdf8; margin-top:4px;">Adequate Clearance</div>
+                            <div style="background:rgba(15,23,42,0.4); padding:6px 8px; border-radius:4px; border:1px solid var(--border-color);">
+                                <div style="font-size:9px; color:var(--text-muted);">Subacromial Clearance</div>
+                                <div id="readout-subacromial-status" style="font-size:11px; font-weight:600; color:#38bdf8; margin-top:3px;">Adequate Clearance</div>
                             </div>
                         </div>
                     </div>
 
                     <!-- OpenSim Muscle Dynamics & Action Line Inspector Card (P15-B) -->
-                    <div class="stat-card" id="muscle-dynamics-card">
+                    <div class="stat-card" id="muscle-dynamics-card" style="padding:12px;">
                         <div style="display:flex; justify-content:space-between; align-items:center;">
-                            <div class="stat-label">Muscle Dynamics & Action Line Inspector</div>
+                            <div class="stat-label" style="font-size:11px;">Muscle Dynamics & Action Line Inspector</div>
                             <span class="badge" id="badge-dyn-scenario-status" style="background:rgba(52,211,153,0.15); color:var(--accent-green); font-size:10px;">Benchmark</span>
                         </div>
                         
-                        <div style="margin-top:8px;">
-                            <select id="dyn-muscle-select" class="form-control" style="font-size:12px; padding:4px 8px;" onchange="selectDynamicsMuscle(this.value)">
+                        <div style="margin-top:6px;">
+                            <select id="dyn-muscle-select" class="form-control" style="font-size:11px; padding:4px 6px;" onchange="selectDynamicsMuscle(this.value)">
                                 <option value="DELT1">Anterior Deltoid (DELT1)</option>
                                 <option value="DELT2">Middle Deltoid (DELT2)</option>
                                 <option value="DELT3">Posterior Deltoid (DELT3)</option>
@@ -714,7 +707,7 @@ def render_workstation_ui() -> str:
                         </div>
 
                         <!-- 4 Mandatory Epistemic Badges -->
-                        <div style="display:flex; flex-wrap:wrap; gap:4px; margin-top:8px;">
+                        <div style="display:flex; flex-wrap:wrap; gap:4px; margin-top:6px;">
                             <span class="badge" id="badge-dyn-len" style="background:rgba(56,189,248,0.12); color:#38bdf8; font-size:9px;">MODELED_LENGTH_CHANGE</span>
                             <span class="badge" id="badge-dyn-force" style="background:rgba(250,204,21,0.12); color:#facc15; font-size:9px;">MODELED_PASSIVE_FORCE</span>
                             <span class="badge" id="badge-dyn-emg" style="background:rgba(244,63,94,0.12); color:#f43f5e; font-size:9px;">MUSCLE_ACTIVATION_NOT_MEASURED</span>
@@ -722,60 +715,59 @@ def render_workstation_ui() -> str:
                         </div>
 
                         <!-- Readout grid -->
-                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-top:10px; font-size:11px;">
-                            <div style="background:rgba(15,23,42,0.4); padding:6px 8px; border-radius:4px; border:1px solid var(--border-color);">
-                                <div style="color:var(--text-muted); font-size:10px;">Fiber Length (l<sub>M</sub>) / MT (l<sub>MT</sub>)</div>
-                                <div id="dyn-val-fiber-len" style="font-size:14px; font-weight:700; color:#38bdf8;">--</div>
-                                <div id="dyn-val-mt-len" style="font-size:10px; color:#94a3b8;">l<sub>MT</sub>: --</div>
-                                <div id="dyn-val-delta-len" style="font-size:10px; color:#64748b;">&Delta;l<sub>M</sub>: --</div>
+                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:6px; margin-top:8px; font-size:11px;">
+                            <div style="background:rgba(15,23,42,0.4); padding:5px 6px; border-radius:4px; border:1px solid var(--border-color);">
+                                <div style="color:var(--text-muted); font-size:9px;">Fiber Length (l<sub>M</sub>) / MT (l<sub>MT</sub>)</div>
+                                <div id="dyn-val-fiber-len" style="font-size:13px; font-weight:700; color:#38bdf8;">--</div>
+                                <div id="dyn-val-mt-len" style="font-size:9px; color:#94a3b8;">l<sub>MT</sub>: --</div>
+                                <div id="dyn-val-delta-len" style="font-size:9px; color:#64748b;">&Delta;l<sub>M</sub>: --</div>
                             </div>
-                            <div style="background:rgba(15,23,42,0.4); padding:6px 8px; border-radius:4px; border:1px solid var(--border-color);">
-                                <div style="color:var(--text-muted); font-size:10px;">Normalized (&tilde;l<sub>M</sub>)</div>
-                                <div id="dyn-val-norm-len" style="font-size:14px; font-weight:700; color:#34d399;">--</div>
-                                <div id="dyn-val-kmsi-chip" style="font-size:10px; font-weight:600;">--</div>
+                            <div style="background:rgba(15,23,42,0.4); padding:5px 6px; border-radius:4px; border:1px solid var(--border-color);">
+                                <div style="color:var(--text-muted); font-size:9px;">Normalized (&tilde;l<sub>M</sub>)</div>
+                                <div id="dyn-val-norm-len" style="font-size:13px; font-weight:700; color:#34d399;">--</div>
+                                <div id="dyn-val-kmsi-chip" style="font-size:9px; font-weight:600;">--</div>
                             </div>
-                            <div style="background:rgba(15,23,42,0.4); padding:6px 8px; border-radius:4px; border:1px solid var(--border-color);">
-                                <div style="color:var(--text-muted); font-size:10px;">Passive Force (F<sup>pe</sup>)</div>
-                                <div id="dyn-val-pass-force" style="font-size:14px; font-weight:700; color:#facc15;">-- N</div>
-                                <div style="font-size:9px; color:#64748b;">Millard2012 Equilibrium</div>
+                            <div style="background:rgba(15,23,42,0.4); padding:5px 6px; border-radius:4px; border:1px solid var(--border-color);">
+                                <div style="color:var(--text-muted); font-size:9px;">Passive Force (F<sup>pe</sup>)</div>
+                                <div id="dyn-val-pass-force" style="font-size:13px; font-weight:700; color:#facc15;">-- N</div>
+                                <div style="font-size:8px; color:#64748b;">Millard2012 Equilibrium</div>
                             </div>
-                            <div style="background:rgba(15,23,42,0.4); padding:6px 8px; border-radius:4px; border:1px solid var(--border-color);">
-                                <div style="color:var(--text-muted); font-size:10px;">Optimal (l<sub>M,0</sub>)</div>
-                                <div id="dyn-val-opt-len" style="font-size:14px; font-weight:700; color:#e2e8f0;">--</div>
-                                <div id="dyn-val-fmax" style="font-size:9px; color:#64748b;">F<sub>max</sub>: -- N</div>
+                            <div style="background:rgba(15,23,42,0.4); padding:5px 6px; border-radius:4px; border:1px solid var(--border-color);">
+                                <div style="color:var(--text-muted); font-size:9px;">Optimal (l<sub>M,0</sub>)</div>
+                                <div id="dyn-val-opt-len" style="font-size:13px; font-weight:700; color:#e2e8f0;">--</div>
+                                <div id="dyn-val-fmax" style="font-size:8px; color:#64748b;">F<sub>max</sub>: -- N</div>
                             </div>
                         </div>
 
                         <!-- Dynamic Length Change Bar Indicator -->
-                        <div style="margin-top:10px;">
-                            <div style="display:flex; justify-content:space-between; font-size:10px; color:var(--text-muted);">
+                        <div style="margin-top:8px;">
+                            <div style="display:flex; justify-content:space-between; font-size:9px; color:var(--text-muted);">
                                 <span>Shortened (&lt;0.85)</span>
                                 <span>Resting (1.0)</span>
                                 <span>Stretched (&gt;1.15)</span>
                             </div>
-                            <div style="height:6px; background:#1e293b; border-radius:3px; position:relative; margin-top:4px; overflow:hidden;">
+                            <div style="height:5px; background:#1e293b; border-radius:3px; position:relative; margin-top:3px; overflow:hidden;">
                                 <div id="dyn-length-indicator-bar" style="height:100%; width:50%; background:#38bdf8; transition:width 0.15s, background-color 0.15s;"></div>
                             </div>
                         </div>
 
                         <!-- Attachment Points -->
-                        <div style="margin-top:10px; font-size:11px; color:var(--text-muted); line-height:1.4;">
+                        <div style="margin-top:8px; font-size:10px; color:var(--text-muted); line-height:1.4;">
                             <div><strong style="color:var(--text-main);">Origin:</strong> <span id="dyn-text-origin">--</span></div>
-                            <div style="margin-top:3px;"><strong style="color:var(--text-main);">Insertion:</strong> <span id="dyn-text-insertion">--</span></div>
-                            <div style="margin-top:4px; font-size:10px; color:#64748b;"><em>Action Line: Simplified straight-line connector between bone frames. Metrics (l<sub>MT</sub>, l<sub>M</sub>, F<sup>pe</sup>) derived from OpenSim 4.6 MoBL-ARMS 4.1 Millard equilibrium state.</em></div>
-                        </div>
+                            <div style="margin-top:2px;"><strong style="color:var(--text-main);">Insertion:</strong> <span id="dyn-text-insertion">--</span></div>
+                            <div style="margin-top:3px; font-size:9px; color:#64748b;"><em>Action Line: Simplified straight-line connector between bone frames. Metrics (l<sub>MT</sub>, l<sub>M</sub>, F<sup>pe</sup>) derived from OpenSim 4.6 MoBL-ARMS 4.1 Millard equilibrium state.</em></div>
                         </div>
 
-                        <div id="dyn-alert-restricted" style="display:none; margin-top:8px; font-size:10px; color:#f59e0b; background:rgba(245,158,11,0.08); padding:6px 8px; border-radius:4px; border:1px solid rgba(245,158,11,0.3);">
+                        <div id="dyn-alert-restricted" style="display:none; margin-top:6px; font-size:10px; color:#f59e0b; background:rgba(245,158,11,0.08); padding:5px 7px; border-radius:4px; border:1px solid rgba(245,158,11,0.3);">
                             <strong>CAUTION:</strong> Unadjusted baseline estimate. OpenSim has not re-simulated altered kinematics for restricted posture.
                         </div>
                     </div>
 
                     <!-- Structure Details & Scientific Evidence Box -->
-                    <div class="stat-card" id="shoulder-insp-card" style="flex:1;">
-                        <div class="stat-label">Anatomical Structure & Evidence Inspector</div>
+                    <div class="stat-card" id="shoulder-insp-card" style="padding:12px;">
+                        <div class="stat-label" style="font-size:11px;">Anatomical Structure & Evidence Inspector</div>
                         <div style="display:flex; justify-content:space-between; align-items:center; margin-top:6px;">
-                            <select id="shoulder-structure-select" class="form-control" style="font-size:12px; padding:4px 8px;" onchange="selectShoulderStructure(this.value)">
+                            <select id="shoulder-structure-select" class="form-control" style="font-size:11px; padding:4px 6px;" onchange="selectShoulderStructure(this.value)">
                                 <option value="FMA13395">Scapula (FMA13395)</option>
                                 <option value="FMA13322">Clavicle (FMA13322)</option>
                                 <option value="FMA23130">Humerus (FMA23130)</option>
@@ -786,36 +778,70 @@ def render_workstation_ui() -> str:
                                 <option value="FMA37699">Triceps Long Head (FMA37699)</option>
                             </select>
                         </div>
-                        <h4 id="shoulder-insp-title" style="margin-top:10px; font-size:15px; color:var(--accent-blue);">Right Scapula (Shoulder Blade)</h4>
-                        <div id="shoulder-insp-facts" style="font-size:12px; color:var(--text-main); margin-top:6px; line-height:1.4;"></div>
-                        <div style="margin-top:10px; font-size:11px; color:var(--text-muted);">
+                        <h4 id="shoulder-insp-title" style="margin-top:8px; font-size:14px; color:var(--accent-blue);">Right Scapula (Shoulder Blade)</h4>
+                        <div id="shoulder-insp-facts" style="font-size:11px; color:var(--text-main); margin-top:4px; line-height:1.4;"></div>
+                        <div style="margin-top:8px; font-size:10px; color:var(--text-muted);">
                             <strong style="color:var(--text-main);">Kinematic Role:</strong>
                             <div id="shoulder-insp-role" style="margin-top:2px; line-height:1.4;"></div>
                         </div>
-                        <div style="margin-top:10px; font-size:11px; color:var(--text-muted);">
+                        <div style="margin-top:8px; font-size:10px; color:var(--text-muted);">
                             <strong style="color:var(--text-main);">Scientific Literature Citations:</strong>
                             <div id="shoulder-insp-evidence" style="margin-top:2px; line-height:1.4; color:#94a3b8;"></div>
                         </div>
-                        <div style="margin-top:10px; font-size:10px; color:#f43f5e; background:rgba(244,63,94,0.08); padding:6px 8px; border-radius:4px; border:1px solid rgba(244,63,94,0.2);">
+                        <div style="margin-top:8px; font-size:10px; color:#f43f5e; background:rgba(244,63,94,0.08); padding:5px 7px; border-radius:4px; border:1px solid rgba(244,63,94,0.2);">
                             <strong>Scientific Limitations:</strong> <span id="shoulder-insp-limits"></span>
                         </div>
-                        <div id="shoulder-insp-provenance" style="margin-top:10px; font-size:11px; background:rgba(56,189,248,0.06); padding:8px 10px; border-radius:4px; border:1px solid rgba(56,189,248,0.2);"></div>
+                        <div id="shoulder-insp-provenance" style="margin-top:8px; font-size:10px; background:rgba(56,189,248,0.06); padding:6px 8px; border-radius:4px; border:1px solid rgba(56,189,248,0.2);"></div>
                     </div>
                 </div>
             </div>
 
-            <!-- OpenSim Muscle Fiber Response Table -->
-            <div class="stat-card">
-                <div class="section-header">
-                    <div>
-                        <h2>OpenSim MoBL-ARMS 4.1 Monitored Muscle Responses</h2>
-                        <div style="font-size:12px; color:var(--text-muted); margin-top:2px;">
-                            Normalized fiber length (&tilde;l<sub>M</sub> = l<sub>M</sub> / l<sub>M,0</sub>), passive elastic tension, and Hill-type state estimates at current arm elevation.
+            <!-- GUIDED CASE STUDY NARRATIVE & CLINICAL INSIGHTS (PLACED SEAMLESSLY BELOW 3D HERO GRID) -->
+            <div class="stat-card" style="margin-bottom:16px; border:1px solid rgba(56,189,248,0.25); padding:16px;">
+                <div class="section-header" style="margin-bottom:10px;">
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <span style="font-size:18px;">📖</span>
+                        <h3 style="margin:0; font-size:14px; font-weight:700; color:var(--accent-blue);">Case Study Narrative & Biomechanical Insights</h3>
+                    </div>
+                    <span class="badge" style="background:rgba(56,189,248,0.12); color:var(--accent-blue);">Clinical Reasoning & Evidence</span>
+                </div>
+                <div id="guided-scene-content">
+                    <div id="guided-scene-narrative" style="font-size:12px; color:var(--text-main); line-height:1.5; background:rgba(2,6,23,0.4); padding:10px 12px; border-radius:6px; border:1px solid var(--border-color);"></div>
+
+                    <div style="display:grid; grid-template-columns: 1.2fr 0.8fr; gap:12px; margin-top:12px;">
+                        <div style="background:rgba(15,23,42,0.5); padding:10px 12px; border-radius:6px; border:1px solid var(--border-color);">
+                            <div style="font-size:10px; font-weight:700; color:var(--accent-green); text-transform:uppercase;">Biomechanical Insights</div>
+                            <ul id="guided-scene-insights" style="margin:6px 0 0 16px; padding:0; font-size:11px; color:var(--text-main); line-height:1.45;"></ul>
+                        </div>
+                        <div style="background:rgba(244,63,94,0.06); padding:10px 12px; border-radius:6px; border:1px solid rgba(244,63,94,0.2);">
+                            <div style="font-size:10px; font-weight:700; color:#f43f5e; text-transform:uppercase;">Why Tension Returns Context</div>
+                            <div id="guided-scene-tension-context" style="margin-top:6px; font-size:11px; color:var(--text-main); line-height:1.45;"></div>
                         </div>
                     </div>
-                    <span class="badge" style="background:rgba(52,211,153,0.15); color:var(--accent-green);">Hill Equilibrium Model</span>
+
+                    <div style="margin-top:10px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; font-size:10px; color:var(--text-muted);">
+                        <div id="guided-scene-evidence" style="color:#64748b;"></div>
+                        <div id="guided-scene-limitations" style="color:#f59e0b;"></div>
+                    </div>
                 </div>
-                <div style="overflow-x:auto;">
+            </div>
+
+            <!-- SECONDARY DATA SECTIONS -->
+            <!-- 1. OpenSim Muscle Fiber Response Table (Collapsible Details Card) -->
+            <details open class="stat-card" style="margin-top:16px; padding:16px;">
+                <summary style="cursor:pointer; display:flex; justify-content:space-between; align-items:center; user-select:none; outline:none;">
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <span style="font-size:18px;">📊</span>
+                        <div>
+                            <h2 style="display:inline-block; margin:0; font-size:15px; font-weight:700;">OpenSim MoBL-ARMS 4.1 Monitored Muscle Responses</h2>
+                            <div style="font-size:11px; color:var(--text-muted); margin-top:2px;">
+                                Normalized fiber length (&tilde;l<sub>M</sub> = l<sub>M</sub> / l<sub>M,0</sub>), passive elastic tension, and Hill-type state estimates at current arm elevation. (Click to collapse/expand)
+                            </div>
+                        </div>
+                    </div>
+                    <span class="badge" style="background:rgba(52,211,153,0.15); color:var(--accent-green);">Hill Equilibrium Model ▾</span>
+                </summary>
+                <div style="overflow-x:auto; margin-top:14px;">
                     <table class="data-table" id="shoulder-muscle-table">
                         <thead>
                             <tr>
@@ -842,20 +868,20 @@ def render_workstation_ui() -> str:
                         <span class="badge" style="background:rgba(56,189,248,0.12); color:var(--accent-blue);">Hill Equilibrium Dynamics</span>
                     </div>
                 </div>
-            </div>
+            </details>
 
-            <!-- 4. MOTOR CONTROL & MOVEMENT LEARNING EDUCATION (P14-C) -->
-            <div class="stat-card" style="margin-top:20px;">
+            <!-- 2. MOTOR CONTROL & MOVEMENT LEARNING EDUCATION (P14-C) -->
+            <div class="stat-card" style="margin-top:16px; padding:16px;">
                 <div class="section-header">
                     <div>
-                        <h2>Motor Control, Sensory Feedback & Movement Learning</h2>
-                        <div style="font-size:12px; color:var(--text-muted); margin-top:2px;">
+                        <h2 style="font-size:15px; font-weight:700;">Motor Control, Sensory Feedback & Movement Learning</h2>
+                        <div style="font-size:11px; color:var(--text-muted); margin-top:2px;">
                             Evidence-based physiological principles: Sensory proprioception, transient viscoelastic relaxation vs. central motor coordination, and deliberate practice.
                         </div>
                     </div>
                     <span class="badge" style="background:rgba(56,189,248,0.15); color:var(--accent-blue);">Neuroscience Education</span>
                 </div>
-                <div id="motor-control-container" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap:16px; margin-top:14px;">
+                <div id="motor-control-container" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap:14px; margin-top:14px;">
                     <!-- Rendered dynamically by loadMotorControlEducation() -->
                 </div>
             </div>
@@ -1296,6 +1322,55 @@ def render_workstation_ui() -> str:
         let meridiansGroup = null;
 
         // Navigation
+        function resizeAnatomyRenderer() {
+            if (!threeRenderer || !threeCamera) return;
+            const container = document.getElementById('atlas3d-viewport');
+            if (!container) return;
+            const w = container.clientWidth;
+            const h = container.clientHeight;
+            if (w > 0 && h > 0) {
+                threeCamera.aspect = w / h;
+                threeCamera.updateProjectionMatrix();
+                threeRenderer.setSize(w, h);
+            }
+        }
+
+        function resizeShoulderRenderer() {
+            if (!shoulderRenderer || !shoulderCamera) return;
+            const container = document.getElementById('shoulder3d-viewport');
+            if (!container) return;
+            const w = container.clientWidth;
+            const h = container.clientHeight;
+            if (w > 0 && h > 0) {
+                shoulderCamera.aspect = w / h;
+                shoulderCamera.updateProjectionMatrix();
+                shoulderRenderer.setSize(w, h);
+            }
+        }
+
+        function setShoulderCameraView(viewPreset) {
+            if (!shoulderCamera || !shoulderControls) return;
+            if (viewPreset === 'anterior') {
+                shoulderCamera.position.set(-0.35, -0.65, 1.45);
+                shoulderControls.target.set(-0.12, -0.05, 1.30);
+            } else if (viewPreset === 'lateral') {
+                shoulderCamera.position.set(-0.95, -0.05, 1.35);
+                shoulderControls.target.set(-0.12, -0.05, 1.30);
+            } else if (viewPreset === 'superior') {
+                shoulderCamera.position.set(-0.15, -0.10, 2.10);
+                shoulderControls.target.set(-0.12, -0.05, 1.30);
+            }
+            shoulderControls.update();
+        }
+
+        window.addEventListener('resize', () => {
+            if (currentView === 'shoulder') {
+                resizeShoulderRenderer();
+            } else if (currentView === 'anatomy') {
+                resizeAnatomyRenderer();
+            }
+        });
+
         function switchView(viewName) {
             currentView = viewName;
             document.querySelectorAll('.view-container').forEach(el => el.classList.remove('active'));
@@ -1304,12 +1379,17 @@ def render_workstation_ui() -> str:
             const target = document.getElementById('view-' + viewName);
             if (target) target.classList.add('active');
 
-            const navMap = {
-                'dashboard': 0, 'anatomy': 1, 'shoulder': 2, 'motion': 3, 'patients': 4,
-                'therapy': 5, 'progress': 6, 'library': 7
-            };
-            const items = document.querySelectorAll('.nav-item');
-            if (items[navMap[viewName]]) items[navMap[viewName]].classList.add('active');
+            const targetNav = document.getElementById('nav-' + viewName);
+            if (targetNav) {
+                targetNav.classList.add('active');
+            } else {
+                const navMap = {
+                    'dashboard': 0, 'anatomy': 1, 'shoulder': 2, 'motion': 3, 'patients': 4,
+                    'therapy': 5, 'progress': 6, 'library': 7
+                };
+                const items = document.querySelectorAll('.nav-item');
+                if (items[navMap[viewName]]) items[navMap[viewName]].classList.add('active');
+            }
 
             const titleMap = {
                 'dashboard': 'Home Dashboard', 'anatomy': '3D Anatomy Explorer',
@@ -1320,12 +1400,18 @@ def render_workstation_ui() -> str:
             };
             document.getElementById('page-title').innerText = titleMap[viewName] || 'Workstation';
 
-            if (viewName === 'anatomy' && !threeRenderer) {
-                initThreeAnatomy();
+            if (viewName === 'anatomy') {
+                if (!threeRenderer) {
+                    initThreeAnatomy();
+                } else {
+                    requestAnimationFrame(() => resizeAnatomyRenderer());
+                }
             }
             if (viewName === 'shoulder') {
                 if (!shoulderRenderer) {
                     initShoulderMovementLab();
+                } else {
+                    requestAnimationFrame(() => resizeShoulderRenderer());
                 }
                 loadMotorControlEducation();
                 loadGuidedLearningScenes();

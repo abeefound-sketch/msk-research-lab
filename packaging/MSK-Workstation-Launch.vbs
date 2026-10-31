@@ -45,7 +45,7 @@ WshShell.Environment("PROCESS")("MSK_LAB_HOST") = "127.0.0.1"
 WshShell.Environment("PROCESS")("MSK_LAB_PORT") = "8091"
 
 ' Launch background process (0 = hidden window)
-runCmd = "cmd.exe /c cd /d """ & projectDir & """ && " & pythonExe & " -m uvicorn msk_research_lab.api.app:app --host 127.0.0.1 --port 8091"
+runCmd = "cmd.exe /c cd /d """ & projectDir & """ && set PYTHONPATH=" & projectDir & "\src;%PYTHONPATH% && " & pythonExe & " -m uvicorn msk_research_lab.api.app:app --host 127.0.0.1 --port 8091"
 WshShell.Run runCmd, 0, False
 
 ' Wait for server to bind port (up to 15 seconds)

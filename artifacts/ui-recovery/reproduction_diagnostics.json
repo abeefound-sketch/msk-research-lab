@@ -1,0 +1,365 @@
+{
+  "1840x800": {
+    "nav_click_success": true,
+    "nav_click_error": null,
+    "metrics": {
+      "viewport": {
+        "width": 1840,
+        "height": 800
+      },
+      "scroll": {
+        "scrollTop": 0,
+        "scrollHeight": 4152,
+        "clientHeight": 744
+      },
+      "elements": {
+        "viewShoulder": {
+          "top": 56,
+          "bottom": 800,
+          "left": 260,
+          "right": 1840,
+          "width": 1580,
+          "height": 744,
+          "visibleInViewport": true,
+          "display": "block",
+          "visibility": "visible",
+          "zIndex": "auto",
+          "position": "static",
+          "overflow": "auto"
+        },
+        "disclaimerBanner": {
+          "top": 68,
+          "bottom": 122.1875,
+          "left": 278,
+          "right": 1822,
+          "width": 1544,
+          "height": 54.1875,
+          "visibleInViewport": true,
+          "display": "flex",
+          "visibility": "visible",
+          "zIndex": "auto",
+          "position": "static",
+          "overflow": "visible"
+        },
+        "guidedCard": {
+          "top": 132.1875,
+          "bottom": 190.1875,
+          "left": 278,
+          "right": 1822,
+          "width": 1544,
+          "height": 58,
+          "visibleInViewport": true,
+          "display": "block",
+          "visibility": "visible",
+          "zIndex": "auto",
+          "position": "static",
+          "overflow": "visible"
+        },
+        "canvasContainer": {
+          "top": 247.1875,
+          "bottom": 657.1875,
+          "left": 293,
+          "right": 1294.390625,
+          "width": 1001.390625,
+          "height": 410,
+          "visibleInViewport": true,
+          "display": "block",
+          "visibility": "visible",
+          "zIndex": "auto",
+          "position": "relative",
+          "overflow": "hidden"
+        },
+        "canvasElement": {
+          "top": 248.1875,
+          "bottom": 656.1875,
+          "left": 294,
+          "right": 1293,
+          "width": 999,
+          "height": 408,
+          "visibleInViewport": true,
+          "display": "block",
+          "visibility": "visible",
+          "zIndex": "auto",
+          "position": "static",
+          "overflow": "clip"
+        },
+        "tableCard": {
+          "top": 1698.234375,
+          "bottom": 2612.8125,
+          "left": 278,
+          "right": 1822,
+          "width": 1544,
+          "height": 914.578125,
+          "visibleInViewport": false,
+          "display": "block",
+          "visibility": "visible",
+          "zIndex": "auto",
+          "position": "static",
+          "overflow": "visible"
+        }
+      },
+      "webgl": {
+        "canvasExists": true,
+        "canvasWidth": 999,
+        "canvasHeight": 408,
+        "canvasClientWidth": 999,
+        "canvasClientHeight": 408,
+        "webglContextOk": true
+      }
+    },
+    "console_messages": [
+      {
+        "type": "warning",
+        "text": "WARNING: Multiple instances of Three.js being imported."
+      },
+      {
+        "type": "log",
+        "text": "[ShoulderLab] All 13 BodyParts3D structures loaded successfully."
+      }
+    ],
+    "page_errors": [],
+    "request_failures": []
+  },
+  "1366x768": {
+    "nav_click_success": true,
+    "nav_click_error": null,
+    "metrics": {
+      "viewport": {
+        "width": 1366,
+        "height": 768
+      },
+      "scroll": {
+        "scrollTop": 0,
+        "scrollHeight": 4718,
+        "clientHeight": 712
+      },
+      "elements": {
+        "viewShoulder": {
+          "top": 56,
+          "bottom": 768,
+          "left": 260,
+          "right": 1366,
+          "width": 1106,
+          "height": 712,
+          "visibleInViewport": true,
+          "display": "block",
+          "visibility": "visible",
+          "zIndex": "auto",
+          "position": "static",
+          "overflow": "auto"
+        },
+        "disclaimerBanner": {
+          "top": 68,
+          "bottom": 122.1875,
+          "left": 278,
+          "right": 1348,
+          "width": 1070,
+          "height": 54.1875,
+          "visibleInViewport": true,
+          "display": "flex",
+          "visibility": "visible",
+          "zIndex": "auto",
+          "position": "static",
+          "overflow": "visible"
+        },
+        "guidedCard": {
+          "top": 132.1875,
+          "bottom": 190.1875,
+          "left": 278,
+          "right": 1348,
+          "width": 1070,
+          "height": 58,
+          "visibleInViewport": true,
+          "display": "block",
+          "visibility": "visible",
+          "zIndex": "auto",
+          "position": "static",
+          "overflow": "visible"
+        },
+        "canvasContainer": {
+          "top": 267.1875,
+          "bottom": 677.1875,
+          "left": 293,
+          "right": 923,
+          "width": 630,
+          "height": 410,
+          "visibleInViewport": true,
+          "display": "block",
+          "visibility": "visible",
+          "zIndex": "auto",
+          "position": "relative",
+          "overflow": "hidden"
+        },
+        "canvasElement": {
+          "top": 268.1875,
+          "bottom": 676.1875,
+          "left": 294,
+          "right": 922,
+          "width": 628,
+          "height": 408,
+          "visibleInViewport": true,
+          "display": "block",
+          "visibility": "visible",
+          "zIndex": "auto",
+          "position": "static",
+          "overflow": "clip"
+        },
+        "tableCard": {
+          "top": 1775.5625,
+          "bottom": 3051.140625,
+          "left": 278,
+          "right": 1348,
+          "width": 1070,
+          "height": 1275.578125,
+          "visibleInViewport": false,
+          "display": "block",
+          "visibility": "visible",
+          "zIndex": "auto",
+          "position": "static",
+          "overflow": "visible"
+        }
+      },
+      "webgl": {
+        "canvasExists": true,
+        "canvasWidth": 628,
+        "canvasHeight": 408,
+        "canvasClientWidth": 628,
+        "canvasClientHeight": 408,
+        "webglContextOk": true
+      }
+    },
+    "console_messages": [
+      {
+        "type": "warning",
+        "text": "WARNING: Multiple instances of Three.js being imported."
+      },
+      {
+        "type": "log",
+        "text": "[ShoulderLab] All 13 BodyParts3D structures loaded successfully."
+      }
+    ],
+    "page_errors": [],
+    "request_failures": []
+  },
+  "1920x1080": {
+    "nav_click_success": true,
+    "nav_click_error": null,
+    "metrics": {
+      "viewport": {
+        "width": 1920,
+        "height": 1080
+      },
+      "scroll": {
+        "scrollTop": 0,
+        "scrollHeight": 4027,
+        "clientHeight": 1024
+      },
+      "elements": {
+        "viewShoulder": {
+          "top": 56,
+          "bottom": 1080,
+          "left": 260,
+          "right": 1920,
+          "width": 1660,
+          "height": 1024,
+          "visibleInViewport": true,
+          "display": "block",
+          "visibility": "visible",
+          "zIndex": "auto",
+          "position": "static",
+          "overflow": "auto"
+        },
+        "disclaimerBanner": {
+          "top": 80,
+          "bottom": 134.1875,
+          "left": 284,
+          "right": 1896,
+          "width": 1612,
+          "height": 54.1875,
+          "visibleInViewport": true,
+          "display": "flex",
+          "visibility": "visible",
+          "zIndex": "auto",
+          "position": "static",
+          "overflow": "visible"
+        },
+        "guidedCard": {
+          "top": 144.1875,
+          "bottom": 202.1875,
+          "left": 284,
+          "right": 1896,
+          "width": 1612,
+          "height": 58,
+          "visibleInViewport": true,
+          "display": "block",
+          "visibility": "visible",
+          "zIndex": "auto",
+          "position": "static",
+          "overflow": "visible"
+        },
+        "canvasContainer": {
+          "top": 259.1875,
+          "bottom": 699.1875,
+          "left": 299,
+          "right": 1346.296875,
+          "width": 1047.296875,
+          "height": 440,
+          "visibleInViewport": true,
+          "display": "block",
+          "visibility": "visible",
+          "zIndex": "auto",
+          "position": "relative",
+          "overflow": "hidden"
+        },
+        "canvasElement": {
+          "top": 260.1875,
+          "bottom": 698.1875,
+          "left": 300,
+          "right": 1345,
+          "width": 1045,
+          "height": 438,
+          "visibleInViewport": true,
+          "display": "block",
+          "visibility": "visible",
+          "zIndex": "auto",
+          "position": "static",
+          "overflow": "clip"
+        },
+        "tableCard": {
+          "top": 1646.84375,
+          "bottom": 2561.421875,
+          "left": 284,
+          "right": 1896,
+          "width": 1612,
+          "height": 914.578125,
+          "visibleInViewport": false,
+          "display": "block",
+          "visibility": "visible",
+          "zIndex": "auto",
+          "position": "static",
+          "overflow": "visible"
+        }
+      },
+      "webgl": {
+        "canvasExists": true,
+        "canvasWidth": 1045,
+        "canvasHeight": 438,
+        "canvasClientWidth": 1045,
+        "canvasClientHeight": 438,
+        "webglContextOk": true
+      }
+    },
+    "console_messages": [
+      {
+        "type": "warning",
+        "text": "WARNING: Multiple instances of Three.js being imported."
+      },
+      {
+        "type": "log",
+        "text": "[ShoulderLab] All 13 BodyParts3D structures loaded successfully."
+      }
+    ],
+    "page_errors": [],
+    "request_failures": []
+  }
+}

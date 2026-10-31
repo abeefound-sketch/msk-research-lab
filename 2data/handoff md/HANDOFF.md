@@ -614,3 +614,54 @@ Milestone P16 finalized the comprehensive scientific, numerical, and browser qua
 - **Browser Acceptance:** 15 / 15 steps VERIFIED on native Microsoft Edge.
 - **Safety Invariant Gates:** `CLINICAL_REALWORLD_GATE = BLOCKED` | `PHYSICAL_STEREO_HARDWARE_GATE = BLOCKED`.
 - **Verdict:** **GO — PERSONAL OFFLINE / SYNTHETIC & RESEARCH ONLY**.
+
+---
+
+## 17. Milestone UI-Recovery: Emergency UI/UX Recovery, 3D Visibility & Data Lineage Audit (2026-10-31)
+
+### Recovery & Architectural Resolution Summary
+In response to real user acceptance failure reporting broken layout, misplaced tables, offscreen 3D viewport, and unclickable navigation:
+
+1. **DOM Tree Repair & Perfect Balance:**
+   - Diagnosed and resolved premature `</div>` tag at token 411 inside `#view-shoulder` in `src/msk_research_lab/api/workstation_ui.py`.
+   - Re-encapsulated secondary data containers (`#opensim-validation-table` and `#motor-control-container`) inside `#view-shoulder`, eliminating their wrongful display on top of other tabs.
+   - Restored `#main-content` nesting for views 4–8 (`#view-motion` through `#view-library`), resolving broken flex layout and scroll containers.
+   - Document tree balanced to exact zero delta: `<div: 320, </div: 320, diff: 0`.
+
+2. **Information Architecture & Above-the-Fold 3D Prominence:**
+   - Streamlined Guided Learning header into a 58 px horizontal stepper bar at the top of `#view-shoulder`.
+   - Restructured `#view-shoulder` into a 3D Hero Grid (`min-height: 440px`), guaranteeing the Three.js WebGL canvas, elevation scrubber, and kinematic readouts start at `top: 247px–267px` and remain 100% visible above the fold on 1840×800, 1366×768, and 1920×1080 without scrolling.
+   - Relocated verbose clinical explanations and secondary tables below the fold.
+
+3. **Three.js WebGL Dynamic Resize Lifecycle:**
+   - Implemented `resizeShoulderRenderer()` and `resizeAnatomyRenderer()`.
+   - Wired `requestAnimationFrame(() => resizeShoulderRenderer())` to view switch handler (`switchView('shoulder')`).
+   - Attached global `window.addEventListener('resize')` listener to recalibrate camera aspect ratio and projection matrix dynamically.
+
+4. **Standalone Distribution Synchronization:**
+   - Corrected `packaging/package_windows_distribution.py` to recursively copy `2data/models/atlas/` containing all 13 BodyParts3D `.glb` meshes and `muscle_response_validation.csv`.
+   - Rebuilt distribution `dist/MSK-Workstation/`, verifying all critical assets and `PYTHONPATH` launch configurations.
+
+5. **Multi-Resolution Native Edge Acceptance:**
+   - Executed 12-action functional qualification protocol on Microsoft Edge across 1840×800, 1366×768, and 1920×1080 using real mouse pointer hit-testing (0 forced clicks, 0 synthetic events).
+   - 36 / 36 recovery actions PASSED (100%).
+   - All 8 navigation views verified.
+   - Zero browser console errors (eliminated favicon 404).
+   - 15 high-resolution verification screenshots captured in `artifacts/ui-recovery/screenshots/`.
+
+6. **Defect Register Remediated:**
+   - `DEF-UI-01`: Premature div closure at token 411 collapsing `#view-shoulder`.
+   - `DEF-UI-02`: OpenSim table displacement into `#main-content` sibling tree.
+   - `DEF-UI-03`: Excessive vertical height displacing 3D canvas below fold.
+   - `DEF-UI-04`: Missing Three.js canvas resize hook on tab switch and window resize.
+   - `DEF-UI-05`: Packaging script `package_windows_distribution.py` omitting `atlas/` subfolder.
+   - `DEF-UI-06`: Favicon 404 console error during browser sessions.
+
+### Final Acceptance Verdict
+- **Automated Regression Suite:** 332 / 332 PASS (207 unit tests + 125 integration tests).
+- **Browser Qualifications:** 51 / 51 steps VERIFIED on native Microsoft Edge (15 P15 steps + 36 UI-recovery actions).
+- **Safety Invariant Gates:**
+  - `CLINICAL_REALWORLD_GATE`: **BLOCKED (ENFORCED)**
+  - `PHYSICAL_STEREO_HARDWARE_GATE`: **BLOCKED (ENFORCED)**
+  - `CANNOT_IMPLICITLY_PROJECT_2D_TO_3D`: **FAIL_CLOSED**
+- **Release Verdict:** **GO — PERSONAL OFFLINE WORKSTATION / RESEARCH & EDUCATION ONLY**.

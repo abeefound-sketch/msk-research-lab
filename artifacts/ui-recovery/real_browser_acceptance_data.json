@@ -1,0 +1,317 @@
+{
+  "1840x800": {
+    "navigation": {
+      "initial_load": "PASS",
+      "nav-dashboard": {
+        "status": "PASS",
+        "view_id": "view-dashboard",
+        "title": "Home Dashboard"
+      },
+      "nav-anatomy": {
+        "status": "PASS",
+        "view_id": "view-anatomy",
+        "title": "3D Anatomy Explorer"
+      },
+      "nav-shoulder": {
+        "status": "PASS",
+        "view_id": "view-shoulder",
+        "title": "Interactive Shoulder Movement & Biomechanics Lab"
+      },
+      "nav-motion": {
+        "status": "PASS",
+        "view_id": "view-motion",
+        "title": "Camera Motion Assessment"
+      },
+      "nav-patients": {
+        "status": "PASS",
+        "view_id": "view-patients",
+        "title": "Patient Records"
+      },
+      "nav-therapy": {
+        "status": "PASS",
+        "view_id": "view-therapy",
+        "title": "Therapy Session Workspace"
+      },
+      "nav-progress": {
+        "status": "PASS",
+        "view_id": "view-progress",
+        "title": "Progress Tracking"
+      },
+      "nav-library": {
+        "status": "PASS",
+        "view_id": "view-library",
+        "title": "Knowledge Library & AI Tutor"
+      }
+    },
+    "controls": {
+      "canvas_drag_rotate": "PASS",
+      "canvas_mouse_zoom": "PASS",
+      "camera_presets": "PASS",
+      "play_pause_toggle": "PASS",
+      "speed_select": "PASS",
+      "timeline_scrub_90": {
+        "gh": "70.0\u00b0",
+        "st": "20.0\u00b0",
+        "sc": "16.2\u00b0",
+        "subacromial": "Adequate Clearance"
+      },
+      "muscle_dynamics_delt1": {
+        "fiber_len": "8.17 cm",
+        "norm_len": "0.837",
+        "passive_force": "0.0 N"
+      },
+      "comparison_mode_restricted": {
+        "badge": "Restricted 4:1 Rhythm",
+        "gh": "78.0\u00b0",
+        "st": "12.0\u00b0"
+      },
+      "structure_inspector": "Right Scapula (Shoulder Blade) (FMA13395)",
+      "secondary_sections": {
+        "table_rows": 18,
+        "motor_control_cards": 6
+      }
+    },
+    "canvas": {
+      "container": {
+        "top": 247.1875,
+        "bottom": 657.1875,
+        "width": 1001.390625,
+        "height": 410
+      },
+      "canvas": {
+        "top": 248.1875,
+        "bottom": 656.1875,
+        "width": 999,
+        "height": 408
+      },
+      "visibleAboveFold": true,
+      "viewportHeight": 800,
+      "webglOk": true
+    },
+    "guided_scenes": {
+      "scene_1": "Scene 1: Anatomical Architecture of the Shoulder Girdle",
+      "scene_2": "Scene 2: Canonical 2:1 Scapulohumeral Rhythm",
+      "scene_3": "Scene 3: Hypothetical Restricted Scapular Rotation",
+      "scene_4": "Scene 4: OpenSim Modeled Muscle Fiber Length & Passive Force",
+      "scene_5": "Scene 5: Neural Planning & Afferent Sensory Feedback",
+      "scene_6": "Scene 6: Why Tension Returns & Principles of Lasting Change"
+    },
+    "screenshots": [
+      "verify_1840x800_01_shoulder_hero.png",
+      "verify_1840x800_02_arm_90deg.png",
+      "verify_1840x800_03_restricted_mode.png",
+      "verify_1840x800_04_scene6_tension_returns.png",
+      "verify_1840x800_05_full_page.png"
+    ]
+  },
+  "1366x768": {
+    "navigation": {
+      "initial_load": "PASS",
+      "nav-dashboard": {
+        "status": "PASS",
+        "view_id": "view-dashboard",
+        "title": "Home Dashboard"
+      },
+      "nav-anatomy": {
+        "status": "PASS",
+        "view_id": "view-anatomy",
+        "title": "3D Anatomy Explorer"
+      },
+      "nav-shoulder": {
+        "status": "PASS",
+        "view_id": "view-shoulder",
+        "title": "Interactive Shoulder Movement & Biomechanics Lab"
+      },
+      "nav-motion": {
+        "status": "PASS",
+        "view_id": "view-motion",
+        "title": "Camera Motion Assessment"
+      },
+      "nav-patients": {
+        "status": "PASS",
+        "view_id": "view-patients",
+        "title": "Patient Records"
+      },
+      "nav-therapy": {
+        "status": "PASS",
+        "view_id": "view-therapy",
+        "title": "Therapy Session Workspace"
+      },
+      "nav-progress": {
+        "status": "PASS",
+        "view_id": "view-progress",
+        "title": "Progress Tracking"
+      },
+      "nav-library": {
+        "status": "PASS",
+        "view_id": "view-library",
+        "title": "Knowledge Library & AI Tutor"
+      }
+    },
+    "controls": {
+      "canvas_drag_rotate": "PASS",
+      "canvas_mouse_zoom": "PASS",
+      "camera_presets": "PASS",
+      "play_pause_toggle": "PASS",
+      "speed_select": "PASS",
+      "timeline_scrub_90": {
+        "gh": "70.0\u00b0",
+        "st": "20.0\u00b0",
+        "sc": "16.2\u00b0",
+        "subacromial": "Adequate Clearance"
+      },
+      "muscle_dynamics_delt1": {
+        "fiber_len": "8.17 cm",
+        "norm_len": "0.837",
+        "passive_force": "0.0 N"
+      },
+      "comparison_mode_restricted": {
+        "badge": "Restricted 4:1 Rhythm",
+        "gh": "78.0\u00b0",
+        "st": "12.0\u00b0"
+      },
+      "structure_inspector": "Right Scapula (Shoulder Blade) (FMA13395)",
+      "secondary_sections": {
+        "table_rows": 18,
+        "motor_control_cards": 6
+      }
+    },
+    "canvas": {
+      "container": {
+        "top": 267.1875,
+        "bottom": 677.1875,
+        "width": 630,
+        "height": 410
+      },
+      "canvas": {
+        "top": 268.1875,
+        "bottom": 676.1875,
+        "width": 628,
+        "height": 408
+      },
+      "visibleAboveFold": true,
+      "viewportHeight": 768,
+      "webglOk": true
+    },
+    "guided_scenes": {
+      "scene_1": "Scene 1: Anatomical Architecture of the Shoulder Girdle",
+      "scene_2": "Scene 2: Canonical 2:1 Scapulohumeral Rhythm",
+      "scene_3": "Scene 3: Hypothetical Restricted Scapular Rotation",
+      "scene_4": "Scene 4: OpenSim Modeled Muscle Fiber Length & Passive Force",
+      "scene_5": "Scene 5: Neural Planning & Afferent Sensory Feedback",
+      "scene_6": "Scene 6: Why Tension Returns & Principles of Lasting Change"
+    },
+    "screenshots": [
+      "verify_1366x768_01_shoulder_hero.png",
+      "verify_1366x768_02_arm_90deg.png",
+      "verify_1366x768_03_restricted_mode.png",
+      "verify_1366x768_04_scene6_tension_returns.png",
+      "verify_1366x768_05_full_page.png"
+    ]
+  },
+  "1920x1080": {
+    "navigation": {
+      "initial_load": "PASS",
+      "nav-dashboard": {
+        "status": "PASS",
+        "view_id": "view-dashboard",
+        "title": "Home Dashboard"
+      },
+      "nav-anatomy": {
+        "status": "PASS",
+        "view_id": "view-anatomy",
+        "title": "3D Anatomy Explorer"
+      },
+      "nav-shoulder": {
+        "status": "PASS",
+        "view_id": "view-shoulder",
+        "title": "Interactive Shoulder Movement & Biomechanics Lab"
+      },
+      "nav-motion": {
+        "status": "PASS",
+        "view_id": "view-motion",
+        "title": "Camera Motion Assessment"
+      },
+      "nav-patients": {
+        "status": "PASS",
+        "view_id": "view-patients",
+        "title": "Patient Records"
+      },
+      "nav-therapy": {
+        "status": "PASS",
+        "view_id": "view-therapy",
+        "title": "Therapy Session Workspace"
+      },
+      "nav-progress": {
+        "status": "PASS",
+        "view_id": "view-progress",
+        "title": "Progress Tracking"
+      },
+      "nav-library": {
+        "status": "PASS",
+        "view_id": "view-library",
+        "title": "Knowledge Library & AI Tutor"
+      }
+    },
+    "controls": {
+      "canvas_drag_rotate": "PASS",
+      "canvas_mouse_zoom": "PASS",
+      "camera_presets": "PASS",
+      "play_pause_toggle": "PASS",
+      "speed_select": "PASS",
+      "timeline_scrub_90": {
+        "gh": "70.0\u00b0",
+        "st": "20.0\u00b0",
+        "sc": "16.2\u00b0",
+        "subacromial": "Adequate Clearance"
+      },
+      "muscle_dynamics_delt1": {
+        "fiber_len": "8.17 cm",
+        "norm_len": "0.837",
+        "passive_force": "0.0 N"
+      },
+      "comparison_mode_restricted": {
+        "badge": "Restricted 4:1 Rhythm",
+        "gh": "78.0\u00b0",
+        "st": "12.0\u00b0"
+      },
+      "structure_inspector": "Right Scapula (Shoulder Blade) (FMA13395)",
+      "secondary_sections": {
+        "table_rows": 18,
+        "motor_control_cards": 6
+      }
+    },
+    "canvas": {
+      "container": {
+        "top": 259.1875,
+        "bottom": 699.1875,
+        "width": 1047.296875,
+        "height": 440
+      },
+      "canvas": {
+        "top": 260.1875,
+        "bottom": 698.1875,
+        "width": 1045,
+        "height": 438
+      },
+      "visibleAboveFold": true,
+      "viewportHeight": 1080,
+      "webglOk": true
+    },
+    "guided_scenes": {
+      "scene_1": "Scene 1: Anatomical Architecture of the Shoulder Girdle",
+      "scene_2": "Scene 2: Canonical 2:1 Scapulohumeral Rhythm",
+      "scene_3": "Scene 3: Hypothetical Restricted Scapular Rotation",
+      "scene_4": "Scene 4: OpenSim Modeled Muscle Fiber Length & Passive Force",
+      "scene_5": "Scene 5: Neural Planning & Afferent Sensory Feedback",
+      "scene_6": "Scene 6: Why Tension Returns & Principles of Lasting Change"
+    },
+    "screenshots": [
+      "verify_1920x1080_01_shoulder_hero.png",
+      "verify_1920x1080_02_arm_90deg.png",
+      "verify_1920x1080_03_restricted_mode.png",
+      "verify_1920x1080_04_scene6_tension_returns.png",
+      "verify_1920x1080_05_full_page.png"
+    ]
+  }
+}

@@ -59,13 +59,12 @@ def build_desktop_distribution(output_dir: Path) -> dict:
     shutil.copytree(repo_root / "src", src_target)
     print(f"[+] Bundled application source tree: {src_target}")
 
-    # 5. Copy Models Directory
+    # 5. Copy Models Directory (including atlas subdirectory with 3D assemblies and validation datasets)
     models_target = dist_dir / "2data" / "models"
-    models_target.mkdir(parents=True, exist_ok=True)
-    for model_file in (repo_root / "2data" / "models").glob("*"):
-        if model_file.is_file():
-            shutil.copy2(model_file, models_target / model_file.name)
-            print(f"[+] Bundled neural model: {model_file.name}")
+    if models_target.exists():
+        shutil.rmtree(models_target)
+    shutil.copytree(repo_root / "2data" / "models", models_target)
+    print(f"[+] Bundled complete neural models and atlas assets tree: {models_target}")
 
     # 6. Copy Upstream 3D Models
     upstream_3d = dist_dir / "3refs" / "upstream"
