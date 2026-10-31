@@ -557,3 +557,27 @@ The system was developed under the core directive **DO NOT REBUILD WHAT ALREADY 
 - **Total Automated Test Count:** 314 automated tests PASS, 0 FAIL, 1 WARNING.
 - **Safety Gates:** `CLINICAL_REALWORLD_GATE` and `PHYSICAL_STEREO_HARDWARE_GATE` remain strictly **BLOCKED**.
 - **Release Verdict:** **GO — PERSONAL OFFLINE WORKSTATION / SYNTHETIC & RESEARCH ONLY**.
+
+---
+
+## 15. Milestone P16 Addendum: Mandatory P15 Dossier Reconciliation & Scientific Integrity Sign-Off (2026-10-31)
+
+### Reconciliation & Verification Achievements
+In response to adversarial verification, all 6 items of the P16 Addendum were rigorously reconciled:
+
+1. **Test Suite Accounting Reconciled (316 Tests):**
+   - Proven that 0 tests were deleted, renamed, or skipped between P14 and P15.
+   - P14 counted 179 unit tests + 125 integration tests + 2 browser e2es + 10 `windows_native_e2e_journeys` (sub-items in `test_recovery_e2e_journeys.py`) = 316 tests.
+   - P15 added 9 new unit tests (now 188 unit tests) + 125 integration tests + 3 standalone browser E2E tests = 316 tests (100% PASS).
+2. **Visual Evidence Cryptographic Uniqueness (11 Unique SHA-256 Hashes):**
+   - Refactored `test_p15_guided_learning_e2e.py` to capture element-isolated screenshots (`#shoulder-insp-card`, `#muscle-dynamics-card`, `#dyn-alert-restricted`, `#motor-control-container`, `#guided-scene-content`), isolating state changes.
+   - 11 / 11 screenshots verified with 100% distinct SHA-256 digests in `artifacts/p15/screenshots/`.
+3. **OpenSim Action Lines & Musculotendon Length Precision:**
+   - Three.js action lines classified strictly as `SIMPLIFIED_ORIGIN_INSERTION_CONNECTOR`.
+   - Distinctly separated contractile Fiber Length ($l_M$) from total origin-to-insertion Musculotendon Length ($l_{MT}$), adding dedicated readouts and explanatory tooltips in the UI.
+4. **Neurophysiological Claims Calibrated:**
+   - Eliminated dogmatic negative assertions in Scene 6 and Motor Control topics; calibrated language to reflect current evidence on stretch tolerance (Weppler & Magnusson 2010), multi-stage motor learning (Fitts & Posner, Kleim & Jones 2008), and central motor synergies (Latash 2012).
+5. **Modeled Passive Force Verification:**
+   - Re-verified Millard2012 equilibrium model dataset derivation (`muscle_response_validation.csv`) at 0.02 nominal tone ($k_{pe} = 0.6$). Confirmed zero arbitrary visual mappings.
+6. **Defect Log:**
+   - Logged and resolved DEF-16 (Visual Evidence Duplication) and DEF-17 (OpenSim Action Line & Length Metrics Epistemic Delineation).

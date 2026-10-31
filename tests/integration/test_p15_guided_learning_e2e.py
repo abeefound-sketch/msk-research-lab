@@ -97,7 +97,7 @@ def test_p15_guided_learning_browser_acceptance():
             page.evaluate("selectShoulderStructure('FMA13395')")
             time.sleep(0.5)
             assert "Right Scapula" in page.inner_text("#shoulder-insp-title")
-            page.screenshot(path=str(SCREENSHOT_DIR / "p15_step04_structure_scapula_inspector.png"))
+            page.locator("#shoulder-insp-card").screenshot(path=str(SCREENSHOT_DIR / "p15_step04_structure_scapula_inspector.png"))
             print("  Captured: p15_step04_structure_scapula_inspector.png")
 
             # Step 5: Highlight DELT1 & Verify 4 Epistemic Badges
@@ -111,7 +111,7 @@ def test_p15_guided_learning_browser_acceptance():
             assert "MODELED_PASSIVE_FORCE" in insp_html
             assert "MUSCLE_ACTIVATION_NOT_MEASURED" in insp_html
             assert "EDUCATIONAL_ILLUSTRATION" in insp_html
-            page.screenshot(path=str(SCREENSHOT_DIR / "p15_step05_muscle_delt1_epistemic_badges.png"))
+            page.locator("#muscle-dynamics-card").screenshot(path=str(SCREENSHOT_DIR / "p15_step05_muscle_delt1_epistemic_badges.png"))
             print("  Captured: p15_step05_muscle_delt1_epistemic_badges.png")
 
             # Step 6: Play Shoulder Movement
@@ -137,7 +137,7 @@ def test_p15_guided_learning_browser_acceptance():
             print("[Step 8] Observing DELT1 Dynamics at 90°...")
             delt1_len = page.inner_text("#dyn-val-fiber-len")
             assert "cm" in delt1_len
-            page.screenshot(path=str(SCREENSHOT_DIR / "p15_step08_delt1_shortened_metrics.png"))
+            page.locator("#muscle-dynamics-card").screenshot(path=str(SCREENSHOT_DIR / "p15_step08_delt1_shortened_metrics.png"))
             print("  Captured: p15_step08_delt1_shortened_metrics.png")
 
             # Step 9: Switch Comparison Mode to Forward Shoulder Restricted
@@ -156,7 +156,7 @@ def test_p15_guided_learning_browser_acceptance():
             alert_text = page.inner_text("#dyn-alert-restricted")
             assert "CAUTION" in alert_text
             assert "unadjusted" in alert_text.lower()
-            page.screenshot(path=str(SCREENSHOT_DIR / "p15_step10_restricted_mode_caution_badge.png"))
+            page.locator("#dyn-alert-restricted").screenshot(path=str(SCREENSHOT_DIR / "p15_step10_restricted_mode_caution_badge.png"))
             print("  Captured: p15_step10_restricted_mode_caution_badge.png")
 
             # Step 11: Read Motor Control Educational Content (6 topics)
@@ -175,11 +175,11 @@ def test_p15_guided_learning_browser_acceptance():
             assert "Kleim" in mc_html
             assert "Weppler" in mc_html
 
-            # Scroll and capture Motor Control module
+            # Scroll and capture Motor Control module specifically
             mc_elem = page.locator("#motor-control-container")
             mc_elem.scroll_into_view_if_needed()
             time.sleep(0.5)
-            page.screenshot(path=str(SCREENSHOT_DIR / "p15_step11_motor_control_six_topics.png"))
+            mc_elem.screenshot(path=str(SCREENSHOT_DIR / "p15_step11_motor_control_six_topics.png"))
             print("  Captured: p15_step11_motor_control_six_topics.png")
 
             # Step 12: Navigate Through All 6 Guided Learning Scenes
@@ -191,8 +191,10 @@ def test_p15_guided_learning_browser_acceptance():
                 assert f"Scene {s_num}" in cur_title
                 print(f"  Verified Scene {s_num}: {cur_title}")
             
-            # Capture Scene 6 (The core question: Why Tension Returns)
-            page.screenshot(path=str(SCREENSHOT_DIR / "p15_step12_scene6_why_tension_returns.png"))
+            # Scroll back to top and capture Scene 6 Card specifically (Why Tension Returns)
+            page.evaluate("window.scrollTo(0, 0)")
+            time.sleep(0.5)
+            page.locator("#guided-scene-content").screenshot(path=str(SCREENSHOT_DIR / "p15_step12_scene6_why_tension_returns.png"))
             print("  Captured: p15_step12_scene6_why_tension_returns.png")
 
             # Step 13: Restart / Refresh Application
@@ -202,6 +204,9 @@ def test_p15_guided_learning_browser_acceptance():
             page.evaluate("switchView('shoulder')")
             page.wait_for_selector("#view-shoulder.active", timeout=5000)
             assert "Shoulder Movement & Biomechanics Lab" in page.inner_text("#page-title")
+            # Scrub post-reload to 45° to prove post-reload dynamic responsiveness
+            page.evaluate("document.getElementById('shoulder-timeline-slider').value = '45.0'; onShoulderTimelineScrub(45.0);")
+            time.sleep(0.5)
             page.screenshot(path=str(SCREENSHOT_DIR / "p15_step13_app_reloaded_shoulder_lab.png"))
             print("  Captured: p15_step13_app_reloaded_shoulder_lab.png")
 

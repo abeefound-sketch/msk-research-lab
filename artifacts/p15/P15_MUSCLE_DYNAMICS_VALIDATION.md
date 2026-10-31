@@ -25,6 +25,11 @@ The workstation computes forward kinematics-driven muscle dynamics across **10 u
 | `BIClong` | Biceps Brachii (Long Head) | Scapula (Supraglenoid) | Radius (Radial Tuberosity) | 0.116 | 0.272 | 624 | 0.0° |
 | `TRIlong` | Triceps Brachii (Long Head) | Scapula (Infraglenoid) | Ulna (Olecranon) | 0.134 | 0.143 | 798 | 12.0° |
 
+### 1.2 Action Line vs. OpenSim Musculotendon Path Classification
+- **Three.js Action Lines:** Visual 3D line connectors connecting origin and insertion landmark anchors across bone groups (`shoulderClavicleGroup`, `shoulderScapulaGroup`, `shoulderHumerusGroup`).
+- **Classification:** Strictly designated as `SIMPLIFIED_ORIGIN_INSERTION_CONNECTOR`. They represent straight-line kinematic connectors rather than real-time geodesic wrapping paths over humeral cylindrical obstacles.
+- **OpenSim Musculotendon Metrics:** Instantaneous numerical values ($l_{MT}$, $l_M$, $F^{pe}$) are extracted directly from OpenSim 4.6 MoBL-ARMS 4.1 equilibrium model simulations (`muscle_response_validation.csv`) where via points and obstacle wrapping were solved analytically.
+
 ---
 
 ## 2. Mathematical Muscle Dynamics Formulations

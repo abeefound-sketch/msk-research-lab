@@ -130,7 +130,7 @@ class MuscleDynamicsDetail(BaseModel):
     full_name: str
     category: str = "muscle"
     mesh_classification: str = "STATIC_RESTING_ANATOMICAL_MESH"
-    path_classification: str = "REPRESENTED_BY_OPENSIM_MUSCLE_PATH"
+    path_classification: str = "SIMPLIFIED_ORIGIN_INSERTION_CONNECTOR"
     origin_description: str
     insertion_description: str
     origin_frame: str
@@ -143,6 +143,7 @@ class MuscleDynamicsDetail(BaseModel):
     tendon_slack_length_m: float
     current_elevation_deg: float
     current_fiber_length_m: float
+    musculotendon_length_m: float = 0.0
     neutral_fiber_length_m: float
     delta_fiber_length_m: float
     normalized_fiber_length: float
@@ -989,23 +990,24 @@ class ShoulderMovementLabEngine:
                 recommended_comparison_mode="normal_2to1",
                 highlighted_structure_id="FMA13395",
                 pedagogical_narrative=(
-                    "Address the core case: Why does shoulder tension temporarily improve after manual muscle treatment while a "
+                    "Address the core case: Why can shoulder tension temporarily improve after manual muscle treatment while a "
                     "familiar posture or movement pattern later returns? Manual interventions (massage, ischemic pressure, dry needling, "
-                    "passive stretching) induce immediate relief via two transient mechanisms: (1) mechanical viscoelastic stress-relaxation "
-                    "and thixotropy (transiently fluidifying viscous hyaluronic acid in fascia), and (2) short-term autonomic down-regulation "
-                    "of gamma-motor neuron drive via cutaneous mechanoreceptor stimulation. Crucially, however, passive treatments do NOT "
-                    "reorganize synaptic connections in primary motor cortex (M1) or alter cerebellar internal models. When active upright "
-                    "movement resumes, the CNS re-engages its habitual motor synergy. Achieving durable change requires active, deliberate "
-                    "movement practice (Fitts & Posner stages: cognitive -> associative -> autonomous) to drive neuroplastic synaptogenesis."
+                    "passive stretching) commonly produce immediate, perceptible relief via short-term peripheral and sensory mechanisms: "
+                    "(1) mechanical viscoelastic stress-relaxation and thixotropy (transiently reducing viscous resistance of extracellular matrix), "
+                    "and (2) short-term sensory modulation (including altered stretch tolerance and transient modulation of reflex excitability). "
+                    "Crucially, however, passive input alone does not engage active voluntary motor planning, feedforward cerebellar prediction, "
+                    "or goal-directed coordination. When upright active movement resumes, the central nervous system readily re-engages its familiar habitual motor synergy. "
+                    "Achieving lasting movement repatterning requires progressive active motor learning "
+                    "(Fitts & Posner stages: cognitive -> associative -> autonomous) supported by deliberate sensorimotor practice."
                 ),
                 biomechanical_insights=[
-                    "Transient relief is governed by viscoelastic creep, thixotropy, and transient gamma-reflex inhibition.",
-                    "Passive therapy creates a temporary 'window of opportunity' with reduced resistance and improved sensory tolerance.",
-                    "Permanent functional changes require deliberate active movement practice that stimulates long-term potentiation (LTP) in motor cortex."
+                    "Transient relief is primarily mediated by peripheral viscoelastic stress relaxation and short-term sensory tolerance shifts.",
+                    "Passive modalities create a temporary physiological window with reduced tissue resistance and diminished subjective discomfort.",
+                    "Durable movement repatterning requires deliberate active movement practice to recalibrate central motor planning and coordination."
                 ],
                 why_tension_returns_context=(
-                    "Tension returns because the brain's default motor program was never rewritten by the passive treatment. "
-                    "Passive modalities modify peripheral tissues temporarily; active practice reorganizes the central nervous system."
+                    "Tension frequently returns because passive treatments alter peripheral tissue compliance temporarily without retraining "
+                    "the central motor synergies that orchestrate active upright movement."
                 ),
                 scientific_limitations=(
                     "Educational explanation of motor learning principles; individual pain etiology is multifactorial (biomechanical, "
@@ -1152,13 +1154,13 @@ class ShoulderMovementLabEngine:
             MotorControlTopic(
                 topic_id="motor_learning_neuroplasticity",
                 title="Movement Practice, Motor Learning Stages & Neuroplastic Adaptation",
-                summary="How deliberate practice drives long-term potentiation, cortical map reorganization, and automaticity.",
+                summary="How deliberate movement practice supports motor learning stages, synaptic tuning, and coordination automaticity.",
                 detailed_explanation=(
                     "Acquiring or modifying a movement pattern is an active motor learning process characterized by Fitts & Posner's three stages: "
                     "(1) Cognitive Stage (high conscious focus, error-prone, requiring visual/verbal cues), (2) Associative Stage (refining coordination, "
                     "fewer errors, integrating proprioception), and (3) Autonomous Stage (automatic execution with minimal conscious cognitive load). "
-                    "Deliberate, repetitive practice triggers activity-dependent synaptic plasticity, stimulating long-term potentiation (LTP) at dendritic "
-                    "spines, synaptogenesis, and measurable enlargement of targeted muscle representations in primary motor cortex (M1)."
+                    "Deliberate, repetitive practice engages activity-dependent neural plasticity across cortico-striatal and cortico-cerebellar networks, "
+                    "supporting long-term potentiation (LTP)-like synaptic strengthening, dendritic synaptogenesis, and progressive tuning of functional motor representations."
                 ),
                 physiological_mechanisms=[
                     "Fitts & Posner Stages: Progression from conscious cognitive control to autonomous automaticity.",
@@ -1232,19 +1234,19 @@ class ShoulderMovementLabEngine:
                 summary="Explaining why passive interventions reduce tone transiently without reorganizing central motor programs.",
                 detailed_explanation=(
                     "Passive manual interventions—such as massage, static stretching, acupressure, or dry needling—frequently produce "
-                    "immediate, perceptible reductions in subjective muscle tightness. Physiologically, this transient effect is mediated "
-                    "by two short-term mechanisms: (1) mechanical viscoelastic stress-relaxation and thixotropy (transiently lowering tissue "
-                    "viscosity and realignment of extracellular hyaluronic acid), and (2) autonomic down-regulation (transient parasympathetic "
-                    "activation and temporary inhibition of gamma-motor neuron drive via cutaneous and mechanoreceptive input). "
-                    "Crucially, however, passive interventions do not alter the synaptic organization of central motor programs stored in "
-                    "the primary motor cortex (M1), basal ganglia, and cerebellum. Once active movement resumes, the central nervous system "
-                    "re-engages its habitual motor synergies. Therefore, temporary tone relief must be followed by active, progressive movement "
-                    "practice to achieve durable changes in movement coordination."
+                    "immediate, perceptible reductions in subjective muscle tightness. Mechanistically, research indicates this transient effect is primarily "
+                    "mediated by two short-term mechanisms: (1) mechanical viscoelastic stress-relaxation and thixotropy (transiently lowering tissue "
+                    "resistance and fluidification of extracellular hyaluronic acid), and (2) sensory and autonomic modulation (altered stretch tolerance "
+                    "and temporary modification of reflex excitability via mechanoreceptive input). "
+                    "Crucially, passive interventions do not involve active feedforward motor planning in premotor cortex, cerebellar error-based "
+                    "prediction, or voluntary motor unit coordination. Once active, unsupported movement resumes, the central nervous system "
+                    "re-activates its habitual, familiar motor synergies. Therefore, temporary tone relief is most therapeutically effective when "
+                    "used as a window of opportunity to introduce active, progressive movement retraining."
                 ),
                 physiological_mechanisms=[
                     "Viscoelastic Stress-Relaxation: Transient mechanical reduction in tissue resistance under constant elongation.",
                     "Thixotropy of Fascia & Ground Substance: Friction-induced reversible fluidification of viscous extracellular matrix.",
-                    "Short-Term Autonomic Modulation: Mechanoreceptor stimulation activates periaqueductal gray and autonomic down-regulation.",
+                    "Sensory & Autonomic Modulation: Mechanoreceptor stimulation alters subjective stretch tolerance and modulates reflex excitability.",
                     "Persistence of Habitual Motor Encodings: Central motor cortex maps remain unchanged without active motor learning."
                 ],
                 clinical_educational_takeaway=(
@@ -1469,6 +1471,7 @@ class ShoulderMovementLabEngine:
             neut_resp = neutral_responses.get(m_key)
 
             curr_fib = curr_resp.fiber_length_m if curr_resp else meta["optimal_fiber_length_m"]
+            curr_mt = curr_resp.musculotendon_length_m if curr_resp else (meta["optimal_fiber_length_m"] + meta["tendon_slack_length_m"])
             neut_fib = neut_resp.fiber_length_m if neut_resp else meta["optimal_fiber_length_m"]
             norm_fib = curr_resp.normalized_fiber_length if curr_resp else 1.0
             pass_f = curr_resp.passive_force_n if curr_resp else 0.0
@@ -1496,7 +1499,7 @@ class ShoulderMovementLabEngine:
                 full_name=meta["full_name"],
                 category="muscle",
                 mesh_classification="STATIC_RESTING_ANATOMICAL_MESH",
-                path_classification="REPRESENTED_BY_OPENSIM_MUSCLE_PATH",
+                path_classification="SIMPLIFIED_ORIGIN_INSERTION_CONNECTOR",
                 origin_description=meta["origin_description"],
                 insertion_description=meta["insertion_description"],
                 origin_frame=meta["origin_frame"],
@@ -1509,6 +1512,7 @@ class ShoulderMovementLabEngine:
                 tendon_slack_length_m=meta["tendon_slack_length_m"],
                 current_elevation_deg=round(arm_deg, 1),
                 current_fiber_length_m=round(curr_fib, 4),
+                musculotendon_length_m=round(curr_mt, 4),
                 neutral_fiber_length_m=round(neut_fib, 4),
                 delta_fiber_length_m=round(curr_fib - neut_fib, 4),
                 normalized_fiber_length=round(norm_fib, 4),

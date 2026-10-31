@@ -721,9 +721,10 @@ def render_workstation_ui() -> str:
                         <!-- Readout grid -->
                         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-top:10px; font-size:11px;">
                             <div style="background:rgba(15,23,42,0.4); padding:6px 8px; border-radius:4px; border:1px solid var(--border-color);">
-                                <div style="color:var(--text-muted); font-size:10px;">Fiber Length (l<sub>M</sub>)</div>
+                                <div style="color:var(--text-muted); font-size:10px;">Fiber Length (l<sub>M</sub>) / MT (l<sub>MT</sub>)</div>
                                 <div id="dyn-val-fiber-len" style="font-size:14px; font-weight:700; color:#38bdf8;">--</div>
-                                <div id="dyn-val-delta-len" style="font-size:10px; color:#94a3b8;">&Delta;l: --</div>
+                                <div id="dyn-val-mt-len" style="font-size:10px; color:#94a3b8;">l<sub>MT</sub>: --</div>
+                                <div id="dyn-val-delta-len" style="font-size:10px; color:#64748b;">&Delta;l<sub>M</sub>: --</div>
                             </div>
                             <div style="background:rgba(15,23,42,0.4); padding:6px 8px; border-radius:4px; border:1px solid var(--border-color);">
                                 <div style="color:var(--text-muted); font-size:10px;">Normalized (&tilde;l<sub>M</sub>)</div>
@@ -733,7 +734,7 @@ def render_workstation_ui() -> str:
                             <div style="background:rgba(15,23,42,0.4); padding:6px 8px; border-radius:4px; border:1px solid var(--border-color);">
                                 <div style="color:var(--text-muted); font-size:10px;">Passive Force (F<sup>pe</sup>)</div>
                                 <div id="dyn-val-pass-force" style="font-size:14px; font-weight:700; color:#facc15;">-- N</div>
-                                <div style="font-size:9px; color:#64748b;">Tissue Elasticity</div>
+                                <div style="font-size:9px; color:#64748b;">Millard2012 Equilibrium</div>
                             </div>
                             <div style="background:rgba(15,23,42,0.4); padding:6px 8px; border-radius:4px; border:1px solid var(--border-color);">
                                 <div style="color:var(--text-muted); font-size:10px;">Optimal (l<sub>M,0</sub>)</div>
@@ -758,6 +759,8 @@ def render_workstation_ui() -> str:
                         <div style="margin-top:10px; font-size:11px; color:var(--text-muted); line-height:1.4;">
                             <div><strong style="color:var(--text-main);">Origin:</strong> <span id="dyn-text-origin">--</span></div>
                             <div style="margin-top:3px;"><strong style="color:var(--text-main);">Insertion:</strong> <span id="dyn-text-insertion">--</span></div>
+                            <div style="margin-top:4px; font-size:10px; color:#64748b;"><em>Action Line: Simplified straight-line connector between bone frames. Metrics (l<sub>MT</sub>, l<sub>M</sub>, F<sup>pe</sup>) derived from OpenSim 4.6 MoBL-ARMS 4.1 Millard equilibrium state.</em></div>
+                        </div>
                         </div>
 
                         <div id="dyn-alert-restricted" style="display:none; margin-top:8px; font-size:10px; color:#f59e0b; background:rgba(245,158,11,0.08); padding:6px 8px; border-radius:4px; border:1px solid rgba(245,158,11,0.3);">
@@ -766,7 +769,7 @@ def render_workstation_ui() -> str:
                     </div>
 
                     <!-- Structure Details & Scientific Evidence Box -->
-                    <div class="stat-card" style="flex:1;">
+                    <div class="stat-card" id="shoulder-insp-card" style="flex:1;">
                         <div class="stat-label">Anatomical Structure & Evidence Inspector</div>
                         <div style="display:flex; justify-content:space-between; align-items:center; margin-top:6px;">
                             <select id="shoulder-structure-select" class="form-control" style="font-size:12px; padding:4px 8px;" onchange="selectShoulderStructure(this.value)">
@@ -2746,6 +2749,8 @@ ${session.soap.plan}`;
 
                     const fibElem = document.getElementById('dyn-val-fiber-len');
                     if (fibElem) fibElem.innerText = (d.current_fiber_length_m * 100).toFixed(2) + ' cm';
+                    const mtElem = document.getElementById('dyn-val-mt-len');
+                    if (mtElem && d.musculotendon_length_m) mtElem.innerHTML = 'l<sub>MT</sub>: ' + (d.musculotendon_length_m * 100).toFixed(2) + ' cm';
                     const deltaElem = document.getElementById('dyn-val-delta-len');
                     if (deltaElem) {
                         const deltaCm = (d.delta_fiber_length_m * 100).toFixed(2);

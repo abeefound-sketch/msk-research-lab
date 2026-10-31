@@ -112,7 +112,9 @@ def test_p15_muscle_dynamics_catalog_completeness(engine: ShoulderMovementLabEng
     for d in dynamics:
         assert d.category == "muscle"
         assert d.mesh_classification == "STATIC_RESTING_ANATOMICAL_MESH"
-        assert d.path_classification == "REPRESENTED_BY_OPENSIM_MUSCLE_PATH"
+        assert d.path_classification == "SIMPLIFIED_ORIGIN_INSERTION_CONNECTOR"
+        assert d.musculotendon_length_m > 0.0
+        assert d.musculotendon_length_m >= d.current_fiber_length_m
         assert d.origin_frame in ("clavicle", "scapula", "humerus", "radius", "ulna")
         assert d.insertion_frame in ("clavicle", "scapula", "humerus", "radius", "ulna")
         assert len(d.origin_point_m) == 3
