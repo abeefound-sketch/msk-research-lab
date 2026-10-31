@@ -2,3 +2,13 @@
 {"ts": 1792720861.0835085, "message": "reasoning effort downgraded after xhigh request budget", "extra": {"budget": 6, "attempted_request_count": 7}}
 {"ts": 1792720931.4807928, "message": "runtime nudge queued (reasoning effort)", "extra": {"signal": "A shell command failed (exit 2)."}}
 {"ts": 1792720931.4844472, "message": "reasoning effort nudge queued after shell error", "extra": {"call_id": "call_247284", "exit_code": 2}}
+{"ts": 1793244007.7017531, "message": "micro-compact skipped (startup unfinished session tail)"}
+{"ts": 1793244087.9878123, "message": "skill context refreshed (removed stale items)", "extra": {"removed": 1}}
+{"ts": 1793244087.9923894, "message": "micro-compact skipped (startup unfinished session tail)"}
+{"ts": 1793244246.4398956, "message": "runtime nudge queued (reasoning effort)", "extra": {"signal": "Reasoning effort has been xhigh for 5/6 consecutive requests."}}
+{"ts": 1793244390.7994268, "message": "reasoning effort downgraded after xhigh request budget", "extra": {"budget": 6, "attempted_request_count": 7}}
+{"ts": 1793258169.4775596, "message": "skill context refreshed (removed stale items)", "extra": {"removed": 1}}
+{"ts": 1793258169.4904659, "message": "micro-compact skipped (startup unfinished session tail)"}
+{"ts": 1793259547.0891035, "message": "micro-compact triggered (startup)", "extra": {"min_saved": 6000, "max_saved": 35000, "saved_tokens": 17358, "keep_thinking_msgs": 0}}
+{"ts": 1793259742.9559262, "message": "runtime nudge queued (reasoning effort)", "extra": {"signal": "Reasoning effort has been xhigh for 5/6 consecutive requests."}}
+{"ts": 1793259874.434478, "message": "reasoning effort downgraded after xhigh request budget", "extra": {"budget": 6, "attempted_request_count": 7}}
