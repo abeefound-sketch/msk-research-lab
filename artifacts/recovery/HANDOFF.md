@@ -508,3 +508,52 @@ Executed Milestone P14: Rigorous scientific model qualification, 3D transformati
 - **Automated Test Suite:** **316 / 316 PASS** (179 unit tests including 17 new geometry oracle tests, 125 integration tests, 12 native/recovery tests).
 - **Gates:** `CLINICAL_REALWORLD_GATE` and `PHYSICAL_STEREO_HARDWARE_GATE` remain strictly **BLOCKED**.
 - **Release Verdict:** **GO — PERSONAL OFFLINE WORKSTATION / SYNTHETIC & RESEARCH ONLY**.
+
+---
+
+## 14. Milestone P15 Completion: Interactive Shoulder Biomechanics, Muscle Dynamics & Guided Movement Education (2026-10-31)
+
+### Objective & Architectural Philosophy
+Milestone P15 elevated the MSK Research Lab OS workstation into an interactive biomechanics learning laboratory, resolving the central educational inquiry:
+*Why can shoulder muscle tension temporarily improve after manual muscle treatment while a familiar posture or movement pattern later returns?*
+
+The system was developed under the core directive **DO NOT REBUILD WHAT ALREADY EXISTS**:
+- Reused 13 calibrated BodyParts3D GLB anatomical models without modifications.
+- Reused MoBL-ARMS 4.1 OpenSim muscle coordinates and architectural parameters.
+- Reused the existing Three.js scene graph, UI design system, and FastAPI routing pipeline.
+- 0 new external dependencies or cloned repositories.
+
+### Key Technical Achievements
+
+1. **Dual-Representation Paradigm (P15-A):**
+   - Explicitly categorized BodyParts3D GLB meshes as `STATIC_RESTING_ANATOMICAL_MESH` for visual context, preventing false claims of physiological tissue contraction on rigid resting meshes.
+   - Built dynamic 3D Action Lines (`REPRESENTED_BY_OPENSIM_MUSCLE_PATH`) in Three.js parented directly to clavicle, scapula, and humerus bone groups, dynamically updating 3D endpoint coordinates and line vertex buffers during movement scrubbing.
+2. **OpenSim Muscle Dynamics Inspector (P15-B):**
+   - Implemented dynamic forward kinematics calculations across 10 upper extremity compartments (`DELT1`, `DELT2`, `DELT3`, `SUPSP`, `INFSP`, `SUBSC`, `TMIN`, `BICshort`, `BIClong`, `TRIlong`).
+   - Integrated Millard 2012 / Thelen 2003 Hill-type exponential passive force modeling:
+     $$F^{pe} = F_{max}^{iso} \cdot \left(\frac{\max(0, \tilde{l}_M - 1.0)}{k_{pe}}\right)^2$$
+   - Enforced 4 mandatory epistemic distinction tags on all muscle data: `MODELED_LENGTH_CHANGE`, `MODELED_PASSIVE_FORCE`, `MUSCLE_ACTIVATION_NOT_MEASURED`, `EDUCATIONAL_ILLUSTRATION`.
+3. **Evidence-Based Motor Control Education (P15-C):**
+   - Authored 6 comprehensive topics grounded in classic and contemporary neurophysiology:
+     1. *Motor Planning, Cortical Encodings & Movement Coordination* (Bernstein 1967, Latash 2012, Krakauer 2019).
+     2. *Proprioceptive Feedback: Spindles, GTOs & Sensorimotor Loops* (Kandel 2021, Proske & Gandevia 2012).
+     3. *Muscle Activation, Motor Unit Recruitment & EMG Realities* (Henneman 1965, Enoka & Duchateau 2017).
+     4. *Movement Practice, Motor Learning Stages & Neuroplastic Adaptation* (Fitts & Posner, Kleim & Jones 2008, Schmidt & Lee 2019).
+     5. *Habitual Movement Patterns, Compensatory Synergies & Postural Encodings* (Hodges & Richardson 1996, Shumway-Cook 2023).
+     6. *Why Temporary Muscle Tension Relief Does Not Equal Lasting Coordination Change* (Weppler & Magnusson 2010, Schleip 2003).
+   - Mechanistically answered why passive manual interventions provide transient tone relief via viscoelastic stress relaxation and thixotropy without altering cortical motor programs, and why active motor retraining is required for durable postural repatterning.
+4. **Guided Learning 6-Scene Case Study (P15-D):**
+   - Implemented a 6-scene interactive curriculum in `#view-shoulder` with sequential navigation, indicator dots, automated slider scrubbing, and synchronized structure highlighting.
+5. **Scientific Integrity & Scenario-Specific Safety (P15-E):**
+   - In Model B (Restricted Scapulohumeral Rhythm), all muscle dynamics records are strictly tagged `NOT_VERIFIED_FOR_MODIFIED_POSTURE` with unadjusted baseline caveats and amber UI alerts.
+6. **Windows Native Microsoft Edge Acceptance (P15-F):**
+   - Authored and verified `tests/integration/test_p15_guided_learning_e2e.py` on native Microsoft Edge.
+   - All 15 acceptance steps verified with 0 errors. Captured 11 high-resolution screenshots with unique SHA-256 hashes into `artifacts/p15/screenshots/`.
+
+### Final Qualification Verdict
+- **Unit Tests:** 188 / 188 PASS (including 41 forward kinematics & OpenSim biomechanics oracle tests).
+- **Integration Tests:** 125 / 125 PASS.
+- **Browser Acceptance:** 15 / 15 steps VERIFIED on Microsoft Edge.
+- **Total Automated Test Count:** 314 automated tests PASS, 0 FAIL, 1 WARNING.
+- **Safety Gates:** `CLINICAL_REALWORLD_GATE` and `PHYSICAL_STEREO_HARDWARE_GATE` remain strictly **BLOCKED**.
+- **Release Verdict:** **GO — PERSONAL OFFLINE WORKSTATION / SYNTHETIC & RESEARCH ONLY**.

@@ -415,6 +415,28 @@ def api_get_shoulder_comparisons():
     return engine.get_comparative_models()
 
 
+@workstation_router.get("/api/v1/biomechanics/shoulder/guided/scenes")
+def api_get_guided_learning_scenes():
+    """Retrieve 6 structured educational scenes for Guided Learning Case Study."""
+    engine = get_shoulder_lab_engine()
+    return engine.get_guided_learning_scenes()
+
+
+@workstation_router.get("/api/v1/biomechanics/shoulder/muscles/dynamics")
+def api_get_muscle_dynamics(
+    muscle_id: Optional[str] = Query(None),
+    arm_elevation_deg: float = Query(0.0, ge=0.0, le=180.0),
+    comparison_mode: str = Query("normal_2to1")
+):
+    """Retrieve OpenSim muscle dynamics details with attachment points, fiber changes, and epistemic tags."""
+    engine = get_shoulder_lab_engine()
+    return engine.get_muscle_dynamics(
+        muscle_id=muscle_id,
+        arm_elevation_deg=arm_elevation_deg,
+        comparison_mode=comparison_mode
+    )
+
+
 @workstation_router.get("/api/v1/biomechanics/shoulder/motor-control")
 def api_get_motor_control_education():
     """Retrieve evidence-based educational topics on motor control, sensory feedback, and movement learning."""

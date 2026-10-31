@@ -531,6 +531,55 @@ def render_workstation_ui() -> str:
                 <strong>BIOMECHANICAL EDUCATION LAB:</strong> Interactive forward shoulder posture and arm elevation analysis. Demonstrates the canonical 2:1 Scapulohumeral Rhythm (Inman et al., 1944) vs. restricted scapular upward rotation (Ludewig & Cook, 2000). Muscle fiber lengths (&tilde;l<sub>M</sub>) are calculated via OpenSim (MOBL_ARMS_41) Hill-type models, not measured in-vivo. Model does not diagnose disease or prescribe clinical therapy.
             </div>
 
+            <!-- GUIDED LEARNING MODE BANNER & CONTAINER (P15-D) -->
+            <div class="stat-card" style="margin-bottom:20px; border:1px solid rgba(56,189,248,0.3); background:rgba(15,23,42,0.85);">
+                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+                    <div style="display:flex; align-items:center; gap:12px;">
+                        <span style="font-size:22px;">🎓</span>
+                        <div>
+                            <div style="font-weight:700; font-size:15px; color:var(--text-main);">Guided Movement Case Study</div>
+                            <div style="font-size:12px; color:var(--text-muted);">
+                                Investigation: <em>Why can shoulder tension temporarily improve after manual muscle treatment while a familiar posture or movement pattern later returns?</em>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <button class="btn btn-secondary" style="font-size:12px; padding:6px 12px;" id="btn-guided-prev" onclick="prevGuidedScene()">← Prev Scene</button>
+                        <div id="guided-scene-dots" style="display:flex; gap:6px;">
+                            <!-- Dots / pills for Scene 1 through 6 -->
+                        </div>
+                        <button class="btn btn-primary" style="font-size:12px; padding:6px 14px;" id="btn-guided-next" onclick="nextGuidedScene()">Next Scene →</button>
+                    </div>
+                </div>
+
+                <!-- Guided Scene Content Box -->
+                <div id="guided-scene-content" style="margin-top:14px; padding-top:14px; border-top:1px solid var(--border-color);">
+                    <div style="display:flex; justify-content:space-between; align-items:baseline; flex-wrap:wrap; gap:8px;">
+                        <h3 id="guided-scene-title" style="margin:0; font-size:16px; color:var(--accent-blue);">Scene 1: Anatomical Architecture of the Shoulder Girdle</h3>
+                        <span class="badge" id="guided-scene-badge" style="background:rgba(56,189,248,0.15); color:var(--accent-blue);">Scene 1 of 6</span>
+                    </div>
+                    <div id="guided-scene-subtitle" style="font-size:12px; color:#94a3b8; margin-top:2px; font-weight:600;">Bony Articulations & Neutral Structural Alignment</div>
+                    
+                    <div id="guided-scene-narrative" style="margin-top:10px; font-size:13px; color:var(--text-main); line-height:1.5;"></div>
+
+                    <div style="display:grid; grid-template-columns: 1.2fr 0.8fr; gap:16px; margin-top:12px;">
+                        <div style="background:rgba(15,23,42,0.5); padding:10px 12px; border-radius:6px; border:1px solid var(--border-color);">
+                            <div style="font-size:11px; font-weight:700; color:var(--accent-green); text-transform:uppercase;">Biomechanical Insights</div>
+                            <ul id="guided-scene-insights" style="margin:6px 0 0 16px; padding:0; font-size:12px; color:var(--text-main); line-height:1.4;"></ul>
+                        </div>
+                        <div style="background:rgba(244,63,94,0.06); padding:10px 12px; border-radius:6px; border:1px solid rgba(244,63,94,0.2);">
+                            <div style="font-size:11px; font-weight:700; color:#f43f5e; text-transform:uppercase;">Why Tension Returns Context</div>
+                            <div id="guided-scene-tension-context" style="margin-top:6px; font-size:12px; color:var(--text-main); line-height:1.4;"></div>
+                        </div>
+                    </div>
+
+                    <div style="margin-top:10px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; font-size:11px; color:var(--text-muted);">
+                        <div id="guided-scene-evidence" style="color:#64748b;"></div>
+                        <div id="guided-scene-limitations" style="color:#f59e0b;"></div>
+                    </div>
+                </div>
+            </div>
+
             <div style="display:grid; grid-template-columns: 1.35fr 0.65fr; gap:20px; margin-bottom:20px;">
                 <!-- 3D WebGL Viewport Card -->
                 <div class="stat-card" style="padding:16px; display:flex; flex-direction:column;">
@@ -586,7 +635,10 @@ def render_workstation_ui() -> str:
                             <input type="checkbox" id="toggle-layer-bones" checked onchange="toggleShoulderLayer('bones', this.checked)"> Bones (Scapula, Humerus, Clavicle, Forearm)
                         </label>
                         <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
-                            <input type="checkbox" id="toggle-layer-muscles" checked onchange="toggleShoulderLayer('muscles', this.checked)"> Muscles (Deltoid, Biceps, Triceps)
+                            <input type="checkbox" id="toggle-layer-muscles" checked onchange="toggleShoulderLayer('muscles', this.checked)"> Static Anatomical Meshes
+                        </label>
+                        <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                            <input type="checkbox" id="toggle-layer-action-lines" checked onchange="toggleShoulderLayer('actionLines', this.checked)"> OpenSim Dynamic Action Lines
                         </label>
                         <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
                             <input type="checkbox" id="toggle-layer-thorax" checked onchange="toggleShoulderLayer('thorax', this.checked)"> Reference Thorax Base
@@ -633,6 +685,83 @@ def render_workstation_ui() -> str:
                                 <div style="font-size:10px; color:var(--text-muted);">Subacromial Clearance</div>
                                 <div id="readout-subacromial-status" style="font-size:12px; font-weight:600; color:#38bdf8; margin-top:4px;">Adequate</div>
                             </div>
+                        </div>
+                    </div>
+
+                    <!-- OpenSim Muscle Dynamics & Action Line Inspector Card (P15-B) -->
+                    <div class="stat-card" id="muscle-dynamics-card">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <div class="stat-label">Muscle Dynamics & Action Line Inspector</div>
+                            <span class="badge" id="badge-dyn-scenario-status" style="background:rgba(52,211,153,0.15); color:var(--accent-green); font-size:10px;">Benchmark</span>
+                        </div>
+                        
+                        <div style="margin-top:8px;">
+                            <select id="dyn-muscle-select" class="form-control" style="font-size:12px; padding:4px 8px;" onchange="selectDynamicsMuscle(this.value)">
+                                <option value="DELT1">Anterior Deltoid (DELT1)</option>
+                                <option value="DELT2">Middle Deltoid (DELT2)</option>
+                                <option value="DELT3">Posterior Deltoid (DELT3)</option>
+                                <option value="SUPSP">Supraspinatus (SUPSP)</option>
+                                <option value="INFSP">Infraspinatus (INFSP)</option>
+                                <option value="SUBSC">Subscapularis (SUBSC)</option>
+                                <option value="TMIN">Teres Minor (TMIN)</option>
+                                <option value="BICshort">Biceps Short Head (BICshort)</option>
+                                <option value="BIClong">Biceps Long Head (BIClong)</option>
+                                <option value="TRIlong">Triceps Long Head (TRIlong)</option>
+                            </select>
+                        </div>
+
+                        <!-- 4 Mandatory Epistemic Badges -->
+                        <div style="display:flex; flex-wrap:wrap; gap:4px; margin-top:8px;">
+                            <span class="badge" id="badge-dyn-len" style="background:rgba(56,189,248,0.12); color:#38bdf8; font-size:9px;">MODELED_LENGTH_CHANGE</span>
+                            <span class="badge" id="badge-dyn-force" style="background:rgba(250,204,21,0.12); color:#facc15; font-size:9px;">MODELED_PASSIVE_FORCE</span>
+                            <span class="badge" id="badge-dyn-emg" style="background:rgba(244,63,94,0.12); color:#f43f5e; font-size:9px;">MUSCLE_ACTIVATION_NOT_MEASURED</span>
+                            <span class="badge" id="badge-dyn-illust" style="background:rgba(168,85,247,0.12); color:#c084fc; font-size:9px;">EDUCATIONAL_ILLUSTRATION</span>
+                        </div>
+
+                        <!-- Readout grid -->
+                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-top:10px; font-size:11px;">
+                            <div style="background:rgba(15,23,42,0.4); padding:6px 8px; border-radius:4px; border:1px solid var(--border-color);">
+                                <div style="color:var(--text-muted); font-size:10px;">Fiber Length (l<sub>M</sub>)</div>
+                                <div id="dyn-val-fiber-len" style="font-size:14px; font-weight:700; color:#38bdf8;">--</div>
+                                <div id="dyn-val-delta-len" style="font-size:10px; color:#94a3b8;">&Delta;l: --</div>
+                            </div>
+                            <div style="background:rgba(15,23,42,0.4); padding:6px 8px; border-radius:4px; border:1px solid var(--border-color);">
+                                <div style="color:var(--text-muted); font-size:10px;">Normalized (&tilde;l<sub>M</sub>)</div>
+                                <div id="dyn-val-norm-len" style="font-size:14px; font-weight:700; color:#34d399;">--</div>
+                                <div id="dyn-val-kmsi-chip" style="font-size:10px; font-weight:600;">--</div>
+                            </div>
+                            <div style="background:rgba(15,23,42,0.4); padding:6px 8px; border-radius:4px; border:1px solid var(--border-color);">
+                                <div style="color:var(--text-muted); font-size:10px;">Passive Force (F<sup>pe</sup>)</div>
+                                <div id="dyn-val-pass-force" style="font-size:14px; font-weight:700; color:#facc15;">-- N</div>
+                                <div style="font-size:9px; color:#64748b;">Tissue Elasticity</div>
+                            </div>
+                            <div style="background:rgba(15,23,42,0.4); padding:6px 8px; border-radius:4px; border:1px solid var(--border-color);">
+                                <div style="color:var(--text-muted); font-size:10px;">Optimal (l<sub>M,0</sub>)</div>
+                                <div id="dyn-val-opt-len" style="font-size:14px; font-weight:700; color:#e2e8f0;">--</div>
+                                <div id="dyn-val-fmax" style="font-size:9px; color:#64748b;">F<sub>max</sub>: -- N</div>
+                            </div>
+                        </div>
+
+                        <!-- Dynamic Length Change Bar Indicator -->
+                        <div style="margin-top:10px;">
+                            <div style="display:flex; justify-content:space-between; font-size:10px; color:var(--text-muted);">
+                                <span>Shortened (&lt;0.85)</span>
+                                <span>Resting (1.0)</span>
+                                <span>Stretched (&gt;1.15)</span>
+                            </div>
+                            <div style="height:6px; background:#1e293b; border-radius:3px; position:relative; margin-top:4px; overflow:hidden;">
+                                <div id="dyn-length-indicator-bar" style="height:100%; width:50%; background:#38bdf8; transition:width 0.15s, background-color 0.15s;"></div>
+                            </div>
+                        </div>
+
+                        <!-- Attachment Points -->
+                        <div style="margin-top:10px; font-size:11px; color:var(--text-muted); line-height:1.4;">
+                            <div><strong style="color:var(--text-main);">Origin:</strong> <span id="dyn-text-origin">--</span></div>
+                            <div style="margin-top:3px;"><strong style="color:var(--text-main);">Insertion:</strong> <span id="dyn-text-insertion">--</span></div>
+                        </div>
+
+                        <div id="dyn-alert-restricted" style="display:none; margin-top:8px; font-size:10px; color:#f59e0b; background:rgba(245,158,11,0.08); padding:6px 8px; border-radius:4px; border:1px solid rgba(245,158,11,0.3);">
+                            <strong>CAUTION:</strong> Unadjusted baseline estimate. OpenSim has not re-simulated altered kinematics for restricted posture.
                         </div>
                     </div>
 
@@ -1193,6 +1322,8 @@ def render_workstation_ui() -> str:
                     initShoulderMovementLab();
                 }
                 loadMotorControlEducation();
+                loadGuidedLearningScenes();
+                updateMuscleDynamics(shoulderCurrentAngle, true);
             }
         }
 
@@ -1948,6 +2079,11 @@ ${session.soap.plan}`;
         let shoulderGHPivot = null, shoulderHumerusGroup = null;
         let shoulderElbowPivot = null, shoulderForearmGroup = null;
         let shoulderMusclesGroup = null;
+        let shoulderActionLinesGroup = null;
+        let shoulderActionLineObjects = {};
+        let currentDynamicsMuscle = 'DELT1';
+        let guidedScenes = [];
+        let currentGuidedSceneIndex = 0;
         let shoulderMeshes = {};
         let isShoulderPlaying = false;
         let shoulderAnimSpeed = 1.0;
@@ -2050,6 +2186,12 @@ ${session.soap.plan}`;
 
             shoulderScene.add(shoulderRootGroup);
 
+            // Action lines group for dynamic muscle lines-of-action
+            shoulderActionLinesGroup = new THREE.Group();
+            shoulderActionLinesGroup.name = "ActionLinesGroup";
+            shoulderScene.add(shoulderActionLinesGroup);
+            initMuscleActionLines();
+
             // Standard Materials
             shoulderDefaultBoneMat = new THREE.MeshStandardMaterial({
                 color: 0xf5f0e6,
@@ -2085,6 +2227,7 @@ ${session.soap.plan}`;
             function renderLoop() {
                 requestAnimationFrame(renderLoop);
                 if (shoulderControls) shoulderControls.update();
+                updateActionLinesGeometry();
                 if (shoulderRenderer && shoulderScene && shoulderCamera) {
                     shoulderRenderer.render(shoulderScene, shoulderCamera);
                 }
@@ -2214,6 +2357,8 @@ ${session.soap.plan}`;
             }
 
             loadShoulderMuscleTable(shoulderCurrentAngle);
+            updateMuscleDynamics(shoulderCurrentAngle);
+            updateActionLinesGeometry();
         }
 
         function toggleShoulderAnimation() {
@@ -2284,6 +2429,8 @@ ${session.soap.plan}`;
                 });
             } else if (layer === 'muscles') {
                 if (shoulderMusclesGroup) shoulderMusclesGroup.visible = isVisible;
+            } else if (layer === 'actionLines') {
+                if (shoulderActionLinesGroup) shoulderActionLinesGroup.visible = isVisible;
             } else if (layer === 'thorax') {
                 if (shoulderThoraxGroup) shoulderThoraxGroup.visible = isVisible;
             }
@@ -2304,6 +2451,20 @@ ${session.soap.plan}`;
         async function selectShoulderStructure(structId) {
             const sel = document.getElementById('shoulder-structure-select');
             if (sel) sel.value = structId;
+
+            const fmaToMuscle = {
+                'FMA34680': 'DELT1',
+                'FMA34682': 'DELT2',
+                'FMA37684': 'BICshort',
+                'FMA37686': 'BIClong',
+                'FMA37699': 'TRIlong'
+            };
+            if (fmaToMuscle[structId] && fmaToMuscle[structId] !== currentDynamicsMuscle) {
+                currentDynamicsMuscle = fmaToMuscle[structId];
+                const dynSel = document.getElementById('dyn-muscle-select');
+                if (dynSel) dynSel.value = currentDynamicsMuscle;
+                updateMuscleDynamics(shoulderCurrentAngle, true);
+            }
 
             if (shoulderSelectedMesh) {
                 shoulderSelectedMesh.material = (shoulderSelectedMesh.userData.type === 'bone') ? shoulderDefaultBoneMat.clone() : shoulderDefaultMuscleMat.clone();
@@ -2434,6 +2595,299 @@ ${session.soap.plan}`;
             } catch (err) {
                 console.warn("Could not load motor control education topics:", err);
             }
+        }
+
+        // ========================================================
+        // OPENSIM MUSCLE DYNAMICS & ACTION LINE ENGINE (P15-B)
+        // ========================================================
+        const MUSCLE_ACTION_MAP = {
+            'DELT1': { parentOrigin: 'clavicle', origin: [-0.014, 0.011, 0.080], parentInsert: 'humerus', insert: [0.009, -0.119, 0.006], color: 0x38bdf8 },
+            'DELT2': { parentOrigin: 'scapula', origin: [-0.011, -0.000, 0.006], parentInsert: 'humerus', insert: [0.005, -0.136, 0.006], color: 0x34d399 },
+            'DELT3': { parentOrigin: 'scapula', origin: [-0.056, 0.001, -0.025], parentInsert: 'humerus', insert: [0.002, -0.076, 0.010], color: 0xfacc15 },
+            'SUPSP': { parentOrigin: 'scapula', origin: [-0.044, -0.015, -0.059], parentInsert: 'humerus', insert: [0.003, 0.011, 0.026], color: 0x38bdf8 },
+            'INFSP': { parentOrigin: 'scapula', origin: [-0.074, -0.055, -0.048], parentInsert: 'humerus', insert: [-0.009, 0.005, 0.024], color: 0xf43f5e },
+            'SUBSC': { parentOrigin: 'scapula', origin: [-0.072, -0.039, -0.065], parentInsert: 'humerus', insert: [0.014, 0.008, -0.013], color: 0x38bdf8 },
+            'TMIN':  { parentOrigin: 'scapula', origin: [-0.096, -0.081, -0.053], parentInsert: 'humerus', insert: [-0.001, -0.013, 0.022], color: 0xfacc15 },
+            'BICshort': { parentOrigin: 'scapula', origin: [0.013, -0.039, -0.026], parentInsert: 'forearm', insert: [-0.002, -0.038, -0.002], color: 0x34d399 },
+            'BIClong': { parentOrigin: 'scapula', origin: [-0.031, -0.024, -0.013], parentInsert: 'forearm', insert: [-0.002, -0.038, -0.002], color: 0x38bdf8 },
+            'TRIlong': { parentOrigin: 'scapula', origin: [-0.046, -0.041, -0.014], parentInsert: 'forearm', insert: [-0.022, 0.010, -0.001], color: 0xfacc15 }
+        };
+
+        function getBoneGroupByName(name) {
+            if (name === 'clavicle') return shoulderClavicleGroup;
+            if (name === 'scapula') return shoulderScapulaGroup;
+            if (name === 'humerus') return shoulderHumerusGroup;
+            if (name === 'forearm') return shoulderForearmGroup;
+            return shoulderRootGroup;
+        }
+
+        function initMuscleActionLines() {
+            shoulderActionLineObjects = {};
+            if (!shoulderActionLinesGroup) return;
+
+            for (const [mName, meta] of Object.entries(MUSCLE_ACTION_MAP)) {
+                const originGroup = getBoneGroupByName(meta.parentOrigin);
+                const insertGroup = getBoneGroupByName(meta.parentInsert);
+                if (!originGroup || !insertGroup) continue;
+
+                const originAnchor = new THREE.Object3D();
+                originAnchor.position.set(meta.origin[0], meta.origin[1], meta.origin[2]);
+                originGroup.add(originAnchor);
+
+                const insertAnchor = new THREE.Object3D();
+                insertAnchor.position.set(meta.insert[0], meta.insert[1], meta.insert[2]);
+                insertGroup.add(insertAnchor);
+
+                const positions = new Float32Array(6);
+                const geom = new THREE.BufferGeometry();
+                geom.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+
+                const mat = new THREE.LineBasicMaterial({
+                    color: meta.color,
+                    linewidth: (mName === currentDynamicsMuscle) ? 4 : 2,
+                    transparent: true,
+                    opacity: (mName === currentDynamicsMuscle) ? 1.0 : 0.65
+                });
+                const line = new THREE.Line(geom, mat);
+                line.name = 'action_line_' + mName;
+                shoulderActionLinesGroup.add(line);
+
+                shoulderActionLineObjects[mName] = {
+                    originAnchor: originAnchor,
+                    insertAnchor: insertAnchor,
+                    line: line,
+                    material: mat
+                };
+            }
+        }
+
+        function updateActionLinesGeometry() {
+            if (!shoulderActionLinesGroup || !shoulderActionLinesGroup.visible) return;
+            const vStart = new THREE.Vector3();
+            const vEnd = new THREE.Vector3();
+
+            for (const [mName, item] of Object.entries(shoulderActionLineObjects)) {
+                item.originAnchor.getWorldPosition(vStart);
+                item.insertAnchor.getWorldPosition(vEnd);
+
+                const posAttr = item.line.geometry.attributes.position;
+                posAttr.setXYZ(0, vStart.x, vStart.y, vStart.z);
+                posAttr.setXYZ(1, vEnd.x, vEnd.y, vEnd.z);
+                posAttr.needsUpdate = true;
+                item.line.geometry.computeBoundingSphere();
+            }
+        }
+
+        let _lastDynFetchAngle = -999;
+        let _lastDynFetchMode = '';
+        let _lastDynMuscle = '';
+
+        async function selectDynamicsMuscle(mKey) {
+            currentDynamicsMuscle = mKey;
+            const sel = document.getElementById('dyn-muscle-select');
+            if (sel) sel.value = mKey;
+
+            for (const [name, item] of Object.entries(shoulderActionLineObjects)) {
+                if (name === mKey) {
+                    item.material.opacity = 1.0;
+                    item.material.linewidth = 4;
+                } else {
+                    item.material.opacity = 0.5;
+                    item.material.linewidth = 2;
+                }
+            }
+
+            const muscleToFma = {
+                'DELT1': 'FMA34680',
+                'DELT2': 'FMA34682',
+                'BICshort': 'FMA37684',
+                'BIClong': 'FMA37686',
+                'TRIlong': 'FMA37699'
+            };
+            if (muscleToFma[mKey]) {
+                selectShoulderStructure(muscleToFma[mKey]);
+            }
+
+            updateMuscleDynamics(shoulderCurrentAngle, true);
+        }
+
+        async function updateMuscleDynamics(angleDeg, forceRefresh = false) {
+            if (!forceRefresh && Math.abs(angleDeg - _lastDynFetchAngle) < 0.5 && shoulderComparisonMode === _lastDynFetchMode && currentDynamicsMuscle === _lastDynMuscle) {
+                return;
+            }
+            _lastDynFetchAngle = angleDeg;
+            _lastDynFetchMode = shoulderComparisonMode;
+            _lastDynMuscle = currentDynamicsMuscle;
+
+            const isRestricted = (shoulderComparisonMode === 'forward_shoulder_restricted');
+            const scenBadge = document.getElementById('badge-dyn-scenario-status');
+            const alertBox = document.getElementById('dyn-alert-restricted');
+            if (scenBadge) {
+                if (isRestricted) {
+                    scenBadge.innerText = 'Unadjusted Baseline';
+                    scenBadge.style.color = '#f59e0b';
+                    scenBadge.style.background = 'rgba(245,158,11,0.15)';
+                } else {
+                    scenBadge.innerText = 'Verified Benchmark';
+                    scenBadge.style.color = 'var(--accent-green)';
+                    scenBadge.style.background = 'rgba(52,211,153,0.15)';
+                }
+            }
+            if (alertBox) {
+                alertBox.style.display = isRestricted ? 'block' : 'none';
+            }
+
+            try {
+                const res = await fetch(`/api/v1/biomechanics/shoulder/muscles/dynamics?muscle_id=${currentDynamicsMuscle}&arm_elevation_deg=${angleDeg.toFixed(1)}&comparison_mode=${shoulderComparisonMode}`);
+                if (res.ok) {
+                    const items = await res.json();
+                    if (!items || items.length === 0) return;
+                    const d = items[0];
+
+                    const fibElem = document.getElementById('dyn-val-fiber-len');
+                    if (fibElem) fibElem.innerText = (d.current_fiber_length_m * 100).toFixed(2) + ' cm';
+                    const deltaElem = document.getElementById('dyn-val-delta-len');
+                    if (deltaElem) {
+                        const deltaCm = (d.delta_fiber_length_m * 100).toFixed(2);
+                        deltaElem.innerText = 'Δl: ' + (deltaCm > 0 ? '+' : '') + deltaCm + ' cm';
+                    }
+                    const normElem = document.getElementById('dyn-val-norm-len');
+                    if (normElem) normElem.innerText = d.normalized_fiber_length.toFixed(3);
+                    const chipElem = document.getElementById('dyn-val-kmsi-chip');
+                    if (chipElem) {
+                        chipElem.innerText = d.kmsi_tag;
+                        chipElem.style.color = d.kmsi_color_hex;
+                    }
+                    const forceElem = document.getElementById('dyn-val-pass-force');
+                    if (forceElem) forceElem.innerText = `${d.passive_force_n.toFixed(1)} N`;
+                    const optElem = document.getElementById('dyn-val-opt-len');
+                    if (optElem) optElem.innerText = (d.optimal_fiber_length_m * 100).toFixed(2) + ' cm';
+                    const fmaxElem = document.getElementById('dyn-val-fmax');
+                    if (fmaxElem) fmaxElem.innerText = `F_max: ${d.max_isometric_force_n.toFixed(0)} N`;
+
+                    const origElem = document.getElementById('dyn-text-origin');
+                    if (origElem) origElem.innerText = `${d.origin_description} [${d.origin_frame}]`;
+                    const insElem = document.getElementById('dyn-text-insertion');
+                    if (insElem) insElem.innerText = `${d.insertion_description} [${d.insertion_frame}]`;
+
+                    const barElem = document.getElementById('dyn-length-indicator-bar');
+                    if (barElem) {
+                        let pct = 50 + (d.normalized_fiber_length - 1.0) * 100;
+                        pct = Math.max(8, Math.min(96, pct));
+                        barElem.style.width = pct + '%';
+                        barElem.style.backgroundColor = d.kmsi_color_hex;
+                    }
+
+                    if (shoulderActionLineObjects[d.muscle_name]) {
+                        shoulderActionLineObjects[d.muscle_name].material.color.set(d.kmsi_color_hex);
+                    }
+                }
+            } catch (e) {
+                console.warn("Could not fetch muscle dynamics:", e);
+            }
+        }
+
+        // ========================================================
+        // GUIDED LEARNING CASE STUDY CONTROLLER (P15-D)
+        // ========================================================
+        async function loadGuidedLearningScenes() {
+            try {
+                const res = await fetch('/api/v1/biomechanics/shoulder/guided/scenes');
+                if (res.ok) {
+                    guidedScenes = await res.json();
+                    renderGuidedDots();
+                    renderGuidedScene(0);
+                }
+            } catch (e) {
+                console.warn("Could not load guided scenes:", e);
+            }
+        }
+
+        function renderGuidedDots() {
+            const dotsContainer = document.getElementById('guided-scene-dots');
+            if (!dotsContainer) return;
+            dotsContainer.innerHTML = guidedScenes.map((s, idx) => `
+                <button class="btn btn-secondary guided-dot-btn" id="guided-dot-${idx}" style="padding:4px 8px; font-size:11px; min-width:28px;" onclick="goToGuidedScene(${idx})" title="${s.title}">
+                    ${idx + 1}
+                </button>
+            `).join('');
+        }
+
+        function renderGuidedScene(index) {
+            if (!guidedScenes || guidedScenes.length === 0) return;
+            if (index < 0) index = 0;
+            if (index >= guidedScenes.length) index = guidedScenes.length - 1;
+            currentGuidedSceneIndex = index;
+
+            const s = guidedScenes[index];
+            const titleElem = document.getElementById('guided-scene-title');
+            if (titleElem) titleElem.innerText = s.title;
+            const subElem = document.getElementById('guided-scene-subtitle');
+            if (subElem) subElem.innerText = s.subtitle;
+            const badgeElem = document.getElementById('guided-scene-badge');
+            if (badgeElem) badgeElem.innerText = `Scene ${s.scene_number} of ${guidedScenes.length}`;
+            const narrElem = document.getElementById('guided-scene-narrative');
+            if (narrElem) narrElem.innerText = s.pedagogical_narrative;
+
+            const insList = document.getElementById('guided-scene-insights');
+            if (insList) {
+                insList.innerHTML = s.biomechanical_insights.map(i => `<li>${i}</li>`).join('');
+            }
+            const tensDiv = document.getElementById('guided-scene-tension-context');
+            if (tensDiv) {
+                tensDiv.innerText = s.why_tension_returns_context;
+            }
+            const evDiv = document.getElementById('guided-scene-evidence');
+            if (evDiv) {
+                evDiv.innerHTML = `<strong>Evidence:</strong> ${s.evidence_references.join(' | ')}`;
+            }
+            const limDiv = document.getElementById('guided-scene-limitations');
+            if (limDiv) {
+                limDiv.innerHTML = `<strong>Limitations:</strong> ${s.scientific_limitations}`;
+            }
+
+            document.querySelectorAll('.guided-dot-btn').forEach((btn, idx) => {
+                if (idx === index) {
+                    btn.classList.add('btn-primary');
+                    btn.classList.remove('btn-secondary');
+                    btn.style.fontWeight = '700';
+                } else {
+                    btn.classList.remove('btn-primary');
+                    btn.classList.add('btn-secondary');
+                    btn.style.fontWeight = '400';
+                }
+            });
+
+            const prevBtn = document.getElementById('btn-guided-prev');
+            if (prevBtn) prevBtn.disabled = (index === 0);
+            const nextBtn = document.getElementById('btn-guided-next');
+            if (nextBtn) nextBtn.disabled = (index === guidedScenes.length - 1);
+
+            if (shoulderComparisonMode !== s.recommended_comparison_mode) {
+                const compSelect = document.getElementById('shoulder-comparison-select');
+                if (compSelect) {
+                    compSelect.value = s.recommended_comparison_mode;
+                    changeShoulderComparisonMode();
+                }
+            }
+
+            onShoulderTimelineScrub(s.recommended_arm_elevation_deg);
+
+            if (s.highlighted_structure_id) {
+                selectShoulderStructure(s.highlighted_structure_id);
+            }
+        }
+
+        function nextGuidedScene() {
+            renderGuidedScene(currentGuidedSceneIndex + 1);
+        }
+
+        function prevGuidedScene() {
+            renderGuidedScene(currentGuidedSceneIndex - 1);
+        }
+
+        function goToGuidedScene(idx) {
+            renderGuidedScene(idx);
         }
 
         // Initialize on DOM load

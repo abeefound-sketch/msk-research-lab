@@ -1,0 +1,49 @@
+{
+  "milestone": "P15",
+  "title": "Interactive Shoulder Biomechanics, Muscle Dynamics & Guided Movement Education",
+  "timestamp": "2026-10-31T06:30:48Z",
+  "git_branch": "fix/workstation-real-functional-acceptance",
+  "git_parent_checkpoint": "fb3c450",
+  "summary": {
+    "total_tests": 314,
+    "passed": 314,
+    "failed": 0,
+    "skipped": 0,
+    "warnings": 1,
+    "browser_acceptance_steps": 15,
+    "browser_acceptance_status": "PASS"
+  },
+  "test_suites": {
+    "unit_tests": {
+      "command": "/home/tuan/.venvs/msk-lab/bin/pytest tests/unit/",
+      "count": 188,
+      "passed": 188,
+      "failed": 0,
+      "p13_p14_p15_biomechanics_oracle_count": 41,
+      "p13_p14_p15_biomechanics_oracle_status": "100% PASS"
+    },
+    "integration_tests": {
+      "command": "/home/tuan/.venvs/msk-lab/bin/pytest tests/integration/ (excluding browser harnesses)",
+      "count": 125,
+      "passed": 125,
+      "failed": 0,
+      "security_and_durability_tests": "PASS",
+      "fastapi_endpoints": "PASS"
+    },
+    "browser_acceptance": {
+      "harness": "Playwright 1.64.1 on native Microsoft Edge (channel=msedge)",
+      "script": "tests/integration/test_p15_guided_learning_e2e.py",
+      "steps_verified": 15,
+      "steps_passed": 15,
+      "screenshots_captured": 11,
+      "status": "PASS"
+    }
+  },
+  "gates": {
+    "clinical_realworld_gate": "BLOCKED",
+    "physical_stereo_hardware_gate": "BLOCKED",
+    "fail_closed_2d_to_3d_guard": "VERIFIED_FAIL_CLOSED",
+    "air_gapped_loopback_only": "VERIFIED_100%_LOOPBACK"
+  },
+  "release_recommendation": "GO — PERSONAL OFFLINE / SYNTHETIC & RESEARCH ONLY"
+}

@@ -102,6 +102,64 @@ class MotorControlTopic(BaseModel):
     provenance: ScientificContentProvenance
 
 
+class GuidedLearningScene(BaseModel):
+    scene_id: str
+    scene_number: int
+    title: str
+    subtitle: str
+    recommended_arm_elevation_deg: float
+    recommended_comparison_mode: str  # "normal_2to1" or "forward_shoulder_restricted"
+    highlighted_structure_id: Optional[str] = None
+    pedagogical_narrative: str
+    biomechanical_insights: List[str]
+    why_tension_returns_context: str
+    scientific_limitations: str
+    evidence_references: List[str]
+    provenance: ScientificContentProvenance
+
+
+class MusclePathPoint(BaseModel):
+    name: str
+    parent_frame: str  # "clavicle", "scapula", "humerus", "radius", "ulna"
+    location_m: List[float]  # [x, y, z] in parent frame
+
+
+class MuscleDynamicsDetail(BaseModel):
+    muscle_name: str
+    fma_id: str
+    full_name: str
+    category: str = "muscle"
+    mesh_classification: str = "STATIC_RESTING_ANATOMICAL_MESH"
+    path_classification: str = "REPRESENTED_BY_OPENSIM_MUSCLE_PATH"
+    origin_description: str
+    insertion_description: str
+    origin_frame: str
+    insertion_frame: str
+    origin_point_m: List[float]
+    insertion_point_m: List[float]
+    via_points: List[MusclePathPoint] = []
+    max_isometric_force_n: float
+    optimal_fiber_length_m: float
+    tendon_slack_length_m: float
+    current_elevation_deg: float
+    current_fiber_length_m: float
+    neutral_fiber_length_m: float
+    delta_fiber_length_m: float
+    normalized_fiber_length: float
+    passive_force_n: float
+    biomechanical_state: str
+    kmsi_tag: str
+    kmsi_color_hex: str
+    length_change_tag: str = "MODELED_LENGTH_CHANGE"
+    passive_force_tag: str = "MODELED_PASSIVE_FORCE"
+    activation_measurement_status: str = "MUSCLE_ACTIVATION_NOT_MEASURED"
+    illustration_status: str = "EDUCATIONAL_ILLUSTRATION"
+    data_provenance: str
+    validation_status: str
+    scenario_note: str
+    provenance: ScientificContentProvenance
+
+
 def compute_kmsi_tag_and_color(norm_fiber_length: Optional[float]) -> tuple[str, str]:
     """Classify normalized muscle fiber length into educational KMSI color chips."""
     if norm_fiber_length is None:
@@ -698,47 +756,474 @@ class ShoulderMovementLabEngine:
             )
         return None
 
-    def get_motor_control_education(self) -> List[MotorControlTopic]:
-        """Return evidence-based educational topics explaining motor control, sensory feedback, and movement learning."""
+    def get_guided_learning_scenes(self) -> List[GuidedLearningScene]:
+        """Return the 6 structured scenes of the Shoulder Biomechanics Guided Learning case study."""
         return [
-            MotorControlTopic(
-                topic_id="sensory_feedback_proprioception",
-                title="Sensory Feedback: Muscle Spindles, Golgi Tendon Organs & Proprioception",
-                summary="How sensory afferents provide instantaneous length and tension feedback to the central nervous system.",
-                detailed_explanation=(
-                    "Every voluntary movement relies on continuous afferent feedback from specialized mechanoreceptors. "
-                    "Muscle spindles, located in parallel within extrafusal muscle fibers, detect muscle fiber length and the "
-                    "velocity of length change (via primary type Ia and secondary type II sensory afferents). Golgi tendon organs (GTOs), "
-                    "arranged in series at the musculotendinous junction, monitor active and passive mechanical tension (via type Ib afferents). "
-                    "Together with articular receptors in joint capsules, these afferents convey instantaneous proprioceptive signals "
-                    "to the spinal cord (mediating monosynaptic stretch reflexes and reciprocal inhibition) and ascending pathways "
-                    "(spinocerebellar and dorsal column-medial lemniscal pathways) to the cerebellum and somatosensory cortex (S1)."
+            GuidedLearningScene(
+                scene_id="scene_1_anatomy_foundations",
+                scene_number=1,
+                title="Scene 1: Anatomical Architecture of the Shoulder Girdle",
+                subtitle="Bony Articulations & Neutral Structural Alignment",
+                recommended_arm_elevation_deg=0.0,
+                recommended_comparison_mode="normal_2to1",
+                highlighted_structure_id="FMA13395",
+                pedagogical_narrative=(
+                    "The human shoulder is not a solitary ball-and-socket joint, but an integrated 4-articulation "
+                    "system comprising the Glenohumeral (GH), Sternoclavicular (SC), Acromioclavicular (AC), and the "
+                    "scapulothoracic sliding interface. The scapula rests suspended over ribs T2–T7, anchored solely "
+                    "to the axial skeleton through the clavicular strut at the sternoclavicular articulation. Explore "
+                    "the resting bony landmarks of the scapula (spine, acromion, glenoid fossa), clavicle, and humerus."
                 ),
-                physiological_mechanisms=[
-                    "Muscle Spindles (Ia/II afferents): Transduce dynamic stretch velocity and static muscle fiber length.",
-                    "Golgi Tendon Organs (Ib afferents): Transduce tensile load; mediate Ib autogenic inhibition.",
-                    "Gamma-Motor Neuron Coactivation: Modulates intrafusal sensitivity during active voluntary contraction.",
-                    "Spinocerebellar Projections: Real-time efference copy comparison for movement error correction."
+                biomechanical_insights=[
+                    "The sternoclavicular joint provides the solitary skeletal articulation linking the entire upper limb to the axial skeleton.",
+                    "The scapula rests in the scapular plane (~30° anterior to the coronal plane), maximizing glenoid-humeral congruency.",
+                    "Neutral posture establishes the baseline resting muscle fiber lengths (l_M,0) for all surrounding scapulohumeral musculature."
                 ],
-                clinical_educational_takeaway=(
-                    "Coordinated movement is an active sensorimotor loop, not a feedforward mechanical sequence. "
-                    "Sensory feedback must be integrated with cortical motor plans to adjust joint stability dynamically."
+                why_tension_returns_context=(
+                    "Postural tension is frequently perceived as an isolated 'muscle knot', but resting tension is fundamentally "
+                    "governed by skeletal alignment and continuous baseline gamma-motor neuron tone holding bones in their habitual positions."
                 ),
-                scientific_references=[
-                    "Kandel ER, Schwartz JH, Jessell TM, Siegelbaum SA, Hudspeth AJ. Principles of Neural Science. 6th ed. McGraw-Hill; 2021.",
-                    "Latash ML. Fundamentals of Motor Control. Academic Press; 2012.",
-                    "Proske U, Gandevia SC. The proprioceptive senses: their roles in signaling body shape, body position and movement, and muscle force. Physiol Rev. 2012;92(4):1651-1697."
+                scientific_limitations=(
+                    "Rigid 3D bone geometries represent population-averaged BodyParts3D morphology. Inter-individual acromial shapes "
+                    "(Bigliani types I–III) and physiological variations in resting thoracic kyphosis are not patient-specific."
+                ),
+                evidence_references=[
+                    "Inman VT, Saunders JB, Abbott LC. Observations on the function of the shoulder joint. J Bone Joint Surg Am. 1944;26(1):1-30.",
+                    "Neumann DA. Kinesiology of the Musculoskeletal System: Foundations for Rehabilitation. 3rd ed. Elsevier; 2017."
                 ],
                 provenance=ScientificContentProvenance(
-                    source_model="NEUROPHYSIOLOGY_CLASSICAL_AFFERENT_MODEL",
-                    source_dataset="Peer-Reviewed Neurobiology Literature",
+                    source_model="BODYPARTS3D_AND_OPENSIM_ANATOMY",
+                    source_dataset="BodyParts3D 3.0 / OpenSim MOBL_ARMS_41",
+                    model_version="4.6.0",
+                    source_reference="Inman et al. 1944 / Neumann 2017",
+                    assumption_type="EMPIRICAL_LITERATURE",
+                    measurement_or_simulation="SIMULATION",
+                    units="meters / degrees",
+                    validation_status="VERIFIED_BASELINE_BENCHMARK",
+                    known_limitations="Rigid bone assumptions; dynamic soft tissue compliance and joint capsule compressibility omitted."
+                )
+            ),
+            GuidedLearningScene(
+                scene_id="scene_2_normal_rhythm",
+                scene_number=2,
+                title="Scene 2: Canonical 2:1 Scapulohumeral Rhythm",
+                subtitle="Healthy Coordinated Elevation Across the 4 Articulations",
+                recommended_arm_elevation_deg=90.0,
+                recommended_comparison_mode="normal_2to1",
+                highlighted_structure_id="FMA13322",
+                pedagogical_narrative=(
+                    "Observe canonical arm elevation. For every 3° of total arm abduction, approximately 2° occurs at the "
+                    "glenohumeral joint and 1° occurs at the scapulothoracic articulation (after an initial 30° setting phase). "
+                    "Simultaneously, the clavicle elevates up to ~32° at the sternoclavicular joint and rotates posteriorly. "
+                    "This synchronized rotation tilts the acromion upward, continuously maintaining subacromial space clearance "
+                    "(>6 mm) for the supraspinatus tendon throughout 0° to 180° elevation."
+                ),
+                biomechanical_insights=[
+                    "0°–30° Setting Phase: Movement is primarily glenohumeral, stabilizing the humeral head against the glenoid.",
+                    "30°–180° Coordinated Phase: 2:1 ratio ensures the glenoid fossa provides a continuous upward-facing platform.",
+                    "Clavicular elevation and posterior rotation mechanically tilt the acromion upward via the conoid ligament."
+                ],
+                why_tension_returns_context=(
+                    "When scapulohumeral rhythm operates harmoniously, mechanical work is shared among deltoid, rotator cuff, "
+                    "serratus anterior, and trapezius. If movement becomes uncoordinated, individual stabilizing muscles become chronically overloaded."
+                ),
+                scientific_limitations=(
+                    "The classic 2:1 ratio is an educational standard. Dynamic dynamic in-vivo videofluoroscopy demonstrates that normal "
+                    "ratios fluctuate between 1.5:1 and 3:1 across different healthy individuals and planes of elevation."
+                ),
+                evidence_references=[
+                    "Inman VT, Saunders JB, Abbott LC. J Bone Joint Surg Am. 1944;26(1):1-30.",
+                    "McClure PW, Michener LA, et al. Direct 3D measurement of scapular kinematics in vivo. J Shoulder Elbow Surg. 2001;10(3):269-277."
+                ],
+                provenance=ScientificContentProvenance(
+                    source_model="MOBL_ARMS_41_CANONICAL_KINEMATICS",
+                    source_dataset="Classic Inman / McClure Kinematic Benchmark",
+                    model_version="4.6.0",
+                    source_reference="Inman et al. 1944 / McClure et al. 2001",
+                    assumption_type="EMPIRICAL_LITERATURE",
+                    measurement_or_simulation="SIMULATION",
+                    units="degrees / ratio",
+                    validation_status="VERIFIED_BASELINE_BENCHMARK",
+                    known_limitations="2:1 ratio is an idealized linear benchmark; actual in-vivo human movement exhibits planar non-linearities."
+                )
+            ),
+            GuidedLearningScene(
+                scene_id="scene_3_restricted_scenario",
+                scene_number=3,
+                title="Scene 3: Hypothetical Restricted Scapular Rotation",
+                subtitle="Simulated Scapular Movement Alteration & Impingement Vulnerability",
+                recommended_arm_elevation_deg=90.0,
+                recommended_comparison_mode="forward_shoulder_restricted",
+                highlighted_structure_id="FMA23130",
+                pedagogical_narrative=(
+                    "Switch to Model B to examine an educational comparative scenario. Here, scapular upward rotation is "
+                    "restricted by 40% (~4:1 rhythm) accompanied by resting anterior tilt (+12°). To achieve 90° of arm elevation, "
+                    "the glenohumeral joint must over-elevate to 78° (instead of 60°). Because the acromion fails to rotate upward, "
+                    "the greater tubercle impinges closer to the coracoacromial arch, narrowing modeled subacromial clearance "
+                    "during the mid-range painful arc (60°–120°)."
+                ),
+                biomechanical_insights=[
+                    "Scapular upward rotation reaches only ~18° at 90° arm abduction (compared to 30° in normal rhythm).",
+                    "Glenohumeral elevation must over-compensate to 78° to reach the target 90° humeral position.",
+                    "Subacromial clearance narrows significantly between 60° and 120°, geometrically compressing the modeled subacromial zone."
+                ],
+                why_tension_returns_context=(
+                    "Compensatory glenohumeral over-elevation forces the rotator cuff and superior shoulder stabilizers to exert "
+                    "excessive holding force, creating persistent subjective sensations of tightness around the levator scapulae and upper trapezius."
+                ),
+                scientific_limitations=(
+                    "This model is a hypothetical educational scenario derived from symptomatic cohort averages (Ludewig & Cook 2000). "
+                    "It is NOT a personal medical diagnosis. Many asymptomatic individuals exhibit restricted scapular rotation without pain."
+                ),
+                evidence_references=[
+                    "Ludewig PM, Cook TM. Alterations in shoulder kinematics in people with impingement. Phys Ther. 2000;80(3):276-291.",
+                    "Flatow EL, et al. Computer simulation of subacromial impingement. J Shoulder Elbow Surg. 1994;3(4):249-260."
+                ],
+                provenance=ScientificContentProvenance(
+                    source_model="MOBL_ARMS_41_RESTRICTED_POSTURE",
+                    source_dataset="Ludewig & Cook 2000 Symptomatic Cohort Kinematics",
+                    model_version="1.0.0-hypothetical",
+                    source_reference="Ludewig PM, Cook TM. Phys Ther. 2000;80(3):276-291.",
+                    assumption_type="HYPOTHETICAL_SCENARIO",
+                    measurement_or_simulation="EDUCATIONAL_HYPOTHESIS",
+                    units="degrees / clearance status",
+                    validation_status="EDUCATIONAL_ESTIMATE",
+                    known_limitations="Cohort-level simulation; postural alignment alone does not diagnose individual pathology."
+                )
+            ),
+            GuidedLearningScene(
+                scene_id="scene_4_muscle_mechanics",
+                scene_number=4,
+                title="Scene 4: OpenSim Modeled Muscle Fiber Length & Passive Force",
+                subtitle="Geometric Muscle Shortening, Stretch & Hill-Type Elastic Resistance",
+                recommended_arm_elevation_deg=120.0,
+                recommended_comparison_mode="normal_2to1",
+                highlighted_structure_id="FMA34680",
+                pedagogical_narrative=(
+                    "Examine modeled muscle responses calculated via OpenSim MoBL-ARMS 4.1 Hill-type equilibrium models. As the arm "
+                    "elevates, the anterior deltoid (DELT1) shortens from its optimal resting fiber length (10.5 cm down to 7.6 cm at 120°, "
+                    "normalized length 0.78), losing passive elastic tension. In contrast, antagonist or stabilizing muscles (such as the "
+                    "posterior deltoid and infraspinatus) undergo passive stretch beyond optimal length (l_tilde > 1.20), generating rising "
+                    "passive elastic tension in parallel connective tissues (titin, perimysium, epimysium)."
+                ),
+                biomechanical_insights=[
+                    "Muscle fibers that shorten below resting length (l_tilde < 1.0) enter the slack state, producing zero passive elastic force.",
+                    "Fibers stretched beyond optimal length (l_tilde > 1.15) experience non-linear exponential rises in passive connective tissue tension.",
+                    "When restricted posture is selected, muscle metrics are tagged as unadjusted baseline estimates to prevent deceptive attribution."
+                ],
+                why_tension_returns_context=(
+                    "Subjective 'tension' has two distinct physical sources: active neurological muscle contraction (alpha-motor neuron drive) "
+                    "and passive viscoelastic stiffness (connective tissue resistance). Treating passive stiffness alone leaves active neural drive unaddressed."
+                ),
+                scientific_limitations=(
+                    "Millard2012 equilibrium muscle model calculates length from geometric lines of action. It does NOT record "
+                    "electromyographic (EMG) muscle activation or voluntary motor unit firing."
+                ),
+                evidence_references=[
+                    "Saul KR, et al. Benchmarking of dynamic simulation predictions using an upper extremity model. Comput Methods Biomech Biomed Engin. 2015;18(13):1445-1458.",
+                    "Millard M, et al. Flexing computational muscle: modeling and simulation of musculotendon dynamics. J Biomech Eng. 2013;135(2):021005."
+                ],
+                provenance=ScientificContentProvenance(
+                    source_model="MOBL_ARMS_41_MILLARD_EQUILIBRIUM",
+                    source_dataset="OpenSim Upper Extremity Muscle Model Database",
+                    model_version="4.6.0",
+                    source_reference="Saul et al. 2015 / Millard et al. 2013",
+                    assumption_type="OPENSIM_SIMULATION",
+                    measurement_or_simulation="SIMULATION",
+                    units="meters (length) / Newtons (passive force)",
+                    validation_status="VERIFIED_BASELINE_BENCHMARK",
+                    known_limitations="Hill equilibrium model assuming nominal 0.02 activation; voluntary EMG recruitment unmodeled."
+                )
+            ),
+            GuidedLearningScene(
+                scene_id="scene_5_motor_control",
+                scene_number=5,
+                title="Scene 5: Neural Planning & Afferent Sensory Feedback",
+                subtitle="The Sensorimotor Loop: Spindles, Golgi Tendon Organs & Synergies",
+                recommended_arm_elevation_deg=45.0,
+                recommended_comparison_mode="normal_2to1",
+                highlighted_structure_id="FMA37684",
+                pedagogical_narrative=(
+                    "Human movement coordination is fundamentally an active sensorimotor feedback loop, not an open-loop mechanical mechanism. "
+                    "The primary motor cortex (M1), supplementary motor area (SMA), and cerebellum do not command individual muscles; "
+                    "they encode goal-directed muscle synergies. Simultaneously, muscle spindles (detecting fiber length and stretch velocity) "
+                    "and Golgi tendon organs (detecting tensile load) stream afferent feedback through spinal reflexes and ascending spinocerebellar "
+                    "pathways to compare intended movement with actual execution."
+                ),
+                biomechanical_insights=[
+                    "Muscle spindles (Type Ia/II afferents) continuously monitor muscle length and velocity of stretch.",
+                    "Golgi tendon organs (Type Ib afferents) monitor tensile strain at the musculotendinous junction, mediating autogenic inhibition.",
+                    "Habitual movement patterns represent entrenched neural synergies that the CNS adopts to minimize instantaneous cognitive effort."
+                ],
+                why_tension_returns_context=(
+                    "When a person sits for hours in a desk posture, the nervous system recalibrates its proprioceptive 'neutral' position. "
+                    "The habitual motor synergy becomes the default neural command program."
+                ),
+                scientific_limitations=(
+                    "Neurophysiological explanations are evidence-based educational models; real-time individual cortical spike trains, "
+                    "gamma-motor neuron firing rates, and spinal interneuron states cannot be measured through 3D visualization."
+                ),
+                evidence_references=[
+                    "Kandel ER, et al. Principles of Neural Science. 6th ed. McGraw-Hill; 2021.",
+                    "Latash ML. Fundamentals of Motor Control. Academic Press; 2012.",
+                    "Proske U, Gandevia SC. The proprioceptive senses. Physiol Rev. 2012;92(4):1651-1697."
+                ],
+                provenance=ScientificContentProvenance(
+                    source_model="NEUROPHYSIOLOGY_SENSORIMOTOR_SYNTHESIS",
+                    source_dataset="Classic Neurobiology & Motor Control Literature",
                     model_version="6th Edition Principles of Neural Science",
                     source_reference="Kandel et al. 2021 / Proske & Gandevia 2012",
                     assumption_type="EMPIRICAL_LITERATURE",
                     measurement_or_simulation="EDUCATIONAL_HYPOTHESIS",
                     units="neurophysiological concepts",
                     validation_status="VERIFIED_BASELINE_BENCHMARK",
-                    known_limitations="Conceptual synthesis; individual neurophysiological recruitment thresholds vary."
+                    known_limitations="Conceptual neurophysiological model; individual reflex thresholds and synaptic weights vary."
+                )
+            ),
+            GuidedLearningScene(
+                scene_id="scene_6_long_term_change",
+                scene_number=6,
+                title="Scene 6: Why Tension Returns & Principles of Lasting Change",
+                subtitle="Transient Viscoelastic Relaxation vs. Active Neuroplastic Motor Repatterning",
+                recommended_arm_elevation_deg=90.0,
+                recommended_comparison_mode="normal_2to1",
+                highlighted_structure_id="FMA13395",
+                pedagogical_narrative=(
+                    "Address the core case: Why does shoulder tension temporarily improve after manual muscle treatment while a "
+                    "familiar posture or movement pattern later returns? Manual interventions (massage, ischemic pressure, dry needling, "
+                    "passive stretching) induce immediate relief via two transient mechanisms: (1) mechanical viscoelastic stress-relaxation "
+                    "and thixotropy (transiently fluidifying viscous hyaluronic acid in fascia), and (2) short-term autonomic down-regulation "
+                    "of gamma-motor neuron drive via cutaneous mechanoreceptor stimulation. Crucially, however, passive treatments do NOT "
+                    "reorganize synaptic connections in primary motor cortex (M1) or alter cerebellar internal models. When active upright "
+                    "movement resumes, the CNS re-engages its habitual motor synergy. Achieving durable change requires active, deliberate "
+                    "movement practice (Fitts & Posner stages: cognitive -> associative -> autonomous) to drive neuroplastic synaptogenesis."
+                ),
+                biomechanical_insights=[
+                    "Transient relief is governed by viscoelastic creep, thixotropy, and transient gamma-reflex inhibition.",
+                    "Passive therapy creates a temporary 'window of opportunity' with reduced resistance and improved sensory tolerance.",
+                    "Permanent functional changes require deliberate active movement practice that stimulates long-term potentiation (LTP) in motor cortex."
+                ],
+                why_tension_returns_context=(
+                    "Tension returns because the brain's default motor program was never rewritten by the passive treatment. "
+                    "Passive modalities modify peripheral tissues temporarily; active practice reorganizes the central nervous system."
+                ),
+                scientific_limitations=(
+                    "Educational explanation of motor learning principles; individual pain etiology is multifactorial (biomechanical, "
+                    "neurophysiological, psychosocial). Does not prescribe individual clinical therapy or guarantee treatment outcomes."
+                ),
+                evidence_references=[
+                    "Schleip R. Fascial plasticity - a new neurobiological explanation. J Bodyw Mov Ther. 2003;7(1):11-19.",
+                    "Weppler CH, Magnusson SP. Increasing muscle extensibility: a review of the effects of stretching. Phys Ther. 2010;90(3):438-449.",
+                    "Kleim JA, Jones TA. Principles of experience-dependent neural plasticity. J Speech Lang Hear Res. 2008;51(1):S225-S239.",
+                    "Krakauer JW, et al. Motor learning. Compr Physiol. 2019;9(2):613-663."
+                ],
+                provenance=ScientificContentProvenance(
+                    source_model="EXPERIENCE_DEPENDENT_NEURAL_PLASTICITY_AND_VISCOELASTICITY",
+                    source_dataset="Motor Learning & Connective Tissue Research Literature",
+                    model_version="Kleim & Jones 2008 / Krakauer 2019 / Schleip 2003",
+                    source_reference="Kleim & Jones 2008 / Krakauer et al. 2019 / Weppler & Magnusson 2010",
+                    assumption_type="EMPIRICAL_LITERATURE",
+                    measurement_or_simulation="EDUCATIONAL_HYPOTHESIS",
+                    units="mechanistic reasoning",
+                    validation_status="VERIFIED_BASELINE_BENCHMARK",
+                    known_limitations="Conceptual educational synthesis; individual duration of viscoelastic creep and motor adaptation rates vary."
+                )
+            ),
+        ]
+
+    def get_motor_control_education(self) -> List[MotorControlTopic]:
+        """Return 6 evidence-based educational topics explaining motor control, sensory feedback, and movement learning."""
+        return [
+            MotorControlTopic(
+                topic_id="motor_planning_and_coordination",
+                title="Motor Planning, Cortical Encodings & Movement Coordination",
+                summary="How the cerebral cortex, basal ganglia, and cerebellum orchestrate multi-joint goal-directed movement.",
+                detailed_explanation=(
+                    "Every voluntary movement begins with high-level hierarchical motor planning. The prefrontal cortex and supplementary "
+                    "motor area (SMA) formulate movement intention, the premotor cortex encodes kinematic trajectories, and the primary "
+                    "motor cortex (M1) generates pyramidal corticospinal drive. Rather than micro-managing individual muscles (which would "
+                    "overwhelm computational capacity—Bernstein's degrees-of-freedom problem), the central nervous system activates coordinated "
+                    "functional muscle synergies. The cerebellum simultaneously receives an efference copy of the motor command, computing "
+                    "feedforward predictions to coordinate multi-joint timing across the shoulder complex."
+                ),
+                physiological_mechanisms=[
+                    "Hierarchical Motor Hierarchy: Prefrontal -> SMA/Premotor -> M1 -> Corticospinal tract.",
+                    "Bernstein's Degrees of Freedom Solution: Grouping individual muscles into low-dimensional functional synergies.",
+                    "Cerebellar Efference Copy: Predictive internal forward models forecasting limb kinematics before sensory arrival.",
+                    "Basal Ganglia Selection: Dopaminergic striatal pathways facilitating desired motor synergies while suppressing competitors."
+                ],
+                clinical_educational_takeaway=(
+                    "Shoulder movement is governed by central motor synergies, not isolated muscle switches. "
+                    "Postural adaptations are organized centrally at the level of motor planning."
+                ),
+                scientific_references=[
+                    "Krakauer JW, Hadjiosif AM, Xu J, Wong AL, Haith AM. Motor learning. Compr Physiol. 2019;9(2):613-663.",
+                    "Latash ML. Fundamentals of Motor Control. Academic Press; 2012.",
+                    "Bernstein NA. The Co-ordination and Regulation of Movements. Pergamon Press; 1967."
+                ],
+                provenance=ScientificContentProvenance(
+                    source_model="CENTRAL_MOTOR_PLANNING_HIERARCHY",
+                    source_dataset="Motor Control & Neuroscience Literature",
+                    model_version="Latash 2012 / Krakauer 2019",
+                    source_reference="Bernstein 1967 / Latash 2012 / Krakauer et al. 2019",
+                    assumption_type="EMPIRICAL_LITERATURE",
+                    measurement_or_simulation="EDUCATIONAL_HYPOTHESIS",
+                    units="neurophysiological concepts",
+                    validation_status="VERIFIED_BASELINE_BENCHMARK",
+                    known_limitations="Conceptual synthesis; individual motor synergy composition varies by task and training history."
+                )
+            ),
+            MotorControlTopic(
+                topic_id="sensory_feedback_proprioception",
+                title="Proprioceptive Feedback: Muscle Spindles, Golgi Tendon Organs & Sensorimotor Loops",
+                summary="How sensory afferents continuously monitor fiber length, stretch velocity, and tensile mechanical strain.",
+                detailed_explanation=(
+                    "Coordinated movement relies on uninterrupted sensory afferent feedback. Intrafusal muscle spindles, oriented in "
+                    "parallel with extrafusal muscle fibers, transduce instantaneous fiber length and rate of length change via primary Type Ia "
+                    "and secondary Type II sensory afferents. Golgi tendon organs (GTOs), arranged in series at the musculotendinous junction, "
+                    "transduce active and passive tension via Type Ib afferents. Together with joint capsule Ruffini and Pacinian endings, "
+                    "these afferents mediate rapid spinal reflexes (monosynaptic stretch reflex, reciprocal inhibition, and Ib autogenic inhibition) "
+                    "and ascending spinocerebellar projections for real-time error correction."
+                ),
+                physiological_mechanisms=[
+                    "Muscle Spindles (Ia/II afferents): Detect static length and dynamic stretch velocity.",
+                    "Golgi Tendon Organs (Ib afferents): Monitor mechanical tension, providing autogenic protective inhibition under high load.",
+                    "Gamma-Motor Neuron Coactivation: Adjusts intrafusal fiber tautness during voluntary shortening to preserve spindle sensitivity.",
+                    "Spinal Reciprocal Inhibition: Ia inhibitory interneurons relax antagonist muscles as agonists contract."
+                ],
+                clinical_educational_takeaway=(
+                    "Proprioception is an active sensory loop. The feeling of 'stiffness' is often the nervous system's active "
+                    "reflex response to perceived instability or unfamiliar ranges of motion."
+                ),
+                scientific_references=[
+                    "Kandel ER, Schwartz JH, Jessell TM, Siegelbaum SA, Hudspeth AJ. Principles of Neural Science. 6th ed. McGraw-Hill; 2021.",
+                    "Proske U, Gandevia SC. The proprioceptive senses: their roles in signaling body shape, body position and movement, and muscle force. Physiol Rev. 2012;92(4):1651-1697."
+                ],
+                provenance=ScientificContentProvenance(
+                    source_model="NEUROPHYSIOLOGY_CLASSICAL_AFFERENT_MODEL",
+                    source_dataset="Classic Neurobiology Research Literature",
+                    model_version="6th Edition Principles of Neural Science",
+                    source_reference="Kandel et al. 2021 / Proske & Gandevia 2012",
+                    assumption_type="EMPIRICAL_LITERATURE",
+                    measurement_or_simulation="EDUCATIONAL_HYPOTHESIS",
+                    units="neurophysiological concepts",
+                    validation_status="VERIFIED_BASELINE_BENCHMARK",
+                    known_limitations="Conceptual synthesis; intrafusal sensitivity thresholds vary across individuals."
+                )
+            ),
+            MotorControlTopic(
+                topic_id="muscle_activation_motor_unit_recruitment",
+                title="Muscle Activation, Motor Unit Recruitment & Electromyography Realities",
+                summary="The physiological distinction between electrical motor unit recruitment, active contraction, and passive tension.",
+                detailed_explanation=(
+                    "Active muscle contraction is governed by Henneman's size principle: smaller, fatigue-resistant Type I motor units are "
+                    "recruited first, followed progressively by larger, high-threshold Type II units as voluntary force requirements increase. "
+                    "Crucially, electrical activation (recorded via electromyography [EMG]) reflects motor unit action potential discharge, "
+                    "NOT mechanical tissue tension. A muscle can produce high passive tension without any electrical activation when mechanically "
+                    "stretched (e.g. titin stiffness). Conversely, high EMG activity in shortened states produces minimal mechanical tension "
+                    "due to cross-bridge overlap limits (active length-tension relationship)."
+                ),
+                physiological_mechanisms=[
+                    "Henneman's Size Principle: Orderly recruitment from smallest (slow-twitch) to largest (fast-twitch) motor units.",
+                    "Rate Coding: Increasing discharge frequency of active motor units to grade contractile force.",
+                    "EMG vs. Mechanical Force Disconnect: EMG measures electrical depolarization, not passive connective tissue stiffness.",
+                    "Active vs. Passive Force Curves: Active force depends on actin-myosin overlap; passive force depends on titin and collagen stretch."
+                ],
+                clinical_educational_takeaway=(
+                    "Palpated muscle hardness does not automatically indicate active electrical spasm. It frequently reflects "
+                    "passive connective tissue resistance or prolonged low-level postural tonic activation."
+                ),
+                scientific_references=[
+                    "Henneman E, Somjen G, Carpenter DO. Functional significance of cell size in spinal motoneurons. J Neurophysiol. 1965;28(3):560-580.",
+                    "Enoka RM, Duchateau J. Rate coding and the control of muscle force. Cold Spring Harb Perspect Med. 2017;7(10):a029702."
+                ],
+                provenance=ScientificContentProvenance(
+                    source_model="MOTOR_UNIT_PHYSIOLOGY_HENNEMAN",
+                    source_dataset="Biomedical Motor Unit Recruitment Literature",
+                    model_version="Henneman 1965 / Enoka 2017",
+                    source_reference="Henneman et al. 1965 / Enoka & Duchateau 2017",
+                    assumption_type="EMPIRICAL_LITERATURE",
+                    measurement_or_simulation="EDUCATIONAL_HYPOTHESIS",
+                    units="recruitment principles",
+                    validation_status="VERIFIED_BASELINE_BENCHMARK",
+                    known_limitations="Conceptual educational synthesis; individual motor unit discharge variability is not simulated in real time."
+                )
+            ),
+            MotorControlTopic(
+                topic_id="motor_learning_neuroplasticity",
+                title="Movement Practice, Motor Learning Stages & Neuroplastic Adaptation",
+                summary="How deliberate practice drives long-term potentiation, cortical map reorganization, and automaticity.",
+                detailed_explanation=(
+                    "Acquiring or modifying a movement pattern is an active motor learning process characterized by Fitts & Posner's three stages: "
+                    "(1) Cognitive Stage (high conscious focus, error-prone, requiring visual/verbal cues), (2) Associative Stage (refining coordination, "
+                    "fewer errors, integrating proprioception), and (3) Autonomous Stage (automatic execution with minimal conscious cognitive load). "
+                    "Deliberate, repetitive practice triggers activity-dependent synaptic plasticity, stimulating long-term potentiation (LTP) at dendritic "
+                    "spines, synaptogenesis, and measurable enlargement of targeted muscle representations in primary motor cortex (M1)."
+                ),
+                physiological_mechanisms=[
+                    "Fitts & Posner Stages: Progression from conscious cognitive control to autonomous automaticity.",
+                    "Cerebellar Error-Driven Adaptation: Climbing fibers signal sensory prediction errors, adjusting Purkinje cell synaptic weights.",
+                    "Long-Term Potentiation (LTP) & Synaptogenesis: Activity-dependent strengthening of functional synaptic connections.",
+                    "Cortical Representation Reorganization: Use-dependent plastic enlargement of target motor maps in M1."
+                ],
+                clinical_educational_takeaway=(
+                    "Correcting movement kinematics is equivalent to learning a complex musical instrument. "
+                    "It demands conscious repetition, sensory feedback, and progressive challenge over weeks to months."
+                ),
+                scientific_references=[
+                    "Hodges PW, Richardson CA. Inefficient muscular stabilization of the lumbar spine associated with low back pain. Spine. 1996;21(22):2640-2650.",
+                    "Kleim JA, Jones TA. Principles of experience-dependent neural plasticity: implications for rehabilitation. J Speech Lang Hear Res. 2008;51(1):S225-S239.",
+                    "Krakauer JW, Hadjiosif AM, Xu J, Wong AL, Haith AM. Motor learning. Compr Physiol. 2019;9(2):613-663.",
+                    "Schmidt RA, Lee TD. Motor Learning and Performance: From Principles to Application. 6th ed. Human Kinetics; 2019."
+                ],
+                provenance=ScientificContentProvenance(
+                    source_model="EXPERIENCE_DEPENDENT_NEURAL_PLASTICITY",
+                    source_dataset="Motor Learning & Rehabilitation Neuroplasticity Frameworks",
+                    model_version="Kleim & Jones 2008 / Krakauer 2019",
+                    source_reference="Kleim & Jones 2008 / Krakauer et al. 2019 / Schmidt & Lee 2019",
+                    assumption_type="EMPIRICAL_LITERATURE",
+                    measurement_or_simulation="EDUCATIONAL_HYPOTHESIS",
+                    units="motor learning principles",
+                    validation_status="VERIFIED_BASELINE_BENCHMARK",
+                    known_limitations="Conceptual synthesis; individual learning curves and synaptogenesis timelines vary widely."
+                )
+            ),
+            MotorControlTopic(
+                topic_id="habitual_movement_patterns_synergies",
+                title="Habitual Movement Patterns, Compensatory Synergies & Postural Encodings",
+                summary="Why the brain defaults to familiar motor strategies under fatigue, habitual use, or prior discomfort.",
+                detailed_explanation=(
+                    "The human central nervous system prioritizes immediate task completion and metabolic efficiency over idealized mechanical "
+                    "perfection. When exposed to repetitive daily environmental constraints (such as prolonged desk posture with anteriorly rotated arms), "
+                    "the brain consolidates a habitual motor synergy. If certain muscles become mechanically disadvantaged or inhibited (e.g., serratus "
+                    "anterior), synergistic muscles (e.g., upper trapezius, levator scapulae) automatically compensate to elevate the arm. Over time, "
+                    "these compensatory synergies become deeply ingrained subcortical motor habits that activate automatically whenever arm elevation is initiated."
+                ),
+                physiological_mechanisms=[
+                    "Metabolic Energy Minimization: The nervous system selects coordination patterns that minimize instantaneous exertion.",
+                    "Compensatory Synergies: Over-activation of synergistic muscles when primary stabilizers operate at mechanical disadvantage.",
+                    "Hebbian Consolidation: 'Neurons that fire together, wire together'—repetitive habitual posture cements synaptic pathways.",
+                    "Threat-Avoidance Motor Reorganization: Pain or fatigue prompts the motor cortex to restrict range and alter motor recruitment."
+                ],
+                clinical_educational_takeaway=(
+                    "A habitual posture is an active neurological choice made by the central nervous system, not merely a mechanical collapse. "
+                    "Changing it requires retraining the neural choice, not just loosening tight tissues."
+                ),
+                scientific_references=[
+                    "Hodges PW, Richardson CA. Inefficient muscular stabilization of the lumbar spine associated with low back pain. Spine. 1996;21(22):2640-2650.",
+                    "Latash ML. Fundamentals of Motor Control. Academic Press; 2012.",
+                    "Shumway-Cook A, Woollacott MH. Motor Control: Translating Research into Clinical Practice. 6th ed. Wolters Kluwer; 2023."
+                ],
+                provenance=ScientificContentProvenance(
+                    source_model="COMPENSATORY_MOTOR_SYNERGY_FRAMEWORK",
+                    source_dataset="Motor Control & Physical Therapy Research Literature",
+                    model_version="Hodges 1996 / Latash 2012",
+                    source_reference="Hodges & Richardson 1996 / Latash 2012 / Shumway-Cook 2023",
+                    assumption_type="EMPIRICAL_LITERATURE",
+                    measurement_or_simulation="EDUCATIONAL_HYPOTHESIS",
+                    units="biomechanical reasoning",
+                    validation_status="VERIFIED_BASELINE_BENCHMARK",
+                    known_limitations="Conceptual model; compensatory recruitment patterns are task- and individual-dependent."
                 )
             ),
             MotorControlTopic(
@@ -776,7 +1261,7 @@ class ShoulderMovementLabEngine:
                     source_model="BIOMECHANICAL_VISCOELASTIC_AND_NEUROLOGICAL_SYNTHESIS",
                     source_dataset="Motor Control & Physical Therapy Research Literature",
                     model_version="6th Edition Motor Control",
-                    source_reference="Weppler & Magnusson 2010 / Shumway-Cook 2023",
+                    source_reference="Weppler & Magnusson 2010 / Shumway-Cook 2023 / Schleip 2003",
                     assumption_type="EMPIRICAL_LITERATURE",
                     measurement_or_simulation="EDUCATIONAL_HYPOTHESIS",
                     units="mechanistic reasoning",
@@ -784,48 +1269,264 @@ class ShoulderMovementLabEngine:
                     known_limitations="Distinguishes conceptual mechanisms; does not quantify precise individual duration of viscoelastic creep."
                 )
             ),
-            MotorControlTopic(
-                topic_id="motor_learning_neuroplasticity",
-                title="Motor Learning, Sensorimotor Integration & Active Movement Practice",
-                summary="The neuroplastic requirements for long-term postural and movement repatterning.",
-                detailed_explanation=(
-                    "Permanent reorganization of human movement coordination requires motor learning—a set of internal processes "
-                    "associated with practice or experience leading to relatively permanent changes in the capability for motor skills. "
-                    "When an individual deliberately practices an altered movement pattern (such as cueing conscious scapular upward rotation "
-                    "and posterior tilting during overhead reach), the motor cortex (M1), supplementary motor area (SMA), and cerebellum "
-                    "engage in repetitive sensorimotor error detection. This active engagement stimulates long-term potentiation (LTP) at dendritic "
-                    "spines, synaptogenesis, and measurable enlargement of the cortical representation of the targeted muscles. "
-                    "According to motor learning principles (Fitts & Posner stage theory: cognitive -> associative -> autonomous), movement "
-                    "transitions from conscious effort to automatic execution only through high-volume, variable, and progressive active practice."
-                ),
-                physiological_mechanisms=[
-                    "Henneman Size Principle & Voluntary Recruitment: Progressive orderly motor unit recruitment driven by conscious pyramidal drive.",
-                    "Cerebellar Error-Driven Adaptation: Climbing fiber signals compare efference copy against proprioceptive reafference.",
-                    "Long-Term Potentiation (LTP) & Synaptogenesis: Activity-dependent strengthening of functional synaptic connections.",
-                    "Cortical Representation Reorganization: Use-dependent plastic enlargement of target motor maps in M1."
-                ],
-                clinical_educational_takeaway=(
-                    "Changing posture or scapulothoracic kinematics is an educational motor skill acquisition process. "
-                    "It demands deliberate conscious repetition, sensory feedback, and gradual progression until the pattern becomes autonomous."
-                ),
-                scientific_references=[
-                    "Hodges PW, Richardson CA. Inefficient muscular stabilization of the lumbar spine associated with low back pain. Spine. 1996;21(22):2640-2650.",
-                    "Kleim JA, Jones TA. Principles of experience-dependent neural plasticity: implications for rehabilitation. J Speech Lang Hear Res. 2008;51(1):S225-S239.",
-                    "Krakauer JW, Hadjiosif AM, Xu J, Wong AL, Haith AM. Motor learning. Compr Physiol. 2019;9(2):613-663."
-                ],
-                provenance=ScientificContentProvenance(
-                    source_model="EXPERIENCE_DEPENDENT_NEURAL_PLASTICITY_MODEL",
-                    source_dataset="Motor Learning & Rehabilitation Neuroplasticity Frameworks",
-                    model_version="Kleim & Jones 2008 / Krakauer 2019",
-                    source_reference="Kleim & Jones 2008 / Krakauer et al. 2019",
-                    assumption_type="EMPIRICAL_LITERATURE",
-                    measurement_or_simulation="EDUCATIONAL_HYPOTHESIS",
-                    units="motor learning principles",
-                    validation_status="VERIFIED_BASELINE_BENCHMARK",
-                    known_limitations="Conceptual educational synthesis; does not simulate actual individual cortical spike trains."
-                )
-            ),
         ]
+
+    def get_muscle_dynamics(
+        self,
+        muscle_id: Optional[str] = None,
+        arm_elevation_deg: float = 0.0,
+        comparison_mode: str = "normal_2to1"
+    ) -> List[MuscleDynamicsDetail]:
+        """Return rich OpenSim-grounded muscle dynamics with attachments, path points, and epistemic tags."""
+        arm_deg = max(0.0, min(180.0, float(arm_elevation_deg)))
+        is_restricted = (comparison_mode == "forward_shoulder_restricted")
+
+        catalog = {
+            "DELT1": {
+                "fma_id": "FMA34680",
+                "full_name": "Clavicular Part of Right Deltoid (Anterior Deltoid)",
+                "origin_description": "Anterior border and superior surface of lateral third of clavicle",
+                "insertion_description": "Deltoid tuberosity on lateral shaft of humerus",
+                "origin_frame": "clavicle",
+                "insertion_frame": "humerus",
+                "origin_point_m": [-0.014, 0.01106, 0.08021],
+                "insertion_point_m": [0.00896, -0.11883, 0.00585],
+                "via_points": [
+                    MusclePathPoint(name="DELT1-P2", parent_frame="humerus", location_m=[0.01623, -0.11033, 0.00412]),
+                    MusclePathPoint(name="DELT1-P3", parent_frame="scapula", location_m=[0.04347, -0.03202, 0.00499]),
+                ],
+                "max_isometric_force_n": 1218.9,
+                "optimal_fiber_length_m": 0.0976,
+                "tendon_slack_length_m": 0.0930,
+            },
+            "DELT2": {
+                "fma_id": "FMA34682",
+                "full_name": "Acromial Part of Right Deltoid (Middle Deltoid)",
+                "origin_description": "Superior surface and lateral margin of acromion process of scapula",
+                "insertion_description": "Deltoid tuberosity of humerus",
+                "origin_frame": "scapula",
+                "insertion_frame": "humerus",
+                "origin_point_m": [-0.01078, -0.00034, 0.0062],
+                "insertion_point_m": [0.00461, -0.13611, 0.0056],
+                "via_points": [
+                    MusclePathPoint(name="DELT2-P3", parent_frame="scapula", location_m=[0.00005, 0.00294, 0.02233]),
+                ],
+                "max_isometric_force_n": 1103.5,
+                "optimal_fiber_length_m": 0.1078,
+                "tendon_slack_length_m": 0.1095,
+            },
+            "DELT3": {
+                "fma_id": "FMA34680_DELT3",
+                "full_name": "Spinal Part of Right Deltoid (Posterior Deltoid)",
+                "origin_description": "Inferior lip of posterior border of spine of scapula",
+                "insertion_description": "Deltoid tuberosity of humerus",
+                "origin_frame": "scapula",
+                "insertion_frame": "humerus",
+                "origin_point_m": [-0.05573, 0.00122, -0.02512],
+                "insertion_point_m": [0.00206, -0.07602, 0.01045],
+                "via_points": [
+                    MusclePathPoint(name="DELT3-P2", parent_frame="scapula", location_m=[-0.07247, -0.03285, 0.01233]),
+                ],
+                "max_isometric_force_n": 201.6,
+                "optimal_fiber_length_m": 0.1367,
+                "tendon_slack_length_m": 0.0380,
+            },
+            "SUPSP": {
+                "fma_id": "FMA34685",
+                "full_name": "Right Supraspinatus",
+                "origin_description": "Supraspinous fossa of posterior scapula",
+                "insertion_description": "Superior facet of greater tubercle of humerus",
+                "origin_frame": "scapula",
+                "insertion_frame": "humerus",
+                "origin_point_m": [-0.044, -0.01512, -0.05855],
+                "insertion_point_m": [0.00256, 0.01063, 0.02593],
+                "via_points": [
+                    MusclePathPoint(name="SUPSP-P2", parent_frame="scapula", location_m=[-0.01918, 0.00127, -0.01271]),
+                ],
+                "max_isometric_force_n": 499.2,
+                "optimal_fiber_length_m": 0.0682,
+                "tendon_slack_length_m": 0.0395,
+            },
+            "INFSP": {
+                "fma_id": "FMA34686",
+                "full_name": "Right Infraspinatus",
+                "origin_description": "Infraspinous fossa of posterior scapula",
+                "insertion_description": "Middle facet of greater tubercle of humerus",
+                "origin_frame": "scapula",
+                "insertion_frame": "humerus",
+                "origin_point_m": [-0.07382, -0.05476, -0.04781],
+                "insertion_point_m": [-0.00887, 0.00484, 0.02448],
+                "via_points": [],
+                "max_isometric_force_n": 1075.8,
+                "optimal_fiber_length_m": 0.0755,
+                "tendon_slack_length_m": 0.0308,
+            },
+            "SUBSC": {
+                "fma_id": "FMA34687",
+                "full_name": "Right Subscapularis",
+                "origin_description": "Subscapular fossa on anterior costal surface of scapula",
+                "insertion_description": "Lesser tubercle of humerus",
+                "origin_frame": "scapula",
+                "insertion_frame": "humerus",
+                "origin_point_m": [-0.07246, -0.03943, -0.06475],
+                "insertion_point_m": [0.01403, 0.0084, -0.01331],
+                "via_points": [
+                    MusclePathPoint(name="SUBSC-P2", parent_frame="scapula", location_m=[-0.01831, -0.05223, -0.02457]),
+                ],
+                "max_isometric_force_n": 1306.9,
+                "optimal_fiber_length_m": 0.0873,
+                "tendon_slack_length_m": 0.0330,
+            },
+            "TMIN": {
+                "fma_id": "FMA34688",
+                "full_name": "Right Teres Minor",
+                "origin_description": "Middle third of lateral border of scapula",
+                "insertion_description": "Inferior facet of greater tubercle of humerus",
+                "origin_frame": "scapula",
+                "insertion_frame": "humerus",
+                "origin_point_m": [-0.09643, -0.08121, -0.05298],
+                "insertion_point_m": [-0.00127, -0.01259, 0.022],
+                "via_points": [],
+                "max_isometric_force_n": 269.5,
+                "optimal_fiber_length_m": 0.0741,
+                "tendon_slack_length_m": 0.0713,
+            },
+            "BICshort": {
+                "fma_id": "FMA37684",
+                "full_name": "Short Head of Right Biceps Brachii",
+                "origin_description": "Apex of coracoid process of scapula",
+                "insertion_description": "Radial tuberosity and bicipital aponeurosis of forearm",
+                "origin_frame": "scapula",
+                "insertion_frame": "radius",
+                "origin_point_m": [0.01268, -0.03931, -0.02625],
+                "insertion_point_m": [-0.002, -0.0375, -0.002],
+                "via_points": [
+                    MusclePathPoint(name="BICshort-P2", parent_frame="scapula", location_m=[0.00093, -0.06704, -0.01593]),
+                    MusclePathPoint(name="BICshort-P3", parent_frame="humerus", location_m=[0.01117, -0.07576, -0.01101]),
+                ],
+                "max_isometric_force_n": 316.8,
+                "optimal_fiber_length_m": 0.1321,
+                "tendon_slack_length_m": 0.1923,
+            },
+            "BIClong": {
+                "fma_id": "FMA37686",
+                "full_name": "Long Head of Right Biceps Brachii",
+                "origin_description": "Supraglenoid tubercle of scapula",
+                "insertion_description": "Radial tuberosity of forearm",
+                "origin_frame": "scapula",
+                "insertion_frame": "radius",
+                "origin_point_m": [-0.03123, -0.02353, -0.01305],
+                "insertion_point_m": [-0.002, -0.0375, -0.002],
+                "via_points": [
+                    MusclePathPoint(name="BIClong-P2", parent_frame="scapula", location_m=[-0.02094, -0.01309, -0.00461]),
+                    MusclePathPoint(name="BIClong-P3", parent_frame="humerus", location_m=[0.02131, 0.01793, 0.01028]),
+                ],
+                "max_isometric_force_n": 525.1,
+                "optimal_fiber_length_m": 0.1157,
+                "tendon_slack_length_m": 0.2723,
+            },
+            "TRIlong": {
+                "fma_id": "FMA37699",
+                "full_name": "Long Head of Right Triceps Brachii",
+                "origin_description": "Infraglenoid tubercle of scapula",
+                "insertion_description": "Posterior surface of olecranon process of ulna",
+                "origin_frame": "scapula",
+                "insertion_frame": "ulna",
+                "origin_point_m": [-0.04565, -0.04073, -0.01377],
+                "insertion_point_m": [-0.0219, 0.01046, -0.00078],
+                "via_points": [
+                    MusclePathPoint(name="TRIlong-P2", parent_frame="humerus", location_m=[-0.02714, -0.11441, -0.00664]),
+                ],
+                "max_isometric_force_n": 771.8,
+                "optimal_fiber_length_m": 0.1340,
+                "tendon_slack_length_m": 0.1430,
+            },
+        }
+
+        # Query baseline muscle responses at neutral (0°) and current angle
+        neutral_responses = {r.muscle_name: r for r in self.get_muscle_responses(0.0, "normal_2to1")}
+        current_responses = {r.muscle_name: r for r in self.get_muscle_responses(arm_deg, comparison_mode)}
+
+        data_prov = (
+            "BASELINE_MOBL_ARMS_MODEL_ESTIMATE; UNADJUSTED_FOR_RESTRICTED_POSTURE"
+            if is_restricted else "MOBL_ARMS_41_OPENSIM_SIMULATION"
+        )
+        val_status = (
+            "NOT_VERIFIED_FOR_MODIFIED_POSTURE"
+            if is_restricted else "VERIFIED_BASELINE_BENCHMARK"
+        )
+        scenario_note = (
+            "CAUTION: Values represent baseline OpenSim geometry. Altered restricted kinematics have not been re-simulated."
+            if is_restricted else "Corresponds directly to baseline OpenSim MOBL_ARMS_41 trajectory."
+        )
+
+        selected_muscles = [muscle_id] if muscle_id and muscle_id in catalog else list(catalog.keys())
+        results: List[MuscleDynamicsDetail] = []
+
+        for m_key in selected_muscles:
+            meta = catalog[m_key]
+            curr_resp = current_responses.get(m_key)
+            neut_resp = neutral_responses.get(m_key)
+
+            curr_fib = curr_resp.fiber_length_m if curr_resp else meta["optimal_fiber_length_m"]
+            neut_fib = neut_resp.fiber_length_m if neut_resp else meta["optimal_fiber_length_m"]
+            norm_fib = curr_resp.normalized_fiber_length if curr_resp else 1.0
+            pass_f = curr_resp.passive_force_n if curr_resp else 0.0
+            state = curr_resp.biomechanical_state if curr_resp else "Nominal"
+            tag = curr_resp.kmsi_tag if curr_resp else "NOMINAL_RESTING"
+            color = curr_resp.kmsi_color_hex if curr_resp else "#95a5a6"
+
+            prov = ScientificContentProvenance(
+                source_model="MOBL_ARMS_41_MUSCLE_DYNAMICS",
+                source_dataset="OpenSim Upper Extremity Model Database",
+                model_version="4.6.0",
+                source_reference="Saul et al. 2015 / Millard et al. 2013",
+                assumption_type="OPENSIM_SIMULATION" if not is_restricted else "HYPOTHETICAL_SCENARIO",
+                measurement_or_simulation="SIMULATION",
+                units="meters (length) / Newtons (force)",
+                validation_status=val_status,
+                known_limitations=(
+                    "Millard2012 equilibrium model; line-of-action approximation; does not measure real-time voluntary EMG activation."
+                )
+            )
+
+            results.append(MuscleDynamicsDetail(
+                muscle_name=m_key,
+                fma_id=meta["fma_id"],
+                full_name=meta["full_name"],
+                category="muscle",
+                mesh_classification="STATIC_RESTING_ANATOMICAL_MESH",
+                path_classification="REPRESENTED_BY_OPENSIM_MUSCLE_PATH",
+                origin_description=meta["origin_description"],
+                insertion_description=meta["insertion_description"],
+                origin_frame=meta["origin_frame"],
+                insertion_frame=meta["insertion_frame"],
+                origin_point_m=meta["origin_point_m"],
+                insertion_point_m=meta["insertion_point_m"],
+                via_points=meta["via_points"],
+                max_isometric_force_n=meta["max_isometric_force_n"],
+                optimal_fiber_length_m=meta["optimal_fiber_length_m"],
+                tendon_slack_length_m=meta["tendon_slack_length_m"],
+                current_elevation_deg=round(arm_deg, 1),
+                current_fiber_length_m=round(curr_fib, 4),
+                neutral_fiber_length_m=round(neut_fib, 4),
+                delta_fiber_length_m=round(curr_fib - neut_fib, 4),
+                normalized_fiber_length=round(norm_fib, 4),
+                passive_force_n=round(pass_f, 2),
+                biomechanical_state=state,
+                kmsi_tag=tag,
+                kmsi_color_hex=color,
+                length_change_tag="MODELED_LENGTH_CHANGE",
+                passive_force_tag="MODELED_PASSIVE_FORCE",
+                activation_measurement_status="MUSCLE_ACTIVATION_NOT_MEASURED",
+                illustration_status="EDUCATIONAL_ILLUSTRATION",
+                data_provenance=data_prov,
+                validation_status=val_status,
+                scenario_note=scenario_note,
+                provenance=prov,
+            ))
+
+        return results
 
 
 # Global singleton
